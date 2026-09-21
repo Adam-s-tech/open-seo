@@ -8,12 +8,23 @@ const mocks = vi.hoisted(() => ({
   getConfigsForProject: vi.fn(),
   createConfig: vi.fn(),
   updateConfig: vi.fn(),
+  getKeywordCountsForConfigs: vi.fn(),
+  getKeywordsForConfig: vi.fn(),
+  tryCreateRun: vi.fn(),
+  startWorkflow: vi.fn(),
+  isHosted: vi.fn(),
+  customerHasPaidPlan: vi.fn(),
 }));
 
-vi.mock("cloudflare:workers", () => ({ env: {} }));
+vi.mock("cloudflare:workers", () => ({
+  env: { RANK_CHECK_WORKFLOW: { create: mocks.startWorkflow } },
+}));
 vi.mock("@/server/lib/runtime-env", () => ({
   getRequiredEnvValue: () => Promise.resolve("basic-key"),
-  isHostedServerAuthMode: () => Promise.resolve(false),
+  isHostedServerAuthMode: mocks.isHosted,
+}));
+vi.mock("@/server/billing/subscription", () => ({
+  customerHasPaidPlan: mocks.customerHasPaidPlan,
 }));
 vi.mock("@/server/lib/dataforseo", () => ({ createDataforseoClient: vi.fn() }));
 vi.mock(
@@ -288,5 +299,85 @@ describe("RankTrackingService.updateConfig schedule", () => {
       }),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
     expect(mocks.updateConfig).not.toHaveBeenCalled();
+  });
+});
+
+const minutesFromNow = (minutes: number) =>
+  new Date(Date.now() + minutes * 60_000).toISOString();
+
+describe("RankTrackingService.triggerAutoCheck", () => {
+  const input = {
+    configId: "config_archived",
+    projectId: "project_1",
+    billingCustomer: {
+      userId: "user_1",
+      userEmail: "user@openseo.so",
+      organizationId: "org_1",
+      projectId: "project_1",
+    },
+  };
+
+  beforeEach(() => {
+    mocks.getKeywordCountsForConfigs.mockResolvedValue(
+      new Map([["config_archived", 2]]),
+    );
+    mocks.getKeywordsForConfig.mockResolvedValue([
+      { id: "kw_1" },
+      { id: "kw_2" },
+    ]);
+    mocks.tryCreateRun.mockResolvedValue(true);
+    mocks.isHosted.mockResolvedValue(false);
+  });
+
+  it("starts a check when the scheduled check is more than an hour away", async () => {
+    mocks.getConfigById.mockResolvedValue({
+      ...archivedConfig,
+      nextCheckAt: minutesFromNow(61),
+    });
+
+    await expect(
+      RankTrackingService.triggerAutoCheck(input),
+    ).resolves.toMatchObject({ ok: true });
+    expect(mocks.startWorkflow).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the keywords to a scheduled check due within the hour", async () => {
+    mocks.getConfigById.mockResolvedValue({
+      ...archivedConfig,
+      nextCheckAt: minutesFromNow(59),
+    });
+
+    await expect(RankTrackingService.triggerAutoCheck(input)).resolves.toEqual({
+      ok: false,
+      reason: "scheduled_soon",
+    });
+    expect(mocks.startWorkflow).not.toHaveBeenCalled();
+  });
+
+  it("refuses a free plan before promising a scheduled check", async () => {
+    mocks.isHosted.mockResolvedValue(true);
+    mocks.customerHasPaidPlan.mockResolvedValue(false);
+    mocks.getConfigById.mockResolvedValue({
+      ...archivedConfig,
+      nextCheckAt: minutesFromNow(59),
+    });
+
+    await expect(
+      RankTrackingService.triggerAutoCheck(input),
+    ).rejects.toMatchObject({ code: "PAYMENT_REQUIRED" });
+  });
+
+  it("starts nothing for a domain without keywords", async () => {
+    mocks.getConfigById.mockResolvedValue({
+      ...archivedConfig,
+      nextCheckAt: null,
+    });
+    mocks.getKeywordCountsForConfigs.mockResolvedValue(new Map());
+
+    await expect(RankTrackingService.triggerAutoCheck(input)).resolves.toEqual({
+      ok: false,
+      reason: "no_keywords",
+    });
+    expect(mocks.startWorkflow).not.toHaveBeenCalled();
   });
 });

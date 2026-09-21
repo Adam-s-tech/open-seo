@@ -296,6 +296,39 @@ async function triggerCheck(input: {
   });
 }
 
+// A scheduled check this close covers the same keywords, so an automatic
+// check now would bill the customer twice within the hour.
+const AUTO_CHECK_SCHEDULE_WINDOW_MS = 60 * 60_000;
+
+// The check that follows adding a domain or keywords, as opposed to the user
+// pressing "Check Now" — so it yields to an imminent scheduled check.
+async function triggerAutoCheck(input: {
+  configId: string;
+  projectId: string;
+  billingCustomer: BillingCustomerContext;
+  keywordIds?: string[];
+}): Promise<
+  | RankCheckTriggerResult
+  | { ok: false; reason: "scheduled_soon" | "no_keywords" }
+> {
+  const config = await getValidatedConfig(input.configId, input.projectId);
+  const msUntilScheduled = config.nextCheckAt
+    ? new Date(config.nextCheckAt).getTime() - Date.now()
+    : Infinity;
+  if (msUntilScheduled <= AUTO_CHECK_SCHEDULE_WINDOW_MS) {
+    // A free plan must not be told to wait for a scheduled check that the
+    // scheduler will skip. The other path checks access in triggerCheck.
+    await requireRankCheckAccess(input.billingCustomer.organizationId);
+    return { ok: false, reason: "scheduled_soon" };
+  }
+  // A brand-new domain has no keywords yet; a re-added archived one keeps its.
+  const counts = await RankTrackingRepository.getKeywordCountsForConfigs([
+    config.id,
+  ]);
+  if (!counts.get(config.id)) return { ok: false, reason: "no_keywords" };
+  return triggerCheck(input);
+}
+
 async function getLatestRun(configId: string, projectId: string) {
   await getValidatedConfig(configId, projectId);
   const run = await RankTrackingRepository.getLatestRunForConfig(configId);
@@ -457,6 +490,7 @@ export const RankTrackingService = {
   addKeywords: RankTrackingKeywordService.addKeywords,
   removeKeywords: RankTrackingKeywordService.removeKeywords,
   triggerCheck,
+  triggerAutoCheck,
   getLatestRun,
   estimateCost: RankTrackingKeywordService.estimateCost,
   refreshKeywordMetrics,

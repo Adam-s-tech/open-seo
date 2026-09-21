@@ -127,6 +127,7 @@ export function RankTrackingDomainDetail({
   const handleKeywordsAdded = (result: {
     added: number;
     checkTriggered: boolean;
+    checkScheduledSoon: boolean;
   }) => {
     void queryClient.invalidateQueries({
       queryKey: ["rankTrackingCostEstimate", projectId, config.id],
@@ -142,7 +143,9 @@ export function RankTrackingDomainDetail({
     toast.success(
       `${result.added} keyword${result.added !== 1 ? "s" : ""} added`,
     );
-    if (!result.checkTriggered && result.added > 0) {
+    if (result.checkScheduledSoon) {
+      toast.info("The scheduled check within the hour covers these keywords");
+    } else if (!result.checkTriggered && result.added > 0) {
       toast.info("Use 'Check Now' to check these keywords");
     }
   };
