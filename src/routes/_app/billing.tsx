@@ -11,10 +11,16 @@ import { BillingUsageChart } from "@/client/features/billing/BillingUsageChart";
 import { BillingFeatureBreakdown } from "@/client/features/billing/BillingFeatureBreakdown";
 import { parseTopUpAmount } from "@/client/features/billing/HostedBillingContentUtils";
 import { getBillingRouteState } from "@/client/features/billing/route-state";
-import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
+import {
+  getCustomerPaidPlan,
+  getCustomerPlanStatus,
+} from "@/client/features/billing/plan-detection";
+import {
+  BASE_PLAN_OFFER,
+  monthlyCreditsFeature,
+} from "@/client/features/billing/plan-offers";
 import {
   AUTUMN_CHECKOUT_SESSION_PARAMS,
-  AUTUMN_PAID_PLAN_ID,
   BILLING_ROUTE,
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
   LOW_CREDITS_THRESHOLD_USD,
@@ -40,6 +46,8 @@ function BillingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const customerQuery = useCustomer({
+    // Expanded so the plan card can show the subscribed plan's name.
+    expand: ["subscriptions.plan"],
     queryOptions: {
       enabled: Boolean(session?.user?.id),
     },
@@ -51,6 +59,7 @@ function BillingPage() {
 
   const planStatus = getCustomerPlanStatus(customerQuery.data);
   const isFreePlan = planStatus === "free";
+  const paidPlan = getCustomerPaidPlan(customerQuery.data);
   const billingRouteState = getBillingRouteState({
     hasSession: Boolean(session?.user?.id),
     isSessionPending,
@@ -101,10 +110,10 @@ function BillingPage() {
   function startUpgradeCheckout() {
     captureClientEvent("billing:checkout_start");
     return customerQuery.attach({
-      planId: AUTUMN_PAID_PLAN_ID,
+      planId: BASE_PLAN_OFFER.planId,
       redirectMode: "always",
       successUrl: buildCheckoutSuccessUrl(BILLING_ROUTE),
-      checkoutSessionParams: AUTUMN_CHECKOUT_SESSION_PARAMS,
+      checkoutSessionParams: BASE_PLAN_OFFER.checkoutSessionParams,
     });
   }
 
@@ -168,7 +177,7 @@ function BillingPage() {
               <p className="mt-2 text-xs text-amber-600">
                 You&rsquo;re running low on credits.{" "}
                 {isFreePlan
-                  ? "Upgrade to get $10/month."
+                  ? `Upgrade to get $${BASE_PLAN_OFFER.monthlyCreditsUsd}/month.`
                   : "Buy more credits below."}
               </p>
             ) : null}
@@ -177,8 +186,15 @@ function BillingPage() {
           <div className="text-sm">
             <span className="font-medium">Plan</span>{" "}
             <span className="text-base-content/50">
-              {isFreePlan ? "Free Plan" : "Base Plan"}
+              {paidPlan?.name ?? "Free Plan"}
             </span>
+            {paidPlan ? (
+              <span className="text-base-content/50">
+                {" "}
+                &middot; ${paidPlan.monthlyCreditsUsd.toFixed(2)} of Usage
+                Credits each month
+              </span>
+            ) : null}
           </div>
 
           {!canManageBilling ? (
@@ -189,15 +205,17 @@ function BillingPage() {
           ) : isFreePlan ? (
             <div className="space-y-3 border-t border-base-300 pt-3">
               <div className="flex items-baseline justify-between gap-4">
-                <span className="text-sm font-medium">Base Plan</span>
+                <span className="text-sm font-medium">
+                  {BASE_PLAN_OFFER.name}
+                </span>
                 <span className="text-sm font-medium tabular-nums">
-                  $10/month
+                  ${BASE_PLAN_OFFER.priceUsd}/month
                 </span>
               </div>
               <ul className="space-y-1.5">
                 {[
                   "Access to all OpenSEO features",
-                  "Includes $10.00 of Usage Credits each month",
+                  monthlyCreditsFeature(BASE_PLAN_OFFER),
                 ].map((item) => (
                   <li
                     key={item}

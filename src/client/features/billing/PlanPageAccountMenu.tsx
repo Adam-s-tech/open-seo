@@ -1,0 +1,53 @@
+import { Link } from "@tanstack/react-router";
+import { Settings, User } from "lucide-react";
+import { ThemePreferenceMenuItems } from "@/client/components/ThemePreferenceMenuItems";
+import { signOutAndRedirect } from "@/lib/auth-client";
+
+// Account dropdown for the standalone plan pages (/subscribe, /yc), which
+// render outside the app shell and so have no other way to sign out.
+export function PlanPageAccountMenu({ email }: { email: string | undefined }) {
+  if (!email) return null;
+
+  const handleSignOut = () => signOutAndRedirect();
+
+  return (
+    <div className="fixed top-4 right-4">
+      <div className="dropdown dropdown-end">
+        <button
+          type="button"
+          tabIndex={0}
+          className="btn btn-ghost btn-circle"
+          aria-label="Open account menu"
+        >
+          <User className="h-5 w-5" />
+        </button>
+        <ul
+          tabIndex={0}
+          className="dropdown-content z-20 menu mt-3 min-w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+        >
+          <li className="menu-title max-w-full">
+            <span className="truncate text-base-content" data-ph-mask>
+              {email}
+            </span>
+          </li>
+          <li>
+            <Link to="/settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+          </li>
+          <ThemePreferenceMenuItems />
+          <li>
+            <button
+              type="button"
+              className="text-error"
+              onClick={handleSignOut}
+            >
+              Sign out
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}

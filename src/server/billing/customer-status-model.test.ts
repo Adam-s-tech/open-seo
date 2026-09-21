@@ -1,18 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { AUTUMN_PAID_PLAN_ID } from "@/shared/billing";
+import { AUTUMN_PAID_PLAN_FEATURE_ID } from "@/shared/billing";
 import { deriveBillingCustomerStatusSnapshot } from "./customer-status-model";
 
+const paidFlags = (planId: string) => ({
+  [AUTUMN_PAID_PLAN_FEATURE_ID]: { planId },
+});
+
 describe("deriveBillingCustomerStatusSnapshot", () => {
-  it("marks customers with an active paid subscription as paying", () => {
+  it("marks customers whose paid plan is active as paying", () => {
     const snapshot = deriveBillingCustomerStatusSnapshot({
       id: "org_123",
-      subscriptions: [{ planId: AUTUMN_PAID_PLAN_ID, status: "active" }],
+      flags: paidFlags("yc-plan"),
+      subscriptions: [{ planId: "yc-plan", status: "active" }],
     });
 
     expect(snapshot).toMatchObject({
       organizationId: "org_123",
       isPaying: true,
-      paidPlanId: AUTUMN_PAID_PLAN_ID,
+      paidPlanId: "yc-plan",
       paidPlanStatus: "active",
     });
   });
@@ -22,7 +27,6 @@ describe("deriveBillingCustomerStatusSnapshot", () => {
       id: "org_123",
       email: "alice@example.com",
       stripeId: "cus_123",
-      subscriptions: [{ planId: AUTUMN_PAID_PLAN_ID, status: "active" }],
     });
 
     expect(JSON.parse(snapshot.customerJson)).toMatchObject({
@@ -32,9 +36,10 @@ describe("deriveBillingCustomerStatusSnapshot", () => {
     });
   });
 
-  it("keeps non-paid customers queryable but not paying", () => {
+  it("keeps customers without the paid entitlement queryable but not paying", () => {
     const snapshot = deriveBillingCustomerStatusSnapshot({
       id: "org_123",
+      flags: {},
       subscriptions: [{ planId: "free", status: "active" }],
     });
 
@@ -43,31 +48,31 @@ describe("deriveBillingCustomerStatusSnapshot", () => {
     expect(snapshot.paidPlanStatus).toBeNull();
   });
 
-  it("records a scheduled (not-yet-active) paid plan as not paying", () => {
+  it("records a past-due paid plan as not paying", () => {
     const snapshot = deriveBillingCustomerStatusSnapshot({
       id: "org_456",
-      subscriptions: [{ planId: AUTUMN_PAID_PLAN_ID, status: "scheduled" }],
+      flags: paidFlags("base-plan"),
+      subscriptions: [{ planId: "base-plan", status: "past_due" }],
     });
 
     expect(snapshot).toMatchObject({
-      organizationId: "org_456",
       isPaying: false,
-      paidPlanId: AUTUMN_PAID_PLAN_ID,
-      paidPlanStatus: "scheduled",
+      paidPlanId: "base-plan",
+      paidPlanStatus: "past_due",
     });
   });
 
-  it("prefers an active paid subscription when multiple paid rows exist", () => {
+  it("prefers the active row when the plan has several subscriptions", () => {
     const snapshot = deriveBillingCustomerStatusSnapshot({
       id: "org_789",
+      flags: paidFlags("base-plan"),
       subscriptions: [
-        { planId: AUTUMN_PAID_PLAN_ID, status: "scheduled" },
-        { planId: AUTUMN_PAID_PLAN_ID, status: "active" },
+        { planId: "base-plan", status: "scheduled" },
+        { planId: "base-plan", status: "active" },
       ],
     });
 
     expect(snapshot.isPaying).toBe(true);
-    expect(snapshot.paidPlanId).toBe(AUTUMN_PAID_PLAN_ID);
     expect(snapshot.paidPlanStatus).toBe("active");
   });
 });

@@ -2,6 +2,8 @@ export const BILLING_ROUTE = "/billing";
 export const SUBSCRIBE_ROUTE = "/subscribe";
 
 export const AUTUMN_PAID_PLAN_ID = "base-plan";
+// YC deal: same entitlements as the base plan with $50 of monthly credits.
+export const AUTUMN_YC_PLAN_ID = "yc-plan";
 export const AUTUMN_SEO_DATA_TOP_UP_PLAN_ID = "credit-top-up";
 export const AUTUMN_PAID_PLAN_FEATURE_ID = "paid_plan";
 // Granted by both the free plan (now the Autumn Default, so every non-paid
@@ -24,6 +26,13 @@ export const AUTUMN_CHECKOUT_SESSION_PARAMS = {
   tax_id_collection: { enabled: true },
   billing_address_collection: "required",
   customer_update: { name: "auto", address: "auto" },
+} as const;
+
+// YC checkout additionally shows Stripe's promotion code field so founders
+// can redeem the YC deal code for their first month.
+export const AUTUMN_YC_CHECKOUT_SESSION_PARAMS = {
+  ...AUTUMN_CHECKOUT_SESSION_PARAMS,
+  allow_promotion_codes: true,
 } as const;
 
 export function roundUsdForBilling(value: number) {
