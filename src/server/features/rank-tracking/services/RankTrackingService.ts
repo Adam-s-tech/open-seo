@@ -12,6 +12,7 @@ import { assertSerpLocationNameAccepted } from "@/server/lib/dataforseo/serp-loc
 import { AppError } from "@/server/lib/errors";
 import { isHostedServerAuthMode } from "@/server/lib/runtime-env";
 import type {
+  RankCheckScheduleTime,
   RankTrackingConfig,
   RankCheckTriggerResult,
 } from "@/types/schemas/rank-tracking";
@@ -49,6 +50,7 @@ async function createConfig(input: {
   devices?: RankTrackingConfig["devices"];
   serpDepth: number;
   scheduleInterval?: RankTrackingConfig["scheduleInterval"];
+  scheduleTime?: RankCheckScheduleTime;
 }) {
   const normalizedDomain = normalizeDomain(input.domain);
 
@@ -57,9 +59,7 @@ async function createConfig(input: {
     input.projectMarket,
   );
   const scheduleInterval = input.scheduleInterval ?? "weekly";
-  const nextCheckAt = isScheduledRankTrackingInterval(scheduleInterval)
-    ? computeNextCheckAt(scheduleInterval)
-    : null;
+  const nextCheckAt = resolveNextCheckAt(scheduleInterval, input.scheduleTime);
 
   const locationName = input.locationName ?? null;
   // Before the duplicate/limit checks so an unusable location name is the
@@ -155,10 +155,13 @@ async function updateConfig(
     devices?: RankTrackingConfig["devices"];
     serpDepth?: number;
     scheduleInterval?: RankTrackingConfig["scheduleInterval"];
+    scheduleTime?: RankCheckScheduleTime;
     isActive?: boolean;
   },
 ) {
-  const updates: typeof input & { nextCheckAt?: string | null } = {};
+  const { scheduleTime, ...fields } = input;
+  const updates: typeof fields & { nextCheckAt?: string | null } = {};
+  const existing = await getValidatedConfig(configId, projectId);
 
   // A location name is only valid together with its market, so re-check the
   // resulting (name, language, country) whenever any of the three changes.
@@ -167,7 +170,6 @@ async function updateConfig(
     input.locationCode !== undefined ||
     input.languageCode !== undefined;
   if (marketChanged) {
-    const existing = await getValidatedConfig(configId, projectId);
     const locationName =
       input.locationName === undefined
         ? existing.locationName
@@ -195,16 +197,47 @@ async function updateConfig(
   if (input.serpDepth !== undefined) updates.serpDepth = input.serpDepth;
   if (input.isActive !== undefined) updates.isActive = input.isActive;
 
-  if (input.scheduleInterval !== undefined) {
-    updates.scheduleInterval = input.scheduleInterval;
-    if (input.scheduleInterval === "manual") {
-      updates.nextCheckAt = null;
-    } else {
-      updates.nextCheckAt = computeNextCheckAt(input.scheduleInterval);
-    }
+  const scheduleInterval = input.scheduleInterval ?? existing.scheduleInterval;
+  // The config modal resends the interval on every save, so only move the
+  // anchor when the schedule really changed — otherwise editing, say, devices
+  // would re-randomize the run time.
+  if (
+    scheduleTime ||
+    scheduleInterval !== existing.scheduleInterval ||
+    (scheduleInterval !== "manual" && !existing.nextCheckAt)
+  ) {
+    updates.scheduleInterval = scheduleInterval;
+    updates.nextCheckAt = resolveNextCheckAt(scheduleInterval, scheduleTime);
   }
 
   await RankTrackingRepository.updateConfig(configId, projectId, updates);
+}
+
+function resolveNextCheckAt(
+  scheduleInterval: RankTrackingConfig["scheduleInterval"],
+  scheduleTime: RankCheckScheduleTime | undefined,
+): string | null {
+  if (isScheduledRankTrackingInterval(scheduleInterval)) {
+    // Without one the check would quietly repeat on whatever day today is.
+    if (
+      scheduleInterval === "weekly" &&
+      scheduleTime &&
+      scheduleTime.weekday === undefined
+    ) {
+      throw new AppError(
+        "VALIDATION_ERROR",
+        "A weekly schedule time needs a weekday",
+      );
+    }
+    return computeNextCheckAt(scheduleInterval, null, scheduleTime);
+  }
+  if (scheduleTime) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      "A schedule time needs a daily, weekly, or monthly schedule",
+    );
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

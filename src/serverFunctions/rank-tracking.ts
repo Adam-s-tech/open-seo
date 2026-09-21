@@ -83,6 +83,7 @@ export const createRankTrackingConfig = createServerFn({ method: "POST" })
       devices: data.devices,
       serpDepth: data.serpDepth,
       scheduleInterval: data.scheduleInterval,
+      scheduleTime: data.scheduleTime,
     });
 
     waitUntil(
@@ -114,6 +115,7 @@ export const updateRankTrackingConfig = createServerFn({ method: "POST" })
       devices: data.devices,
       serpDepth: data.serpDepth,
       scheduleInterval: data.scheduleInterval,
+      scheduleTime: data.scheduleTime,
       isActive: data.isActive,
     });
     return { success: true };

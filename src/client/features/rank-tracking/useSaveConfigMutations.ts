@@ -6,7 +6,10 @@ import {
 } from "@/serverFunctions/rank-tracking";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
-import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
+import type {
+  RankCheckScheduleTime,
+  RankTrackingConfig,
+} from "@/types/schemas/rank-tracking";
 
 type ConfigFields = {
   devices: "both" | "desktop" | "mobile";
@@ -16,6 +19,7 @@ type ConfigFields = {
   targetingMode: "national" | "local";
   locationName: string | undefined;
   schedule: RankTrackingConfig["scheduleInterval"];
+  scheduleTime: RankCheckScheduleTime | undefined;
 };
 
 export function useSaveConfigMutations(input: {
@@ -32,6 +36,7 @@ export function useSaveConfigMutations(input: {
     locationCode: fields.locationCode,
     languageCode: fields.languageCode,
     scheduleInterval: fields.schedule,
+    scheduleTime: fields.scheduleTime,
   };
 
   const createMutation = useMutation({

@@ -235,3 +235,58 @@ describe("RankTrackingService.createConfig", () => {
     expect(mocks.createConfig).not.toHaveBeenCalled();
   });
 });
+
+describe("RankTrackingService.updateConfig schedule", () => {
+  beforeEach(() => {
+    mocks.getConfigById.mockResolvedValue({
+      ...archivedConfig,
+      isActive: true,
+      nextCheckAt: "2026-03-15T21:00:00.000Z",
+    });
+  });
+
+  it("keeps the run time when a save resends an unchanged interval", async () => {
+    await RankTrackingService.updateConfig("config_archived", "project_1", {
+      devices: "mobile",
+      scheduleInterval: "weekly",
+    });
+
+    expect(mocks.updateConfig.mock.calls[0][2]).toEqual({ devices: "mobile" });
+  });
+
+  it("moves the run time to a chosen time", async () => {
+    vi.useFakeTimers();
+    // A Tuesday.
+    vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
+
+    await RankTrackingService.updateConfig("config_archived", "project_1", {
+      scheduleTime: { weekday: 1, hour: 9, minute: 30 },
+    });
+    vi.useRealTimers();
+
+    expect(mocks.updateConfig).toHaveBeenCalledWith(
+      "config_archived",
+      "project_1",
+      { scheduleInterval: "weekly", nextCheckAt: "2026-03-16T09:30:00.000Z" },
+    );
+  });
+
+  it("rejects a weekly time without a weekday", async () => {
+    await expect(
+      RankTrackingService.updateConfig("config_archived", "project_1", {
+        scheduleTime: { hour: 9, minute: 30 },
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+    expect(mocks.updateConfig).not.toHaveBeenCalled();
+  });
+
+  it("rejects a chosen time on a manual schedule", async () => {
+    await expect(
+      RankTrackingService.updateConfig("config_archived", "project_1", {
+        scheduleInterval: "manual",
+        scheduleTime: { hour: 9, minute: 30 },
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+    expect(mocks.updateConfig).not.toHaveBeenCalled();
+  });
+});

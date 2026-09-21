@@ -20,6 +20,12 @@ import { useProjectMarket } from "@/client/features/projects/useProjectMarket";
 import { SearchTargetingField } from "./SearchTargetingField";
 import { KeywordSuggestionStep } from "./KeywordSuggestionStep";
 import { useSaveConfigMutations } from "./useSaveConfigMutations";
+import { ScheduleField } from "./ScheduleField";
+import {
+  localScheduleTimeFrom,
+  randomScheduleDate,
+  withBrowserTimeZone,
+} from "./scheduleTime";
 
 type Props = {
   projectId: string;
@@ -98,6 +104,22 @@ function RankTrackingConfigModalContent({
     existingConfig?.locationName ?? undefined,
   );
   const [createdConfigId, setCreatedConfigId] = useState<string | null>(null);
+  // Shown and edited in the browser's timezone; the server converts it to UTC.
+  const [scheduleTime, setScheduleTime] = useState(() =>
+    localScheduleTimeFrom(
+      existingConfig?.nextCheckAt
+        ? new Date(existingConfig.nextCheckAt)
+        : randomScheduleDate(),
+    ),
+  );
+  const [scheduleTimeEdited, setScheduleTimeEdited] = useState(false);
+  // An untouched edit leaves the stored run time alone; anything that changes
+  // the schedule sends the time on screen so it is the one that gets saved.
+  const sendScheduleTime =
+    schedule !== "manual" &&
+    (!existingConfig ||
+      scheduleTimeEdited ||
+      schedule !== existingConfig.scheduleInterval);
 
   const selectedCountryCode = useMemo(
     () => getIsoCountryCode(locationCode),
@@ -115,6 +137,9 @@ function RankTrackingConfigModalContent({
       targetingMode,
       locationName,
       schedule,
+      scheduleTime: sendScheduleTime
+        ? withBrowserTimeZone(scheduleTime)
+        : undefined,
     },
     onCreated: (configId) => {
       setCreatedConfigId(configId);
@@ -289,37 +314,15 @@ function RankTrackingConfigModalContent({
           )}
         </div>
 
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium">Schedule</span>
-          </label>
-          <select
-            className="select select-bordered w-full"
-            value={schedule}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (
-                value === "daily" ||
-                value === "weekly" ||
-                value === "monthly" ||
-                value === "manual"
-              ) {
-                setSchedule(value);
-              }
-            }}
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly (end of month)</option>
-            <option value="manual">Manual only</option>
-          </select>
-          {schedule === "daily" && (
-            <div className="mt-1.5 flex items-start gap-1.5 text-xs text-warning">
-              <Info className="size-3.5 shrink-0 mt-0.5" />
-              <span>Daily checks use 7x more credits than weekly</span>
-            </div>
-          )}
-        </div>
+        <ScheduleField
+          schedule={schedule}
+          onScheduleChange={setSchedule}
+          scheduleTime={scheduleTime}
+          onScheduleTimeChange={(time) => {
+            setScheduleTime(time);
+            setScheduleTimeEdited(true);
+          }}
+        />
 
         <div className="form-control">
           <label className="label">

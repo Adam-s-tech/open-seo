@@ -16,6 +16,7 @@ import {
   updateRankTrackingConfig,
 } from "@/serverFunctions/rank-tracking";
 import { devicesLabel, scheduleLabel } from "@/shared/rank-tracking";
+import { formatNextCheck } from "./scheduleTime";
 import { formatLocationLabel } from "@/shared/keyword-locations";
 import { Modal } from "@/client/components/Modal";
 import {
@@ -220,6 +221,9 @@ function DomainRow({
             : (LOCATIONS[summary.locationCode] ?? "US")}{" "}
           &middot; {devicesLabel(summary.devices)} &middot;{" "}
           {scheduleLabel(summary.scheduleInterval)}
+          {summary.scheduleInterval !== "manual" && summary.nextCheckAt && (
+            <> &middot; Next: {formatNextCheck(summary.nextCheckAt)}</>
+          )}
           {summary.lastRunCompletedAt && (
             <>
               {" "}
