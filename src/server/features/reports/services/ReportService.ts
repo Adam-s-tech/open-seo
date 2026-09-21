@@ -233,6 +233,7 @@ export async function deleteReport(
 }
 
 type ShareParams = {
+  source?: "app" | "mcp";
   projectId: string;
   reportId: string;
   /** From the authenticated context — the telemetry identity, nothing else. */
@@ -262,10 +263,14 @@ async function shareReport(params: ShareParams): Promise<ReportMetadata> {
 
   const shareToken = mintShareToken();
   const sharedAt = new Date().toISOString();
-  await ReportRepository.setShareToken(params.projectId, params.reportId, {
-    shareToken,
-    sharedAt,
-  });
+  const created = await ReportRepository.setShareToken(
+    params.projectId,
+    params.reportId,
+    { shareToken, sharedAt },
+  );
+  // Another publisher may have won after our read. Return its stored token,
+  // and emit the shared event only for the request that created it.
+  if (!created) return getReport(params.projectId, params.reportId);
   await captureServerEvent({
     distinctId: params.userId,
     event: "report:shared",
@@ -274,7 +279,7 @@ async function shareReport(params: ShareParams): Promise<ReportMetadata> {
       project_id: params.projectId,
       report_id: params.reportId,
       skill: report.skill,
-      source: "app",
+      source: params.source ?? "app",
     },
   });
   return { ...report, shareToken, sharedAt };
@@ -294,7 +299,7 @@ async function unshareReport(params: ShareParams): Promise<ReportMetadata> {
       project_id: params.projectId,
       report_id: params.reportId,
       skill: report.skill,
-      source: "app",
+      source: params.source ?? "app",
     },
   });
   return { ...report, shareToken: null, sharedAt: null };

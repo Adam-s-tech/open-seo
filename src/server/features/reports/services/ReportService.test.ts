@@ -217,6 +217,7 @@ describe("sharing", () => {
     });
 
   beforeEach(() => {
+    mocks.setShareToken.mockResolvedValue(true);
     vi.mocked(isHostedServerAuthMode).mockResolvedValue(true);
     mocks.getReport.mockResolvedValue(storedReport);
   });
