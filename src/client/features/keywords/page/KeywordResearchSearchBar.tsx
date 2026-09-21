@@ -105,9 +105,9 @@ export function KeywordResearchSearchBar({ controller }: Props) {
                   }
                 >
                   <option value="auto">Auto</option>
-                  <option value="related">Related keywords</option>
-                  <option value="suggestions">Suggestions</option>
-                  <option value="ideas">Ideas</option>
+                  <option value="suggestions">Phrase match</option>
+                  <option value="ideas">Category ideas</option>
+                  <option value="related">People also search for</option>
                 </select>
               )}
             </controlsForm.Field>

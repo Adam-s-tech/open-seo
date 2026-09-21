@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted (June 2026)
+Accepted (June 2026). Superseded in part (September 2026): auto mode blends
+`keyword_suggestions` + `keyword_ideas` at half the result limit each instead
+of cascading related → suggestions → ideas, and Labs live pricing has risen to
+$0.012/task + $0.00012/row (measured against the live API). The default
+150-row research call is now two tasks, $0.042 raw → 54 credits, not $0.025 →
+32 credits. The routing, clickstream, and Google-Ads-coverage decisions below
+still hold.
 
 ## Context
 
@@ -43,7 +49,7 @@ There is no user-facing provider choice.
 
    | Feature                                             | Labs country                   | Google-Ads-only country (e.g. Iceland)                                                          |
    | --------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-   | Keyword research (UI + `research_keywords`)         | Labs related→suggestions→ideas | `keywords_for_keywords` (single source)                                                         |
+   | Keyword research (UI + `research_keywords`)         | Labs suggestions + ideas blend | `keywords_for_keywords` (single source)                                                         |
    | `get_keyword_metrics`, rank-tracking metric refresh | Labs keyword_overview          | `search_volume`                                                                                 |
    | SERP analysis, `get_serp_results`, rank tracking    | SERP API                       | SERP API (supports all countries)                                                               |
    | Domain overview, ranked keywords, SERP competitors  | Labs                           | **Unavailable** — pickers filtered to Labs countries; MCP tools return a clear validation error |

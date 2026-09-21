@@ -12,38 +12,27 @@ import type { KeywordResearchRow } from "@/types/keywords";
 import type { ResolvedResearchKeywordsInput } from "@/types/schemas/keywords";
 import { z } from "zod";
 import { getKeywordDataProvider } from "@/shared/keyword-locations";
-import { type EnrichedKeyword, normalizeKeyword } from "./helpers";
+import {
+  interleaveRows,
+  normalizeKeyword,
+  type EnrichedKeyword,
+} from "./helpers";
 import {
   fetchGoogleAdsResearchRows,
   fetchResearchRowsBySource,
 } from "./research-data";
 import {
-  AUTO_KEYWORD_SOURCES,
   MIN_NON_SEED_FOR_AUTO,
   countNonSeedKeywords,
-  hasSufficientCoverage,
   type KeywordMode,
   type KeywordSource,
   type ResearchSource,
 } from "./selection";
 
-type SourceAttempt = {
-  source: ResearchSource;
-  rowCount: number;
-  nonSeedCount: number;
-};
-
-type ResearchDiagnostics = {
-  requestedMode: KeywordMode;
-  threshold: number;
-  sourceAttempts: SourceAttempt[];
-};
-
 type ResearchResult = {
   rows: KeywordResearchRow[];
   source: ResearchSource;
   usedFallback: boolean;
-  diagnostics: ResearchDiagnostics;
 };
 
 type CachedResult = ResearchResult;
@@ -70,33 +59,22 @@ const cachedKeywordRowSchema = z.object({
   ]),
 });
 
-const sourceAttemptSchema = z.object({
-  source: z.enum(["related", "suggestions", "ideas", "google_ads"]),
-  rowCount: z.number(),
-  nonSeedCount: z.number(),
-});
-
 const cachedResultSchema = z.object({
   rows: z.array(cachedKeywordRowSchema),
-  source: z.enum(["related", "suggestions", "ideas", "google_ads"]),
+  source: z.enum(["related", "suggestions", "ideas", "google_ads", "blended"]),
   usedFallback: z.boolean(),
-  diagnostics: z.object({
-    requestedMode: z.enum(["auto", "related", "suggestions", "ideas"]),
-    threshold: z.number(),
-    sourceAttempts: z.array(sourceAttemptSchema),
-  }),
 });
 
-// v3: research volumes are no longer clickstream-refined, and Google-Ads-only
-// locations route to keywords_for_keywords.
-const CACHE_VERSION = 3;
+// v5: auto mode blends suggestions + ideas. v4 (collapsed close variants)
+// only ran in previews; skip it so those entries are never reused.
+const CACHE_VERSION = 5;
 
 async function fetchRowsFromSource(
   source: KeywordSource,
   input: ResolvedResearchKeywordsInput,
   seedKeyword: string,
   billingCustomer: BillingCustomerContext,
-  creditFeature?: CreditFeature,
+  opts: { creditFeature?: CreditFeature; resultLimit?: number } = {},
 ): Promise<EnrichedKeyword[]> {
   return fetchResearchRowsBySource(
     {
@@ -104,73 +82,83 @@ async function fetchRowsFromSource(
       seedKeyword,
       locationCode: input.locationCode,
       languageCode: input.languageCode,
-      resultLimit: input.resultLimit,
+      resultLimit: opts.resultLimit ?? input.resultLimit,
       includeClickstreamData: input.clickstream,
-      creditFeature,
+      creditFeature: opts.creditFeature,
     },
     billingCustomer,
   );
 }
 
+/**
+ * Auto blends phrase-match suggestions with category-level ideas, half the
+ * limit each. Neither works as a sole default: suggestions miss sibling head
+ * terms ("respite care" for "caregiving") and ideas drift toward generic
+ * category terms. The old related-first behavior is worse than both — its
+ * depth-3 "people also search for" graph is tiny for broad seeds and full of
+ * SERP-adjacency noise — so related is only a fallback for obscure seeds
+ * where the blend comes back thin.
+ */
 async function fetchAutoRows(
   input: ResolvedResearchKeywordsInput,
   seedKeyword: string,
   billingCustomer: BillingCustomerContext,
   creditFeature?: CreditFeature,
 ): Promise<ResearchResult> {
-  const attempts: SourceAttempt[] = [];
-  let lastSource: KeywordSource = "related";
-  const accumulatedRows: EnrichedKeyword[] = [];
-  const seenKeywords = new Set<string>();
-
-  for (const source of AUTO_KEYWORD_SOURCES) {
-    const rows = await fetchRowsFromSource(
-      source,
+  const blendOpts = {
+    creditFeature,
+    resultLimit: Math.ceil(input.resultLimit / 2),
+  };
+  // Settled, not Promise.all: each call meters its own DataForSEO spend, and
+  // workerd cancels in-flight I/O once a response is sent, so throwing while
+  // the sibling call is mid-flight can drop its billing write.
+  const [suggestions, ideas] = await Promise.allSettled([
+    fetchRowsFromSource(
+      "suggestions",
       input,
       seedKeyword,
       billingCustomer,
-      creditFeature,
-    );
-    for (const row of rows) {
-      if (accumulatedRows.length >= input.resultLimit) break;
-      if (seenKeywords.has(row.keyword)) continue;
-      seenKeywords.add(row.keyword);
-      accumulatedRows.push(row);
+      blendOpts,
+    ),
+    fetchRowsFromSource(
+      "ideas",
+      input,
+      seedKeyword,
+      billingCustomer,
+      blendOpts,
+    ),
+  ]);
+  if (suggestions.status === "rejected") {
+    if (ideas.status === "rejected") {
+      console.warn("keywords.research.ideas-leg failed:", ideas.reason);
     }
+    throw suggestions.reason;
+  }
+  if (ideas.status === "rejected") throw ideas.reason;
+  const blended = interleaveRows(
+    suggestions.value,
+    ideas.value,
+    input.resultLimit,
+  );
 
-    attempts.push({
-      source,
-      rowCount: rows.length,
-      nonSeedCount: countNonSeedKeywords(rows, seedKeyword),
-    });
-
-    lastSource = source;
-
-    if (
-      hasSufficientCoverage(accumulatedRows, seedKeyword, MIN_NON_SEED_FOR_AUTO)
-    ) {
-      return {
-        rows: accumulatedRows,
-        source,
-        usedFallback: source !== AUTO_KEYWORD_SOURCES[0],
-        diagnostics: {
-          requestedMode: "auto",
-          threshold: MIN_NON_SEED_FOR_AUTO,
-          sourceAttempts: attempts,
-        },
-      };
-    }
+  if (countNonSeedKeywords(blended, seedKeyword) >= MIN_NON_SEED_FOR_AUTO) {
+    return { rows: blended, source: "blended", usedFallback: false };
   }
 
-  return {
-    rows: accumulatedRows,
-    source: lastSource,
-    usedFallback: true,
-    diagnostics: {
-      requestedMode: "auto",
-      threshold: MIN_NON_SEED_FOR_AUTO,
-      sourceAttempts: attempts,
+  const related = await fetchRowsFromSource(
+    "related",
+    input,
+    seedKeyword,
+    billingCustomer,
+    {
+      creditFeature,
     },
+  );
+
+  return {
+    rows: interleaveRows(blended, related, input.resultLimit),
+    source: "blended",
+    usedFallback: true,
   };
 }
 
@@ -191,22 +179,7 @@ async function fetchGoogleAdsRows(
     billingCustomer,
   );
 
-  return {
-    rows,
-    source: "google_ads",
-    usedFallback: false,
-    diagnostics: {
-      requestedMode: "auto",
-      threshold: MIN_NON_SEED_FOR_AUTO,
-      sourceAttempts: [
-        {
-          source: "google_ads",
-          rowCount: rows.length,
-          nonSeedCount: countNonSeedKeywords(rows, seedKeyword),
-        },
-      ],
-    },
-  };
+  return { rows, source: "google_ads", usedFallback: false };
 }
 
 async function fetchManualRows(
@@ -221,24 +194,11 @@ async function fetchManualRows(
     input,
     seedKeyword,
     billingCustomer,
-    creditFeature,
-  );
-  const attempt: SourceAttempt = {
-    source: mode,
-    rowCount: rows.length,
-    nonSeedCount: countNonSeedKeywords(rows, seedKeyword),
-  };
-
-  return {
-    rows,
-    source: mode,
-    usedFallback: false,
-    diagnostics: {
-      requestedMode: mode,
-      threshold: MIN_NON_SEED_FOR_AUTO,
-      sourceAttempts: [attempt],
+    {
+      creditFeature,
     },
-  };
+  );
+  return { rows, source: mode, usedFallback: false };
 }
 
 async function buildResearchCacheKey(

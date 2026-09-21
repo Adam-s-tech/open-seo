@@ -18,12 +18,13 @@ import {
 } from "@/client/features/keywords/components";
 import { DifficultyBadge } from "@/client/features/domain/components/DifficultyBadge";
 import { formatNumber } from "@/client/features/keywords/utils";
+import type { KeywordResearchDisplayRow } from "@/client/features/keywords/groupSharedVolumeRows";
 import type { KeywordResearchRow } from "@/types/keywords";
 import { EmptyFilterResults } from "./keywordResearchFilters";
 
 type Props = {
   activeFilterCount: number;
-  filteredRows: KeywordResearchRow[];
+  filteredRows: KeywordResearchDisplayRow[];
   overviewKeyword: KeywordResearchRow | null;
   selectedRows: Set<string>;
   setSelectedRows: (rows: Set<string>) => void;
@@ -34,7 +35,26 @@ type Props = {
   handleRowClick: (row: KeywordResearchRow) => void;
 };
 
-const keywordColumnHelper = createColumnHelper<KeywordResearchRow>();
+/** The close variants that report the same search volume as the row above. */
+function SharedVolumeVariants({
+  variants,
+}: {
+  variants: KeywordResearchRow[];
+}) {
+  if (variants.length === 0) return null;
+  const keywords = variants.map((variant) => variant.keyword).join(", ");
+
+  return (
+    <span
+      className="block max-w-64 truncate text-xs font-normal text-base-content/50"
+      title={keywords}
+    >
+      {keywords}
+    </span>
+  );
+}
+
+const keywordColumnHelper = createColumnHelper<KeywordResearchDisplayRow>();
 
 export function KeywordResearchDesktopTable({
   activeFilterCount,
@@ -56,9 +76,9 @@ export function KeywordResearchDesktopTable({
       ) as RowSelectionState,
     [selectedRows],
   );
-  const columns = useMemo<ColumnDef<KeywordResearchRow>[]>(
+  const columns = useMemo<ColumnDef<KeywordResearchDisplayRow>[]>(
     () => [
-      makeSelectionColumn<KeywordResearchRow>(selectAnchorRef),
+      makeSelectionColumn<KeywordResearchDisplayRow>(selectAnchorRef),
       keywordColumnHelper.accessor("keyword", {
         header: () => (
           <SortHeader
@@ -71,12 +91,15 @@ export function KeywordResearchDesktopTable({
           />
         ),
         cell: ({ row }) => (
-          <span
-            className="block min-w-48 whitespace-normal break-words font-medium capitalize md:min-w-0 md:truncate"
-            title={row.original.keyword}
-          >
-            {row.original.keyword}
-          </span>
+          <div className="min-w-48 md:min-w-0">
+            <span
+              className="block whitespace-normal break-words font-medium capitalize md:truncate"
+              title={row.original.keyword}
+            >
+              {row.original.keyword}
+            </span>
+            <SharedVolumeVariants variants={row.original.variants} />
+          </div>
         ),
         meta: {
           headerClassName: "min-w-48 md:min-w-0",

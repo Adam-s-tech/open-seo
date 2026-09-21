@@ -35,7 +35,9 @@ const inputSchema = {
   resultLimit: z
     .union([z.literal(150), z.literal(300), z.literal(500)])
     .optional()
-    .describe("Max keywords returned per seed. Defaults to 150."),
+    .describe(
+      "Max keywords returned per seed. Defaults to 150. Auto mode blends two sources; duplicate keywords across sources appear once.",
+    ),
   includeClickstreamData: z
     .boolean()
     .optional()
@@ -86,7 +88,7 @@ export const researchKeywordsTool = {
   config: {
     title: "Research keywords (bulk)",
     description:
-      "Research keyword data (search volume, difficulty, CPC, related ideas) for 1-5 seed keywords in one call. Charges credits per seed (~30-100 credits each, varies by source; flat ~96 for countries served from Google Ads data, where difficulty/intent are unavailable). Returns per-seed results — a single bad seed won't fail the batch.",
+      "Research keyword data (search volume, difficulty, CPC, related ideas) for 1-5 seed keywords in one call. Charges credits per seed (~54 at the default result limit, ~110 at 500, plus ~40 more (~95 at 500) when an obscure seed needs a fallback lookup; flat ~96 for countries served from Google Ads data, where difficulty/intent are unavailable). Returns per-seed results — a single bad seed won't fail the batch.",
     inputSchema,
     outputSchema: z.looseObject({
       results: z.array(
@@ -172,7 +174,7 @@ export const researchKeywordsTool = {
           return `${header}\n${formatMcpTable(r.rows, RESEARCH_COLUMNS)}`;
         })
         .join("\n\n") +
-      `\n\nResearched ${okCount} of ${results.length} seeds${failCount > 0 ? ` (${failCount} failed)` : ""}. Columns: volume = monthly searches, KD = keyword difficulty (0-100), CPC in USD, competition = paid competition (0-1); "—" = unavailable.`;
+      `\n\nResearched ${okCount} of ${results.length} seeds${failCount > 0 ? ` (${failCount} failed)` : ""}. Columns: volume = monthly searches, KD = keyword difficulty (0-100), CPC in USD, competition = paid competition (0-1); "—" = unavailable. Google Ads close variants may share search volumes; do not add their volumes together.`;
 
     return mcpResponse({
       text,

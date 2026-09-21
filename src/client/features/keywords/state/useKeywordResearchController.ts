@@ -94,8 +94,6 @@ export function useKeywordResearchController(
     rows,
     hasSearched,
     lastSearchError,
-    lastResultSource,
-    lastUsedFallback,
     lastSearchKeyword,
     lastSearchLocationCode,
     researchError,
@@ -180,6 +178,7 @@ export function useKeywordResearchController(
 
   const { filteredRows, activeFilterCount } = useKeywordFiltering({
     rows,
+    searchedKeyword,
     filters: filterValues,
     sortField: input.sortField,
     sortDir: input.sortDir,
@@ -252,11 +251,9 @@ export function useKeywordResearchController(
     history,
     historyLoaded,
     isLoading,
-    lastResultSource,
     lastSearchError,
     lastSearchKeyword,
     lastSearchLocationCode,
-    lastUsedFallback,
     mobileTab: uiState.mobileTab,
     overviewKeyword,
     removeHistoryItem,

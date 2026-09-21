@@ -86,12 +86,7 @@ export function KeywordResearchDesktopResults({ controller }: Props) {
 }
 
 function DesktopKeywordPanel({ controller }: Props) {
-  const {
-    lastResultSource,
-    lastUsedFallback,
-    searchedKeyword,
-    showApproximateMatchNotice,
-  } = controller;
+  const { searchedKeyword, showApproximateMatchNotice } = controller;
 
   return (
     <div className="order-2 xl:order-1 flex flex-col min-w-0 gap-2 xl:basis-3/5">
@@ -103,12 +98,6 @@ function DesktopKeywordPanel({ controller }: Props) {
           No exact match for{" "}
           <span className="font-medium">"{searchedKeyword}"</span>. Showing
           closest related keywords instead.
-          {lastUsedFallback ? (
-            <span className="text-base-content/75">
-              {" "}
-              Source: {lastResultSource} fallback.
-            </span>
-          ) : null}
         </div>
       ) : null}
       {controller.overviewKeyword ? (
@@ -130,13 +119,17 @@ function DesktopTableCard({ controller }: Props) {
   } = controller;
   const { page, pageSize, pageRows, setPage, setPageSize } =
     useKeywordResearchPagination(filteredRows);
+  const keywordCount = filteredRows.reduce(
+    (count, row) => count + 1 + row.variants.length,
+    0,
+  );
 
   const keywordCountLabel =
     selectedRows.size > 0
       ? `${selectedRows.size} of ${filteredRows.length} selected`
       : activeFilterCount > 0
-        ? `Showing ${filteredRows.length} of ${rows.length} keywords`
-        : `Showing ${filteredRows.length} keywords`;
+        ? `Showing ${keywordCount} of ${rows.length} keywords`
+        : `Showing ${keywordCount} keywords`;
 
   const canExport = filteredRows.length > 0;
   const selectedExportRows = filteredRows

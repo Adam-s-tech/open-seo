@@ -7,6 +7,7 @@ import {
   type KeywordFilterValues,
 } from "@/client/features/keywords/keywordResearchTypes";
 import type { SortDir, SortField } from "@/client/features/keywords/components";
+import { groupSharedVolumeRows } from "@/client/features/keywords/groupSharedVolumeRows";
 
 export function applyKeywordFiltersAndSort(params: {
   rows: KeywordResearchRow[];
@@ -72,19 +73,31 @@ export function applyKeywordFiltersAndSort(params: {
 
 export function useKeywordFiltering(params: {
   rows: KeywordResearchRow[];
+  searchedKeyword: string;
   filters: KeywordFilterValues;
   sortField: SortField;
   sortDir: SortDir;
 }) {
+  // Group after filtering so a variant that passes the filters on its own
+  // (say, a lower difficulty) is never hidden behind one that does not.
   const filteredRows = useMemo(
     () =>
-      applyKeywordFiltersAndSort({
-        rows: params.rows,
-        filters: params.filters,
-        sortField: params.sortField,
-        sortDir: params.sortDir,
-      }),
-    [params.filters, params.rows, params.sortDir, params.sortField],
+      groupSharedVolumeRows(
+        applyKeywordFiltersAndSort({
+          rows: params.rows,
+          filters: params.filters,
+          sortField: params.sortField,
+          sortDir: params.sortDir,
+        }),
+        params.searchedKeyword,
+      ),
+    [
+      params.filters,
+      params.rows,
+      params.searchedKeyword,
+      params.sortDir,
+      params.sortField,
+    ],
   );
 
   const activeFilterCount = useMemo(

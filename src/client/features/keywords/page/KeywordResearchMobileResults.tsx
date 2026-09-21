@@ -94,13 +94,17 @@ function MobileKeywordResults({ controller }: Props) {
   } = controller;
   const { page, pageSize, pageRows, setPage, setPageSize } =
     useKeywordResearchPagination(filteredRows);
+  const keywordCount = filteredRows.reduce(
+    (count, row) => count + 1 + row.variants.length,
+    0,
+  );
 
   const keywordCountLabel =
     selectedRows.size > 0
       ? `${selectedRows.size} selected`
       : activeFilterCount > 0
-        ? `Showing ${filteredRows.length} of ${rows.length}`
-        : `Showing ${filteredRows.length} keywords`;
+        ? `Showing ${keywordCount} of ${rows.length}`
+        : `Showing ${keywordCount} keywords`;
 
   const canExport = filteredRows.length > 0;
   const selectedExportRows = filteredRows

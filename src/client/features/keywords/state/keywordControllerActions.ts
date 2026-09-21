@@ -11,6 +11,10 @@ import type {
   ResultLimit,
 } from "@/client/features/keywords/keywordResearchTypes";
 import type { KeywordResearchControllerInput } from "./useKeywordResearchController";
+import {
+  ungroupRows,
+  type KeywordResearchDisplayRow,
+} from "@/client/features/keywords/groupSharedVolumeRows";
 
 export const KEYWORD_RESEARCH_HEADERS = [
   "Keyword",
@@ -35,7 +39,7 @@ export function keywordResearchExportRow(row: KeywordResearchRow): CsvValue[] {
 type SaveExportActionParams = {
   selectedRows: Set<string>;
   rows: KeywordResearchRow[];
-  filteredRows: KeywordResearchRow[];
+  filteredRows: KeywordResearchDisplayRow[];
   input: KeywordResearchControllerInput;
   saveKeywordsMutate: (
     variables: SaveKeywordsInput,
@@ -145,7 +149,7 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   };
 
   const sheetsExportRows: CsvValue[][] = useMemo(
-    () => filteredRows.map(keywordResearchExportRow),
+    () => ungroupRows(filteredRows).map(keywordResearchExportRow),
     [filteredRows],
   );
 

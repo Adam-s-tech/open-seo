@@ -89,7 +89,9 @@ function parseKeywordResearchPageSize(value: string): KeywordResearchPageSize {
   );
 }
 
-export function useKeywordResearchPagination(rows: KeywordResearchRow[]) {
+export function useKeywordResearchPagination<Row extends KeywordResearchRow>(
+  rows: Row[],
+) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<KeywordResearchPageSize>(() =>
     getStoredKeywordResearchPageSize(),

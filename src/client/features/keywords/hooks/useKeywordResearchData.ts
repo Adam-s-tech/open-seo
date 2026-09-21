@@ -7,7 +7,6 @@ import { parseKeywordInput } from "@/client/features/keywords/state/keywordContr
 import { researchKeywords } from "@/serverFunctions/keywords";
 import type {
   KeywordMode,
-  ResearchSource,
   ResultLimit,
 } from "@/client/features/keywords/keywordResearchTypes";
 
@@ -175,9 +174,6 @@ export function useKeywordResearchData(
     rows,
     hasSearched,
     lastSearchError: hasSearched && researchQuery.isError,
-    lastResultSource:
-      researchQuery.data?.source ?? ("related" as ResearchSource),
-    lastUsedFallback: researchQuery.data?.usedFallback ?? false,
     lastSearchKeyword: request?.seedKeyword ?? "",
     lastSearchLocationCode: displayedLocationCode,
     researchError,

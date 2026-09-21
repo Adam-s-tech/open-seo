@@ -56,18 +56,7 @@ export function getKeywordResearchFixture(data: ResolvedResearchKeywordsInput) {
 
   return {
     rows,
-    source: "related" as const,
+    source: "blended" as const,
     usedFallback: false,
-    diagnostics: {
-      requestedMode: data.mode,
-      threshold: 3,
-      sourceAttempts: [
-        {
-          source: "related" as const,
-          rowCount: rows.length,
-          nonSeedCount: rows.length - 1,
-        },
-      ],
-    },
   };
 }
