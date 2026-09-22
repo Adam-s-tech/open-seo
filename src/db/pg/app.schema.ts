@@ -432,3 +432,34 @@ export const dashboardStepDismissals = pgTable(
     index("dashboard_step_dismissals_project_idx").on(table.projectId),
   ],
 );
+
+// Crawler-access credentials for one host (currently only Shopify's
+// domain-scoped crawler signature). Stored on the project (website) it was
+// added for; an audit looks across the organization's projects, so a second
+// project auditing the same store still picks it up. The signature values are
+// encrypted, and never returned to the client.
+export const crawlerCredentials = pgTable(
+  "crawler_credentials",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    // Normalized lowercase hostname, e.g. "www.store.com".
+    host: text("host").notNull(),
+    provider: text("provider", { enum: ["shopify"] }).notNull(),
+    signatureInput: text("signature_input").notNull(),
+    signature: text("signature").notNull(),
+    // Parsed from the RFC 9421 `expires=` parameter when present; null when
+    // the signature input carries no expiry.
+    expiresAt: timestampColumn("expires_at"),
+    createdByUserId: text("created_by_user_id"),
+    createdAt: timestampColumn("created_at").notNull().default(isoNow),
+  },
+  (table) => [
+    uniqueIndex("crawler_credentials_project_host_idx").on(
+      table.projectId,
+      table.host,
+    ),
+  ],
+);

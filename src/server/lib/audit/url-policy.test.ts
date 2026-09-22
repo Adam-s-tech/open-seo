@@ -87,7 +87,7 @@ describe("resolveStartUrlRedirects", () => {
     });
     await expect(
       resolveStartUrlRedirects("https://example.net/"),
-    ).resolves.toBe("https://example.com/");
+    ).resolves.toMatchObject({ url: "https://example.com/" });
   });
 
   it("follows an apex-to-www redirect chain", async () => {
@@ -96,21 +96,21 @@ describe("resolveStartUrlRedirects", () => {
     });
     await expect(
       resolveStartUrlRedirects("https://example.com/"),
-    ).resolves.toBe("https://www.example.com/");
+    ).resolves.toMatchObject({ url: "https://www.example.com/" });
   });
 
   it("returns the original URL when the site does not redirect", async () => {
     stubFetch({});
     await expect(
       resolveStartUrlRedirects("https://example.com/"),
-    ).resolves.toBe("https://example.com/");
+    ).resolves.toMatchObject({ url: "https://example.com/" });
   });
 
   it("returns the last URL when the probe fails", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
     await expect(
       resolveStartUrlRedirects("https://example.com/"),
-    ).resolves.toBe("https://example.com/");
+    ).resolves.toMatchObject({ url: "https://example.com/" });
   });
 
   it("stops after the hop limit on a redirect loop", async () => {
@@ -118,9 +118,8 @@ describe("resolveStartUrlRedirects", () => {
       "https://a.example/": () => redirect("https://b.example/"),
       "https://b.example/": () => redirect("https://a.example/"),
     });
-    await expect(
-      resolveStartUrlRedirects("https://a.example/"),
-    ).resolves.toMatch(/^https:\/\/(a|b)\.example\/$/);
+    const resolved = await resolveStartUrlRedirects("https://a.example/");
+    expect(resolved.url).toMatch(/^https:\/\/(a|b)\.example\/$/);
   });
 
   it("rejects redirects into blocked targets", async () => {

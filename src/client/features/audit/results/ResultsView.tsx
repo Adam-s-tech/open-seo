@@ -12,6 +12,7 @@ import {
   resolveIssueSeverity,
 } from "@/client/features/audit/results/IssuesView";
 import { PagesTable } from "@/client/features/audit/results/PagesTable";
+import { ShopifyCrawlWarning } from "@/client/features/audit/results/ShopifyCrawlWarning";
 import {
   ExportDropdown,
   PerformanceTable,
@@ -47,9 +48,19 @@ export function ResultsView({
     [pages],
   );
 
+  // Shopify's own crawler-access signature is a real fix for a throttled or
+  // refused crawl, so it replaces the generic advice for those stores.
+  const shopifyLimited =
+    audit.config.sitePlatform === "shopify" &&
+    (blockedCount > 0 || rateLimitedCount > 0 || crawlStopped);
+
   return (
     <>
-      {blockedCount > 0 && (
+      {shopifyLimited && (
+        <ShopifyCrawlWarning projectId={projectId} audit={audit} />
+      )}
+
+      {!shopifyLimited && blockedCount > 0 && (
         <CrawlWarning
           headline={`We were blocked on ${blockedCount} ${blockedCount === 1 ? "page" : "pages"}.`}
         >
@@ -77,7 +88,7 @@ export function ResultsView({
         </CrawlWarning>
       )}
 
-      {(rateLimitedCount > 0 || crawlStopped) && (
+      {!shopifyLimited && (rateLimitedCount > 0 || crawlStopped) && (
         <CrawlWarning
           headline={
             crawlStopped

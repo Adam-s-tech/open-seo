@@ -6,6 +6,7 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { SearchConsoleConnectionCard } from "@/client/features/gsc/SearchConsoleConnectionCard";
 import { GoogleAnalyticsConnectionCard } from "@/client/features/ga4/GoogleAnalyticsConnectionCard";
+import { CrawlerAccessSettings } from "@/client/features/settings/CrawlerAccessSettings";
 
 export const Route = createFileRoute(
   "/_project/p/$projectId/settings/integrations",
@@ -42,6 +43,8 @@ function ProjectIntegrationsRoute() {
           }
         />
       </section>
+
+      <CrawlerAccessSettings projectId={projectId} />
     </div>
   );
 }
