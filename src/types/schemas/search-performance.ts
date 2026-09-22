@@ -19,6 +19,18 @@ export type SearchPerformanceDevice = (typeof GSC_DEVICES)[number];
 // Shared report/table filters. Spread into each request schema so the overview
 // and the paginated table calls always accept the exact same filter surface.
 const searchPerformanceFilterShape = {
+  pageFilter: z
+    .object({
+      operator: z.enum(["contains", "equals"]),
+      expression: z.string().trim().min(1).max(4096),
+    })
+    .optional(),
+  queryFilter: z
+    .object({
+      operator: z.enum(["contains", "equals"]),
+      expression: z.string().trim().min(1).max(4096),
+    })
+    .optional(),
   projectId: z.string().min(1),
   dateRange: z.enum(SEARCH_PERFORMANCE_RANGES).default("last_28_days"),
   device: z.enum(GSC_DEVICES).optional(),
