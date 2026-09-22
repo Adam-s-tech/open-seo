@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 // Workers-only bindings that don't resolve outside workerd.
 vi.mock("cloudflare:workers", () => ({ env: {} }));
 
-import { buildKeywordResearchRequest } from "./useKeywordResearchData";
+import {
+  buildKeywordResearchRequest,
+  buildKeywordResearchQueryKey,
+} from "./useKeywordResearchData";
 
 const baseInput = {
   projectId: "project_1",
@@ -13,14 +16,23 @@ const baseInput = {
   resultLimit: 150 as const,
   mode: "auto" as const,
   clickstream: false,
+  groupKeywords: false,
 };
 
 describe("buildKeywordResearchRequest", () => {
   it("carries an explicitly selected location without a language", () => {
     const request = buildKeywordResearchRequest(baseInput);
 
-    expect(request).toMatchObject({ locationCode: 2704 });
+    expect(request).toMatchObject({ locationCode: 2704, groupKeywords: false });
     expect(request).not.toHaveProperty("languageCode");
+    const grouped = buildKeywordResearchRequest({
+      ...baseInput,
+      groupKeywords: true,
+    });
+    expect(grouped).toMatchObject({ groupKeywords: true });
+    expect(buildKeywordResearchQueryKey(grouped)).not.toEqual(
+      buildKeywordResearchQueryKey(request),
+    );
   });
 
   it("leaves the location undefined for the server to resolve", () => {

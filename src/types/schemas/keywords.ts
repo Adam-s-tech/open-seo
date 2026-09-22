@@ -29,6 +29,7 @@ export const researchKeywordsSchema = z.object({
     .default("auto"),
   // Clickstream-refined volumes double the DataForSEO request cost; opt-in.
   clickstream: z.boolean().optional().default(false),
+  groupKeywords: z.boolean().optional().default(false),
 });
 
 export const savedKeywordMetricSchema = z.object({

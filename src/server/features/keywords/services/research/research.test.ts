@@ -60,8 +60,12 @@ it("keeps shared-volume keywords independently filterable through research and c
     "adult day care",
     "care home",
   ].map((keyword) => ({ ...seed, keyword, searchVolume: 500 }));
-  mocks.fetchRows.mockImplementation(async ({ source }) =>
-    source === "suggestions" ? [seed] : [opportunity, ...siblings],
+  mocks.fetchRows.mockImplementation(async ({ source, ignoreSynonyms }) =>
+    source === "suggestions"
+      ? [seed]
+      : ignoreSynonyms
+        ? siblings
+        : [opportunity, ...siblings],
   );
   const input = {
     projectId: "project_1",
@@ -71,6 +75,7 @@ it("keeps shared-volume keywords independently filterable through research and c
     resultLimit: 150 as const,
     mode: "auto" as const,
     clickstream: false,
+    groupKeywords: true,
   };
   const customer = {
     organizationId: "org_1",
@@ -113,4 +118,19 @@ it("keeps shared-volume keywords independently filterable through research and c
     sortDir: "asc",
   });
   expect(filtered).toEqual([opportunity]);
+  for (const params of mocks.fetchRows.mock.calls.slice(0, 2)) {
+    expect(params[0]).toMatchObject({ ignoreSynonyms: false });
+  }
+  const coreOnly = await research({ ...input, groupKeywords: false }, customer);
+  // The thin core-only set also exercises the related-keywords fallback.
+  expect(mocks.fetchRows).toHaveBeenCalledTimes(5);
+  for (const params of mocks.fetchRows.mock.calls.slice(2)) {
+    expect(params[0]).toMatchObject({ ignoreSynonyms: true });
+  }
+  expect(coreOnly.rows).not.toContainEqual(opportunity);
+  expect(await research({ ...input, groupKeywords: false }, customer)).toEqual(
+    coreOnly,
+  );
+  expect(await research(input, customer)).toEqual(fresh);
+  expect(mocks.fetchRows).toHaveBeenCalledTimes(5);
 });

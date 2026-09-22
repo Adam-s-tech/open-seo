@@ -117,22 +117,27 @@ function DesktopTableCard({ controller }: Props) {
     sheetsExportRows,
     showFilters,
   } = controller;
-  const { page, pageSize, pageRows, setPage, setPageSize } =
-    useKeywordResearchPagination(filteredRows);
-  const keywordCount = filteredRows.reduce(
-    (count, row) => count + 1 + row.variants.length,
-    0,
-  );
+  const {
+    page,
+    pageSize,
+    pageRows,
+    setPage,
+    setPageSize,
+    start,
+    end,
+    totalPages,
+  } = useKeywordResearchPagination(filteredRows);
+  const keywordCount = filteredRows.length;
 
   const keywordCountLabel =
     selectedRows.size > 0
-      ? `${selectedRows.size} of ${filteredRows.length} selected`
+      ? `${selectedRows.size} selected`
       : activeFilterCount > 0
         ? `Showing ${keywordCount} of ${rows.length} keywords`
         : `Showing ${keywordCount} keywords`;
 
   const canExport = filteredRows.length > 0;
-  const selectedExportRows = filteredRows
+  const selectedExportRows = rows
     .filter((row) => selectedRows.has(row.keyword))
     .map(keywordResearchExportRow);
   const handleExportToSheets = () => {
@@ -160,7 +165,7 @@ function DesktopTableCard({ controller }: Props) {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 border border-base-300 rounded-xl bg-base-100 overflow-hidden">
-      <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-base-300">
+      <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-b border-base-300">
         <button
           className={`btn btn-ghost btn-sm gap-1.5 ${showFilters ? "btn-active" : ""}`}
           onClick={() => controller.setShowFilters((current) => !current)}
@@ -252,6 +257,9 @@ function DesktopTableCard({ controller }: Props) {
       />
       {filteredRows.length > 0 ? (
         <KeywordResearchPagination
+          start={start}
+          end={end}
+          totalPages={totalPages}
           page={page}
           pageSize={pageSize}
           totalCount={filteredRows.length}

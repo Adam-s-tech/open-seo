@@ -4,6 +4,7 @@ import {
   type KeywordControlsValues,
 } from "@/client/features/keywords/hooks/useKeywordControlsForm";
 import { useKeywordFiltering } from "@/client/features/keywords/hooks/useKeywordFiltering";
+import { usePreferredKeywordGrouping } from "@/client/features/keywords/hooks/usePreferredKeywordGrouping";
 import { useLocalKeywordFilters } from "@/client/features/keywords/hooks/useLocalKeywordFilters";
 import { useKeywordResearchData } from "@/client/features/keywords/hooks/useKeywordResearchData";
 import { useKeywordSelection } from "@/client/features/keywords/hooks/useKeywordSelection";
@@ -52,6 +53,9 @@ export function useKeywordResearchController(
 ) {
   const { displayedLocationCode, locationCode, setPreferredLocationCode } =
     input;
+  const { groupKeywords, setGroupKeywords } = usePreferredKeywordGrouping(
+    input.projectId,
+  );
   const {
     filtersForm,
     values: filterValues,
@@ -111,6 +115,7 @@ export function useKeywordResearchController(
       resultLimit: input.resultLimit,
       mode: input.keywordMode,
       clickstream: input.clickstream,
+      groupKeywords,
     },
     addSearch,
   );
@@ -124,6 +129,7 @@ export function useKeywordResearchController(
         resultLimit: input.resultLimit,
         mode: input.keywordMode,
         clickstream: input.clickstream,
+        groupKeywords,
       })
     : null;
 
@@ -149,7 +155,7 @@ export function useKeywordResearchController(
     },
   );
 
-  // The URL is the source of truth for paid keyword research queries. This
+  // The URL and saved grouping preference define keyword research queries. This
   // effect only resets UI state around a new query key; TanStack Query owns the
   // actual fetch, cache, dedupe, and error lifecycle.
   useEffect(() => {
@@ -177,6 +183,7 @@ export function useKeywordResearchController(
   ]);
 
   const { filteredRows, activeFilterCount } = useKeywordFiltering({
+    groupKeywords,
     rows,
     searchedKeyword,
     filters: filterValues,
@@ -236,6 +243,8 @@ export function useKeywordResearchController(
   };
 
   return {
+    groupKeywords,
+    setGroupKeywords,
     activeFilterCount,
     activeSerpKeyword,
     confirmSave,

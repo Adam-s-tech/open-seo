@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { KeywordResearchRow } from "@/types/keywords";
+import type { KeywordResearchDisplayRow } from "../groupSharedVolumeRows";
 
 const KEYWORD_RESEARCH_PAGE_SIZES = [50, 100, 300, 500] as const;
 const DEFAULT_KEYWORD_RESEARCH_PAGE_SIZE = 50;
@@ -13,6 +13,9 @@ type Props = {
   page: number;
   pageSize: KeywordResearchPageSize;
   totalCount: number;
+  totalPages: number;
+  start: number;
+  end: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: KeywordResearchPageSize) => void;
 };
@@ -21,13 +24,12 @@ export function KeywordResearchPagination({
   page,
   pageSize,
   totalCount,
+  totalPages,
+  start,
+  end,
   onPageChange,
   onPageSizeChange,
 }: Props) {
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const start = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(totalCount, page * pageSize);
-
   return (
     <div className="flex flex-col gap-3 border-t border-base-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm tabular-nums text-base-content/70">
@@ -89,14 +91,36 @@ function parseKeywordResearchPageSize(value: string): KeywordResearchPageSize {
   );
 }
 
-export function useKeywordResearchPagination<Row extends KeywordResearchRow>(
-  rows: Row[],
+export function keywordResearchPageEnds(
+  rows: KeywordResearchDisplayRow[],
+  pageSize: number,
+) {
+  const ends: number[] = [];
+  for (let start = 0; start < rows.length; ) {
+    let end = Math.min(start + pageSize, rows.length);
+    // Finish the last family before starting the next page.
+    while (end < rows.length && rows[end].parentKeyword !== null) end++;
+    ends.push(end);
+    start = end;
+  }
+  return ends;
+}
+
+export function useKeywordResearchPagination(
+  rows: KeywordResearchDisplayRow[],
 ) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<KeywordResearchPageSize>(() =>
     getStoredKeywordResearchPageSize(),
   );
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const pageEnds = useMemo(
+    () => keywordResearchPageEnds(rows, pageSize),
+    [rows, pageSize],
+  );
+  const totalPages = Math.max(1, pageEnds.length);
+  const currentPage = Math.min(page, totalPages);
+  const start = pageEnds[currentPage - 2] ?? 0;
+  const end = pageEnds[currentPage - 1] ?? 0;
 
   useEffect(() => {
     setPage(1);
@@ -106,13 +130,12 @@ export function useKeywordResearchPagination<Row extends KeywordResearchRow>(
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
 
-  const pageRows = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return rows.slice(start, start + pageSize);
-  }, [page, pageSize, rows]);
+  const pageRows = useMemo(() => rows.slice(start, end), [start, end, rows]);
 
   return {
-    page,
+    page: currentPage,
+    start: rows.length === 0 ? 0 : start + 1,
+    end,
     pageSize,
     pageRows,
     setPage,

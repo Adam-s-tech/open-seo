@@ -11,6 +11,7 @@ import {
 } from "@/client/features/keywords/hooks/useKeywordResearchData";
 import { getBacklinksOverview } from "@/serverFunctions/backlinks";
 import { getDomainOverview } from "@/serverFunctions/domain";
+import { loadPreferredGrouping } from "@/client/features/keywords/hooks/usePreferredKeywordGrouping";
 export type { SearchTab } from "./types";
 
 type Props = {
@@ -217,6 +218,7 @@ function getSearchTabQueryConfig(
     resultLimit: input.resultLimit,
     mode: input.mode,
     clickstream: input.clickstream,
+    groupKeywords: loadPreferredGrouping(projectId),
   });
 
   return {

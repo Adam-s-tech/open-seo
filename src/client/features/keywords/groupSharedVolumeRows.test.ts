@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { KeywordResearchRow } from "@/types/keywords";
-import { groupSharedVolumeRows, ungroupRows } from "./groupSharedVolumeRows";
+import { groupSharedVolumeRows } from "./groupSharedVolumeRows";
 
 const SERIES = [
   { year: 2026, month: 7, searchVolume: 110000 },
@@ -21,25 +21,30 @@ function row(overrides: Partial<KeywordResearchRow>): KeywordResearchRow {
 }
 
 describe("groupSharedVolumeRows", () => {
-  it("folds rows with the same volume, CPC, and monthly series under the first", () => {
+  it("keeps variants visible after their leader with their own metrics", () => {
     const rows = [
       row({ keyword: "caregiving" }),
       row({ keyword: "respite care", searchVolume: 165000 }),
       row({ keyword: "caregiver", keywordDifficulty: 45 }),
     ];
 
-    const grouped = groupSharedVolumeRows(rows);
+    const grouped = groupSharedVolumeRows(rows, undefined, true);
 
     expect(grouped.map((r) => r.keyword)).toEqual([
-      "caregiving",
-      "respite care",
-    ]);
-    expect(grouped[0].variants).toEqual([rows[2]]);
-    expect(ungroupRows(grouped).map((r) => r.keyword)).toEqual([
       "caregiving",
       "caregiver",
       "respite care",
     ]);
+    expect(grouped[1]).toEqual({
+      ...rows[2],
+      parentKeyword: "caregiving",
+    });
+    expect(grouped[0].parentKeyword).toBeNull();
+    expect(grouped[2].parentKeyword).toBeNull();
+    const ungrouped = groupSharedVolumeRows(rows, "caregiver", false);
+    expect(ungrouped).toEqual(
+      rows.map((keyword) => ({ ...keyword, parentKeyword: null })),
+    );
   });
 
   it("leads a group with the searched keyword as typed", () => {
@@ -48,10 +53,13 @@ describe("groupSharedVolumeRows", () => {
       row({ keyword: "caregiving" }),
     ];
 
-    const [group] = groupSharedVolumeRows(rows, " Caregiving");
+    const [group, child] = groupSharedVolumeRows(rows, " Caregiving", true);
 
     expect(group.keyword).toBe("caregiving");
-    expect(group.variants.map((r) => r.keyword)).toEqual(["caregiver"]);
+    expect(child).toEqual({
+      ...rows[0],
+      parentKeyword: "caregiving",
+    });
   });
 
   it("keeps rows apart when the shared number is a flat or low-volume bucket", () => {
@@ -63,6 +71,6 @@ describe("groupSharedVolumeRows", () => {
       row({ keyword: "d", searchVolume: 90 }),
     ];
 
-    expect(groupSharedVolumeRows(rows)).toHaveLength(4);
+    expect(groupSharedVolumeRows(rows, undefined, true)).toHaveLength(4);
   });
 });

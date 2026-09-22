@@ -23,6 +23,7 @@ type KeywordResearchRequestInput = {
   resultLimit: ResultLimit;
   mode: KeywordMode;
   clickstream: boolean;
+  groupKeywords: boolean;
 };
 
 type KeywordResearchQueryInput = KeywordResearchRequestInput & {
@@ -37,6 +38,7 @@ type KeywordResearchRequest = {
   resultLimit: ResultLimit;
   mode: KeywordMode;
   clickstream: boolean;
+  groupKeywords: boolean;
 };
 
 export const KEYWORD_RESEARCH_STALE_TIME_MS = 24 * 60 * 60 * 1000;
@@ -56,6 +58,7 @@ export function buildKeywordResearchRequest(
     resultLimit: input.resultLimit,
     mode: input.mode,
     clickstream: input.clickstream,
+    groupKeywords: input.groupKeywords,
   };
 }
 
@@ -71,6 +74,7 @@ export function buildKeywordResearchQueryKey(
         request.resultLimit,
         request.mode,
         request.clickstream,
+        request.groupKeywords,
       ]
     : ["keywordResearch", "idle"];
 }
@@ -84,6 +88,7 @@ export function keywordResearchQueryFn(request: KeywordResearchRequest) {
       resultLimit: request.resultLimit,
       mode: request.mode,
       clickstream: request.clickstream,
+      groupKeywords: request.groupKeywords,
     },
   });
 }
@@ -94,6 +99,7 @@ export function useKeywordResearchData(
 ) {
   const {
     clickstream,
+    groupKeywords,
     displayedLocationCode,
     keywordInput,
     locationCode,
@@ -110,8 +116,17 @@ export function useKeywordResearchData(
         projectId,
         resultLimit,
         clickstream,
+        groupKeywords,
       }),
-    [clickstream, keywordInput, locationCode, mode, projectId, resultLimit],
+    [
+      clickstream,
+      groupKeywords,
+      keywordInput,
+      locationCode,
+      mode,
+      projectId,
+      resultLimit,
+    ],
   );
   const queryKey = useMemo(
     () => buildKeywordResearchQueryKey(request),

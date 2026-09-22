@@ -35,25 +35,6 @@ type Props = {
   handleRowClick: (row: KeywordResearchRow) => void;
 };
 
-/** The close variants that report the same search volume as the row above. */
-function SharedVolumeVariants({
-  variants,
-}: {
-  variants: KeywordResearchRow[];
-}) {
-  if (variants.length === 0) return null;
-  const keywords = variants.map((variant) => variant.keyword).join(", ");
-
-  return (
-    <span
-      className="block max-w-64 truncate text-xs font-normal text-base-content/50"
-      title={keywords}
-    >
-      {keywords}
-    </span>
-  );
-}
-
 const keywordColumnHelper = createColumnHelper<KeywordResearchDisplayRow>();
 
 export function KeywordResearchDesktopTable({
@@ -91,14 +72,19 @@ export function KeywordResearchDesktopTable({
           />
         ),
         cell: ({ row }) => (
-          <div className="min-w-48 md:min-w-0">
+          <div
+            className={`min-w-48 md:min-w-0 ${row.original.parentKeyword ? "pl-4" : ""}`}
+          >
             <span
-              className="block whitespace-normal break-words font-medium capitalize md:truncate"
-              title={row.original.keyword}
+              className={`block whitespace-normal break-words capitalize md:truncate ${row.original.parentKeyword ? "font-normal" : "font-medium"}`}
+              title={
+                row.original.parentKeyword
+                  ? `${row.original.keyword}: matching reported volume with ${row.original.parentKeyword}. Shared volumes may overlap.`
+                  : row.original.keyword
+              }
             >
               {row.original.keyword}
             </span>
-            <SharedVolumeVariants variants={row.original.variants} />
           </div>
         ),
         meta: {
@@ -117,7 +103,8 @@ export function KeywordResearchDesktopTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => formatNumber(getValue()),
+        cell: ({ row, getValue }) =>
+          row.original.parentKeyword ? null : formatNumber(getValue()),
         meta: {
           headerClassName: "text-right",
           cellClassName:
@@ -136,7 +123,8 @@ export function KeywordResearchDesktopTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => {
+        cell: ({ row, getValue }) => {
+          if (row.original.parentKeyword) return null;
           const value = getValue();
           return value == null ? "-" : value.toFixed(2);
         },
@@ -158,7 +146,8 @@ export function KeywordResearchDesktopTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => {
+        cell: ({ row, getValue }) => {
+          if (row.original.parentKeyword) return null;
           const value = getValue();
           return value == null ? "-" : value.toFixed(2);
         },

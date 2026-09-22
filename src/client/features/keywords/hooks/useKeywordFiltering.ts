@@ -74,31 +74,33 @@ export function applyKeywordFiltersAndSort(params: {
 export function useKeywordFiltering(params: {
   rows: KeywordResearchRow[];
   searchedKeyword: string;
+  groupKeywords: boolean;
   filters: KeywordFilterValues;
   sortField: SortField;
   sortDir: SortDir;
 }) {
   // Group after filtering so a variant that passes the filters on its own
   // (say, a lower difficulty) is never hidden behind one that does not.
-  const filteredRows = useMemo(
-    () =>
-      groupSharedVolumeRows(
-        applyKeywordFiltersAndSort({
-          rows: params.rows,
-          filters: params.filters,
-          sortField: params.sortField,
-          sortDir: params.sortDir,
-        }),
-        params.searchedKeyword,
-      ),
-    [
-      params.filters,
-      params.rows,
+  const filteredRows = useMemo(() => {
+    const rows = applyKeywordFiltersAndSort({
+      rows: params.rows,
+      filters: params.filters,
+      sortField: params.sortField,
+      sortDir: params.sortDir,
+    });
+    return groupSharedVolumeRows(
+      rows,
       params.searchedKeyword,
-      params.sortDir,
-      params.sortField,
-    ],
-  );
+      params.groupKeywords,
+    );
+  }, [
+    params.filters,
+    params.groupKeywords,
+    params.rows,
+    params.searchedKeyword,
+    params.sortDir,
+    params.sortField,
+  ]);
 
   const activeFilterCount = useMemo(
     () =>

@@ -44,6 +44,12 @@ const inputSchema = {
     .describe(
       "Refine search volumes with clickstream data, which disaggregates Google Ads' grouped close-variant volumes (plurals/misspellings). DOUBLES the credit cost of each seed. Default false (standard Google-Ads-derived volumes). No effect for countries served from Google Ads data.",
     ),
+  groupKeywords: z
+    .boolean()
+    .optional()
+    .describe(
+      "Include similar keyword variants that can share volume, CPC, and competition. Default false returns only core keywords (DataForSEO ignore_synonyms=true). True includes variants (ignore_synonyms=false). This filters keywords, not metric estimates. Do not sum shared volumes. No effect for countries served from Google Ads data.",
+    ),
 } as const;
 
 type Args = z.infer<z.ZodObject<typeof inputSchema>>;
@@ -138,6 +144,7 @@ export const researchKeywordsTool = {
               resultLimit: args.resultLimit ?? 150,
               mode: "auto",
               clickstream: args.includeClickstreamData ?? false,
+              groupKeywords: args.groupKeywords ?? false,
             },
             context.billing,
           );

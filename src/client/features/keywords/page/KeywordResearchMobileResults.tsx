@@ -92,12 +92,17 @@ function MobileKeywordResults({ controller }: Props) {
     sheetsExportRows,
     showFilters,
   } = controller;
-  const { page, pageSize, pageRows, setPage, setPageSize } =
-    useKeywordResearchPagination(filteredRows);
-  const keywordCount = filteredRows.reduce(
-    (count, row) => count + 1 + row.variants.length,
-    0,
-  );
+  const {
+    page,
+    pageSize,
+    pageRows,
+    setPage,
+    setPageSize,
+    start,
+    end,
+    totalPages,
+  } = useKeywordResearchPagination(filteredRows);
+  const keywordCount = filteredRows.length;
 
   const keywordCountLabel =
     selectedRows.size > 0
@@ -107,7 +112,7 @@ function MobileKeywordResults({ controller }: Props) {
         : `Showing ${keywordCount} keywords`;
 
   const canExport = filteredRows.length > 0;
-  const selectedExportRows = filteredRows
+  const selectedExportRows = rows
     .filter((row) => selectedRows.has(row.keyword))
     .map(keywordResearchExportRow);
   const handleExportToSheets = () => {
@@ -146,7 +151,7 @@ function MobileKeywordResults({ controller }: Props) {
         </div>
       ) : null}
 
-      <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-base-300 bg-base-100">
+      <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-b border-base-300 bg-base-100">
         <button
           className={`btn btn-ghost btn-xs gap-1 ${showFilters ? "btn-active" : ""}`}
           onClick={() => controller.setShowFilters((current) => !current)}
@@ -238,6 +243,9 @@ function MobileKeywordResults({ controller }: Props) {
       />
       {filteredRows.length > 0 ? (
         <KeywordResearchPagination
+          start={start}
+          end={end}
+          totalPages={totalPages}
           page={page}
           pageSize={pageSize}
           totalCount={filteredRows.length}

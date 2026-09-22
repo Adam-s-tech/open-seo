@@ -84,6 +84,7 @@ async function fetchRowsFromSource(
       languageCode: input.languageCode,
       resultLimit: opts.resultLimit ?? input.resultLimit,
       includeClickstreamData: input.clickstream,
+      ignoreSynonyms: !input.groupKeywords,
       creditFeature: opts.creditFeature,
     },
     billingCustomer,
@@ -218,6 +219,7 @@ async function buildResearchCacheKey(
     mode,
     depth: 3,
     clickstream: input.clickstream,
+    groupKeywords: input.groupKeywords,
   });
 }
 
@@ -260,12 +262,12 @@ export async function research(
 
   const seedKeyword = uniqueKeywords[0];
   const provider = getKeywordDataProvider(input.locationCode);
-  // Labs source modes and clickstream refinement don't exist for
-  // Google-Ads-served countries; collapse both so equivalent requests share
+  // Labs source modes, clickstream, and synonym filtering don't exist for
+  // Google-Ads-served countries; normalize them so equivalent requests share
   // one cache entry.
   const effectiveInput: ResolvedResearchKeywordsInput =
     provider === "google_ads"
-      ? { ...input, mode: "auto", clickstream: false }
+      ? { ...input, mode: "auto", clickstream: false, groupKeywords: false }
       : input;
   const mode = effectiveInput.mode ?? "auto";
   const cacheKey = await buildResearchCacheKey(

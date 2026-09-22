@@ -11,10 +11,7 @@ import type {
   ResultLimit,
 } from "@/client/features/keywords/keywordResearchTypes";
 import type { KeywordResearchControllerInput } from "./useKeywordResearchController";
-import {
-  ungroupRows,
-  type KeywordResearchDisplayRow,
-} from "@/client/features/keywords/groupSharedVolumeRows";
+import type { KeywordResearchDisplayRow } from "@/client/features/keywords/groupSharedVolumeRows";
 
 export const KEYWORD_RESEARCH_HEADERS = [
   "Keyword",
@@ -69,6 +66,7 @@ export function buildKeywordSearchKey(params: {
   resultLimit: ResultLimit;
   mode: KeywordMode;
   clickstream: boolean;
+  groupKeywords: boolean;
 }) {
   return [
     parseKeywordInput(params.keyword).join(""),
@@ -76,6 +74,7 @@ export function buildKeywordSearchKey(params: {
     params.resultLimit,
     params.mode,
     params.clickstream ? "cs" : "",
+    params.groupKeywords ? "grouped" : "",
   ].join("|");
 }
 
@@ -149,7 +148,7 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   };
 
   const sheetsExportRows: CsvValue[][] = useMemo(
-    () => ungroupRows(filteredRows).map(keywordResearchExportRow),
+    () => filteredRows.map(keywordResearchExportRow),
     [filteredRows],
   );
 

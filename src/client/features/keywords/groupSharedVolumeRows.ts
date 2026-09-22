@@ -1,8 +1,8 @@
 import type { KeywordResearchRow } from "@/types/keywords";
 
-/** A results row plus the other keywords that report the same search volume. */
+/** A visible keyword row, optionally indented beneath a shared-volume parent. */
 export type KeywordResearchDisplayRow = KeywordResearchRow & {
-  variants: KeywordResearchRow[];
+  parentKeyword: string | null;
 };
 
 // Only group above this volume: bucketed low volumes (10, 20, ...) collide by
@@ -27,42 +27,41 @@ function sharedVolumeKey(row: KeywordResearchRow): string | null {
 /**
  * Google Ads reports one volume for a whole close-variant group ("caregiving"
  * / "caregiver" / "caregivers"), so those rows all claim the same searches.
- * Fold rows with an identical volume, CPC, and monthly series under the
+ * Place rows with an identical volume, CPC, and monthly series after the
  * searched keyword when it is in the group, otherwise under the first one in
  * the given order. Display only: every keyword keeps its own metrics
- * and stays in the data, so filters and exports still reach each variant.
+ * when grouping is enabled. With grouping off, preserve the input order.
  */
 export function groupSharedVolumeRows(
   rows: KeywordResearchRow[],
-  searchedKeyword?: string,
+  searchedKeyword: string | undefined,
+  groupKeywords: boolean,
 ): KeywordResearchDisplayRow[] {
+  if (!groupKeywords) {
+    return rows.map((row) => ({ ...row, parentKeyword: null }));
+  }
   // Row keywords are lowercase; the searched keyword arrives as typed.
   const seed = searchedKeyword?.trim().toLowerCase();
-  const groups = new Map<string, KeywordResearchDisplayRow>();
-  const result: KeywordResearchDisplayRow[] = [];
+  const groups = new Map<string, KeywordResearchRow[]>();
+  const result: KeywordResearchRow[][] = [];
 
   for (const row of rows) {
     const key = sharedVolumeKey(row);
     const group = key ? groups.get(key) : undefined;
-    if (group && row.keyword === seed) {
-      const { variants, ...leader } = group;
-      Object.assign(group, row, { variants: [leader, ...variants] });
-      continue;
-    }
     if (group) {
-      group.variants.push(row);
+      if (row.keyword === seed) group.unshift(row);
+      else group.push(row);
       continue;
     }
-    const displayRow = { ...row, variants: [] };
-    if (key) groups.set(key, displayRow);
-    result.push(displayRow);
+    const newGroup = [row];
+    if (key) groups.set(key, newGroup);
+    result.push(newGroup);
   }
 
-  return result;
-}
-
-export function ungroupRows(
-  rows: KeywordResearchDisplayRow[],
-): KeywordResearchRow[] {
-  return rows.flatMap(({ variants, ...row }) => [row, ...variants]);
+  return result.flatMap((group) =>
+    group.map((row, index) => ({
+      ...row,
+      parentKeyword: index === 0 ? null : group[0].keyword,
+    })),
+  );
 }
