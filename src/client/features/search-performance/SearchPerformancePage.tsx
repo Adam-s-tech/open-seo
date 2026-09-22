@@ -286,7 +286,7 @@ export function SearchPerformancePage({ projectId }: { projectId: string }) {
                   ]}
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-2 border-b border-base-300">
+              <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-base-300">
                 <button
                   type="button"
                   className={`btn btn-ghost btn-sm gap-1.5 ${showFilters ? "btn-active" : ""}`}
@@ -306,61 +306,63 @@ export function SearchPerformancePage({ projectId }: { projectId: string }) {
                 {reportQuery.isFetching && !reportQuery.isPending ? (
                   <Loader2 className="size-4 animate-spin text-base-content/40" />
                 ) : null}
-                <select
-                  className="select select-bordered select-sm w-36"
-                  value={device}
-                  onChange={(event) => {
-                    setPage(1);
-                    setDevice(
-                      isDevice(event.target.value) ? event.target.value : ALL,
-                    );
-                  }}
-                  aria-label="Device filter"
-                >
-                  <option value={ALL}>All devices</option>
-                  {DEVICE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="select select-bordered select-sm w-36"
-                  value={country}
-                  onChange={(event) => {
-                    setPage(1);
-                    setCountry(event.target.value);
-                  }}
-                  aria-label="Country filter"
-                >
-                  <option value={ALL}>All countries</option>
-                  {country !== ALL &&
-                  !report.countries.some((row) => row.key === country) ? (
-                    <option value={country}>{country.toUpperCase()}</option>
-                  ) : null}
-                  {report.countries.map((row) => (
-                    <option key={row.key} value={row.key}>
-                      {row.key.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="select select-bordered select-sm w-36"
-                  value={range}
-                  onChange={(event) => {
-                    if (isDateRange(event.target.value)) {
+                <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+                  <select
+                    className="select select-bordered select-sm w-36"
+                    value={device}
+                    onChange={(event) => {
                       setPage(1);
-                      setRange(event.target.value);
-                    }
-                  }}
-                  aria-label="Date range"
-                >
-                  {RANGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                      setDevice(
+                        isDevice(event.target.value) ? event.target.value : ALL,
+                      );
+                    }}
+                    aria-label="Device filter"
+                  >
+                    <option value={ALL}>All devices</option>
+                    {DEVICE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="select select-bordered select-sm w-36"
+                    value={country}
+                    onChange={(event) => {
+                      setPage(1);
+                      setCountry(event.target.value);
+                    }}
+                    aria-label="Country filter"
+                  >
+                    <option value={ALL}>All countries</option>
+                    {country !== ALL &&
+                    !report.countries.some((row) => row.key === country) ? (
+                      <option value={country}>{country.toUpperCase()}</option>
+                    ) : null}
+                    {report.countries.map((row) => (
+                      <option key={row.key} value={row.key}>
+                        {row.key.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="select select-bordered select-sm w-36"
+                    value={range}
+                    onChange={(event) => {
+                      if (isDateRange(event.target.value)) {
+                        setPage(1);
+                        setRange(event.target.value);
+                      }
+                    }}
+                    aria-label="Date range"
+                  >
+                    {RANGE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {showFilters ? filtersPanel : null}
