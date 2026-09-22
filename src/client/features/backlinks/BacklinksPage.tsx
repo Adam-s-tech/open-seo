@@ -95,11 +95,6 @@ export function BacklinksPage({
     [navigate],
   );
 
-  const domainExpansion = useBacklinksDomainExpansion({
-    projectId,
-    searchState,
-  });
-
   const {
     activeTabErrorMessage,
     activeTabQuery,
@@ -113,6 +108,12 @@ export function BacklinksPage({
     projectId,
     searchState,
     filters,
+  });
+
+  const domainExpansion = useBacklinksDomainExpansion({
+    projectId,
+    searchState,
+    rows: activeTabErrorMessage ? [] : (rowsQuery.data?.rows ?? []),
   });
 
   const {
@@ -224,6 +225,16 @@ export function BacklinksPage({
           onSortingChange={handleSortingChange}
           onTabChange={handleResultTabChange}
           onViewChange={handleViewChange}
+          onHideSpamChange={(hideSpam) =>
+            navigate({
+              search: (prev) => ({
+                ...prev,
+                includeSpam: hideSpam ? undefined : true,
+                page: undefined,
+              }),
+              replace: true,
+            })
+          }
           searchTabs={
             searchState.target
               ? {

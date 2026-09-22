@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  normalizeBacklinksSpamFilterOptions,
+  DEFAULT_BACKLINKS_SPAM_THRESHOLD,
   type BacklinksSpamFilterOptions,
 } from "@/types/schemas/backlinks";
 import { createDataforseoBillingClassifier } from "@/server/lib/dataforseoBillingClassification";
@@ -204,11 +204,14 @@ export async function fetchBacklinksSummary(input: BacklinksRequest) {
 }
 
 export async function fetchBacklinksRows(input: BacklinksListRequest) {
-  const spamFilterOptions = normalizeBacklinksSpamFilterOptions(input);
   const filters = combineFilters(
     input.filters,
-    spamFilterOptions.hideSpam
-      ? ["backlink_spam_score", "<=", spamFilterOptions.spamThreshold]
+    (input.hideSpam ?? true)
+      ? [
+          ["backlink_spam_score", "<", DEFAULT_BACKLINKS_SPAM_THRESHOLD],
+          "or",
+          ["backlink_spam_score", "=", null],
+        ]
       : undefined,
   );
   const response = await dataforseoPost(
@@ -239,11 +242,10 @@ export async function fetchBacklinksRows(input: BacklinksListRequest) {
 }
 
 export async function fetchReferringDomains(input: BacklinksListRequest) {
-  const spamFilterOptions = normalizeBacklinksSpamFilterOptions(input);
   const filters = combineFilters(
     input.filters,
-    spamFilterOptions.hideSpam
-      ? ["backlinks_spam_score", "<=", spamFilterOptions.spamThreshold]
+    (input.hideSpam ?? true)
+      ? ["backlinks_spam_score", "<=", DEFAULT_BACKLINKS_SPAM_THRESHOLD]
       : undefined,
   );
   const response = await dataforseoPost(

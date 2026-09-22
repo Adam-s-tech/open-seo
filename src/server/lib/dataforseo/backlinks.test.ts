@@ -228,6 +228,52 @@ describe("fetchBacklinksSummary", () => {
       }),
     ).resolves.toMatchObject({ data: [] });
   });
+
+  it.each([
+    ["as_is", undefined],
+    ["one_per_domain", undefined],
+    ["as_is", false],
+    ["one_per_domain", false],
+  ] as const)(
+    "preserves user filters and pagination for %s with hideSpam=%s",
+    async (mode, hideSpam) => {
+      vi.mocked(fetch).mockResolvedValue(okResponse([]));
+      classifyBacklinksError.mockReturnValue(null);
+      const filters = [["domain_from", "=", "openseo.so"]];
+
+      await fetchBacklinksRows({
+        target: "openseo.so",
+        mode,
+        offset: 50,
+        limit: 50,
+        hideSpam,
+        filters,
+      });
+
+      const body = vi.mocked(fetch).mock.calls[0]?.[1]?.body;
+      if (typeof body !== "string")
+        throw new Error("Expected a JSON request body");
+      expect(JSON.parse(body)).toEqual([
+        expect.objectContaining({
+          mode,
+          offset: 50,
+          limit: 50,
+          filters:
+            hideSpam === false
+              ? filters
+              : [
+                  ...filters,
+                  "and",
+                  [
+                    ["backlink_spam_score", "<", 40],
+                    "or",
+                    ["backlink_spam_score", "=", null],
+                  ],
+                ],
+        }),
+      ]);
+    },
+  );
 });
 
 function expectValidationError(fn: () => unknown) {

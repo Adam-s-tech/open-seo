@@ -48,6 +48,7 @@ type BacklinksBodyProps = {
   onSortingChange: OnChangeFn<SortingState>;
   onTabChange: (tab: BacklinksSearchState["tab"]) => void;
   onViewChange: (view: "all" | undefined) => void;
+  onHideSpamChange: (hideSpam: boolean) => void;
   searchTabs: {
     activeTabId: string | null;
     tabs: SearchTab[];
@@ -81,6 +82,7 @@ export function BacklinksBody({
   onSortingChange,
   onTabChange,
   onViewChange,
+  onHideSpamChange,
   searchTabs,
 }: BacklinksBodyProps) {
   const tabRows = useMemo<BacklinksTabRows>(
@@ -147,6 +149,9 @@ export function BacklinksBody({
   return (
     <>
       {tabStrip}
+      <p className="text-xs text-base-content/60">
+        Overview metrics cover the full target, before table filters.
+      </p>
       <BacklinksOverviewPanels
         projectId={projectId}
         data={overviewData}
@@ -160,6 +165,8 @@ export function BacklinksBody({
         filters={filters}
         sorting={sorting}
         view={searchState.view}
+        hideSpam={!searchState.includeSpam}
+        onHideSpamChange={onHideSpamChange}
         domainExpansion={domainExpansion}
         isTabLoading={tabLoading}
         tabErrorMessage={tabErrorMessage}

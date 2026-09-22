@@ -56,6 +56,7 @@ export function BacklinksExportMenu({
         role="menu"
         className="dropdown-content z-10 menu p-2 shadow-lg bg-base-100 border border-base-300 rounded-box w-56"
       >
+        <li className="menu-title text-xs">Current page · selected view</li>
         <li>
           <button
             type="button"

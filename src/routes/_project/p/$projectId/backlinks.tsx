@@ -23,6 +23,7 @@ function BacklinksRoute() {
     sort,
     order,
     view,
+    includeSpam,
   } = Route.useSearch();
   const scope = rawScope ?? defaultScopeForInput(target);
 
@@ -40,6 +41,7 @@ function BacklinksRoute() {
         sort,
         order,
         view,
+        includeSpam,
       }}
     />
   );

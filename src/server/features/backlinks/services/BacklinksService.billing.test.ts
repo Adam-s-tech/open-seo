@@ -370,6 +370,7 @@ it("builds subfolder overview totals from two filtered backlink counts", async (
     expect.objectContaining({
       mode: "as_is",
       limit: 1,
+      hideSpam: false,
       filters: [
         [
           ["url_to", "like", "%://example.com/blog"],
@@ -385,6 +386,10 @@ it("builds subfolder overview totals from two filtered backlink counts", async (
   );
   expect(backlinksRowsMock).toHaveBeenNthCalledWith(
     2,
-    expect.objectContaining({ mode: "one_per_domain", limit: 1 }),
+    expect.objectContaining({
+      mode: "one_per_domain",
+      limit: 1,
+      hideSpam: false,
+    }),
   );
 });

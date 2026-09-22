@@ -254,7 +254,11 @@ function buildBaseColumns(
         const value = row.spamScore;
         return (
           <div className="text-right tabular-nums text-sm">
-            {value != null && value > 0 ? Math.round(value) : null}
+            {value != null ? (
+              Math.round(value)
+            ) : (
+              <span title="Spam score unknown">—</span>
+            )}
           </div>
         );
       }),

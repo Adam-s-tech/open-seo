@@ -23,6 +23,7 @@ import {
 } from "@/types/schemas/backlinks";
 import {
   toBacklinksFiltersPayload,
+  backlinksFilterBudgetError,
   toReferringDomainsFiltersPayload,
   toTopPagesFiltersPayload,
 } from "./backlinksFilterTypes";
@@ -105,6 +106,11 @@ export function useBacklinksPageData({
     () => toBacklinksFiltersPayload(filters.backlinks.values),
     [filters.backlinks.values],
   );
+  const rowsFilterError = backlinksFilterBudgetError(
+    filters.backlinks.values,
+    scope,
+    !searchState.includeSpam,
+  );
   const rowsQuery = useQuery({
     queryKey: [
       "backlinksRows",
@@ -115,8 +121,9 @@ export function useBacklinksPageData({
       rowsSort.order,
       rowsFilters,
       rowsMode,
+      searchState.includeSpam ?? false,
     ],
-    enabled: targetReady && tab === "backlinks",
+    enabled: targetReady && tab === "backlinks" && !rowsFilterError,
     staleTime: BACKLINKS_QUERY_STALE_TIME_MS,
     queryFn: () =>
       getBacklinksRows({
@@ -126,6 +133,7 @@ export function useBacklinksPageData({
           sortOrder: rowsSort.order,
           filters: rowsFilters,
           mode: rowsMode,
+          hideSpam: !searchState.includeSpam,
         },
       }),
   });
@@ -206,10 +214,9 @@ export function useBacklinksPageData({
       : tab === "domains"
         ? referringDomainsQuery
         : topPagesQuery;
-  const activeTabErrorMessage = getBacklinksErrorMessage(
-    activeTabQuery.error,
-    "Could not load this tab.",
-  );
+  const activeTabErrorMessage =
+    (tab === "backlinks" ? rowsFilterError : null) ??
+    getBacklinksErrorMessage(activeTabQuery.error, "Could not load this tab.");
 
   return {
     activeTabErrorMessage,
