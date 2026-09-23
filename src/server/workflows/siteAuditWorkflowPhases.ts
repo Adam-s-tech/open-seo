@@ -355,8 +355,22 @@ async function finalizeAudit(args: {
       );
     }
 
+    const checksStartedAt = Date.now();
+    console.info("Audit finalization started", { auditId });
     const issues = await runMultipageChecks({ auditId });
-    issues.push(...(await runScratchpadLinkChecks(auditId, startUrl, crawl)));
+    console.info("Audit multipage checks completed", {
+      auditId,
+      durationMs: Date.now() - checksStartedAt,
+      issueCount: issues.length,
+    });
+    const linksStartedAt = Date.now();
+    const linkIssues = await runScratchpadLinkChecks(auditId, startUrl, crawl);
+    console.info("Audit link checks completed", {
+      auditId,
+      durationMs: Date.now() - linksStartedAt,
+      issueCount: linkIssues.length,
+    });
+    issues.push(...linkIssues);
     if (crawl.rateLimited) {
       issues.push({
         issueType: "crawl-rate-limited",
@@ -364,7 +378,13 @@ async function finalizeAudit(args: {
         pageUrl: startUrl,
       });
     }
+    const persistStartedAt = Date.now();
     await AuditRepository.insertIssues(auditId, issues);
+    console.info("Audit finalization issues persisted", {
+      auditId,
+      durationMs: Date.now() - persistStartedAt,
+      issueCount: issues.length,
+    });
     return { issueCount: issues.length };
   });
 
