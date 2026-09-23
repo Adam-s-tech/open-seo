@@ -5,7 +5,13 @@
  * type, and a single orange emphasis moment around the MCP section.
  */
 
-import { type ReactNode, type SVGProps, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  type SVGProps,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { ProductHuntLaurel } from "@/components/product-hunt-laurel";
 import { SiteFooter } from "@/components/site-footer";
@@ -339,29 +345,41 @@ const FEATURE_CARDS = [
 ];
 
 function DemoVideo() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
   return (
-    <video
-      style={{ width: "100%" }}
-      width={1280}
-      height={966}
-      poster="/demo-poster.webp"
-      muted
-      loop
-      autoPlay
-      playsInline
-      preload="metadata"
-      aria-label="OpenSEO product demo: running keyword research"
-    >
-      <source src="/demo.mp4" type="video/mp4" />
-      <img
-        src="/demo-poster.webp"
-        alt="OpenSEO keyword research dashboard"
-        width={1280}
-        height={966}
-        loading="lazy"
-        decoding="async"
-      />
-    </video>
+    <div className="itc-demo-video">
+      <video
+        ref={videoRef}
+        style={{ width: "100%", display: "block" }}
+        width={1440}
+        height={900}
+        poster="/demo-poster.webp"
+        loop
+        playsInline
+        controls={playing}
+        preload="metadata"
+        aria-label="OpenSEO product demo: keyword research, backlinks, site audit, and an agent report"
+        onPlay={() => setPlaying(true)}
+      >
+        <source src="/demo.mp4" type="video/mp4" />
+      </video>
+      {!playing && (
+        <button
+          type="button"
+          className="itc-demo-play"
+          onClick={() => void videoRef.current?.play()}
+          aria-label="Play the OpenSEO demo video"
+        >
+          <span className="itc-demo-play-button" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+              <path d="M8.5 5v14l12-7z" />
+            </svg>
+          </span>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -379,7 +397,7 @@ function ProductSection() {
         </div>
 
         <div className="itc-mockup" style={{ marginTop: 48 }}>
-          <div className="itc-mockup-media" style={{ aspectRatio: "1280/966" }}>
+          <div className="itc-mockup-media" style={{ aspectRatio: "1440/900" }}>
             <DemoVideo />
           </div>
         </div>

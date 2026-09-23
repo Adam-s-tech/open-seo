@@ -273,6 +273,40 @@
   overflow: hidden;
   background: var(--canvas);
 }
+.itc-demo-video {
+  position: relative;
+}
+.itc-demo-play {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(17, 17, 17, 0.12);
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+.itc-demo-play:hover,
+.itc-demo-play:focus-visible {
+  background: rgba(17, 17, 17, 0.2);
+}
+.itc-demo-play:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: -3px;
+}
+.itc-demo-play-button {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 8vw, 96px);
+  height: clamp(64px, 8vw, 96px);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
 
 /* ── Hero ── */
 .itc-hero {
