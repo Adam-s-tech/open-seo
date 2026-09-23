@@ -1,4 +1,4 @@
-import { Send, Trash2 } from "lucide-react";
+import { Crown, Send, Trash2 } from "lucide-react";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { hasOrgPermission } from "@/lib/org-permissions";
 
@@ -15,7 +15,7 @@ function formatRole(role: string) {
     .join(", ");
 }
 
-type Member = {
+export type Member = {
   id: string;
   userId: string;
   role: string;
@@ -36,6 +36,7 @@ export function MemberRow({
   isOwner,
   isRemoving,
   onRemove,
+  onTransferOwnership,
 }: {
   member: Member;
   isSelf: boolean;
@@ -43,6 +44,7 @@ export function MemberRow({
   isOwner: boolean;
   isRemoving: boolean;
   onRemove: () => void;
+  onTransferOwnership: () => void;
 }) {
   const memberIsOwner = hasOrgPermission(member.role, {
     billing: ["manage"],
@@ -50,6 +52,8 @@ export function MemberRow({
   // Owners are protected server-side (only an owner can touch an owner; the
   // last owner can't be removed) — don't render controls that would just 403.
   const canRemove = canManageTeam && !isSelf && (!memberIsOwner || isOwner);
+  // Owners can always remove, so this only ever adds to the remove menu.
+  const canTransferOwnership = isOwner && !isSelf && !memberIsOwner;
 
   return (
     <tr className="hover">
@@ -77,25 +81,40 @@ export function MemberRow({
             menuClassName="w-52"
           >
             {(close) => (
-              <li>
-                <button
-                  className="text-error"
-                  disabled={isRemoving}
-                  onClick={() => {
-                    close();
-                    if (
-                      window.confirm(
-                        `Remove ${member.user.email} from this organization? They lose access immediately.`,
-                      )
-                    ) {
-                      onRemove();
-                    }
-                  }}
-                >
-                  <Trash2 className="size-3.5" />
-                  Remove member
-                </button>
-              </li>
+              <>
+                {canTransferOwnership ? (
+                  <li>
+                    <button
+                      onClick={() => {
+                        close();
+                        onTransferOwnership();
+                      }}
+                    >
+                      <Crown className="size-3.5" />
+                      Transfer ownership
+                    </button>
+                  </li>
+                ) : null}
+                <li>
+                  <button
+                    className="text-error"
+                    disabled={isRemoving}
+                    onClick={() => {
+                      close();
+                      if (
+                        window.confirm(
+                          `Remove ${member.user.email} from this organization? They lose access immediately.`,
+                        )
+                      ) {
+                        onRemove();
+                      }
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                    Remove member
+                  </button>
+                </li>
+              </>
             )}
           </PortalMenu>
         ) : null}

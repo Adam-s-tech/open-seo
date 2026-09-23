@@ -6,7 +6,12 @@ import {
   inviteErrorMessage,
 } from "@/client/features/team/InviteTeammateModal";
 import { organizationContextQueryOptions } from "@/client/features/team/organizationQueries";
-import { InvitationRow, MemberRow } from "@/client/features/team/TeamTableRows";
+import {
+  InvitationRow,
+  MemberRow,
+  type Member,
+} from "@/client/features/team/TeamTableRows";
+import { TransferOwnershipModal } from "@/client/features/team/TransferOwnershipModal";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient, useSession } from "@/lib/auth-client";
 import { hasOrgPermission } from "@/lib/org-permissions";
@@ -17,6 +22,7 @@ export function TeamSettings() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<Member | null>(null);
 
   const orgContextQuery = useQuery(organizationContextQueryOptions());
 
@@ -149,6 +155,7 @@ export function TeamSettings() {
                   isOwner={isOwner}
                   isRemoving={removeMemberMutation.isPending}
                   onRemove={() => removeMemberMutation.mutate(member.id)}
+                  onTransferOwnership={() => setTransferTarget(member)}
                 />
               ))}
               {pendingInvitations.map((invitation) => (
@@ -168,6 +175,21 @@ export function TeamSettings() {
           </table>
         </div>
       )}
+
+      {transferTarget ? (
+        <TransferOwnershipModal
+          member={transferTarget}
+          onClose={() => setTransferTarget(null)}
+          onTransferred={() => {
+            // The caller's own role changed too: refresh the org context that
+            // gates the team and billing UI, not only the member list.
+            void refreshTeam();
+            void queryClient.invalidateQueries({
+              queryKey: organizationContextQueryOptions().queryKey,
+            });
+          }}
+        />
+      ) : null}
 
       {isInviteOpen ? (
         <InviteTeammateModal

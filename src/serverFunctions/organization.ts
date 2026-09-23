@@ -5,6 +5,7 @@ import { getAuth, getHostedBaseUrl } from "@/lib/auth";
 import { hasOrgPermission } from "@/lib/org-permissions";
 import { consumeInvitationSendBudget } from "@/server/auth/invitation-send-limit";
 import { requireOrgPermission } from "@/server/auth/org-gate";
+import { transferOrganizationOwnership } from "@/server/auth/ownership-transfer";
 import { AuthRepository } from "@/server/auth/repositories/AuthRepository";
 import { sendHostedInvitationEmail } from "@/server/email/loops";
 import { AppError } from "@/server/lib/errors";
@@ -153,4 +154,17 @@ export const sendTeamInvitation = createServerFn({ method: "POST" })
     }
 
     return { invitationId: invitation.id };
+  });
+
+const transferOwnershipSchema = z.object({ memberId: z.string().min(1) });
+
+// Owner-only. Runs here rather than through better-auth's update-member-role,
+// which can't swap two roles atomically and refuses owner grants (see the
+// beforeUpdateMemberRole hook in auth.ts).
+export const transferOwnership = createServerFn({ method: "POST" })
+  .middleware(requireAuthenticatedContext)
+  .validator(transferOwnershipSchema)
+  .handler(async ({ data, context }) => {
+    await transferOrganizationOwnership(context, data.memberId);
+    return { memberId: data.memberId };
   });

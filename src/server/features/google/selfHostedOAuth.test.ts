@@ -18,10 +18,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("cloudflare:workers", () => ({ env: {} }));
-vi.mock("drizzle-orm", () => ({
-  and: (...values: unknown[]) => values,
-  eq: (...values: unknown[]) => values,
-}));
 vi.mock("@/db/schema", () => ({
   account: {
     id: "id",
