@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ProjectMarketFields } from "@/client/features/projects/ProjectMarketFields";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import {
   clearLastProjectId,
   getLastProjectId,
@@ -63,8 +62,6 @@ function GeneralSection({ project }: { project: ProjectSummary }) {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project updated");
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Failed to update project")),
   });
 
   const isDirty =
@@ -154,8 +151,6 @@ function DangerSection({
       // Re-resolve to a remaining project via the landing redirect.
       void navigate({ to: "/" });
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Failed to archive project")),
   });
 
   return (

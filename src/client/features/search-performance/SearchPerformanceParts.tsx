@@ -27,7 +27,6 @@ import {
   normalizeExportValue,
   type CsvValue,
 } from "@/client/lib/csv";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { exportTableToSheets } from "@/client/lib/exportToSheets";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
@@ -311,9 +310,6 @@ export function StrikingDistanceTable({
         `Saved ${keywords.length} ${keywords.length === 1 ? "keyword" : "keywords"}`,
       );
       setRowSelection({});
-    },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Could not save keywords"));
     },
   });
 

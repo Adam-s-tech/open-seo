@@ -4,7 +4,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
 
@@ -53,9 +52,6 @@ export function ApiKeySettings() {
       captureClientEvent("mcp:api_key_created");
       void queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
     },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error));
-    },
   });
 
   const revokeMutation = useMutation({
@@ -69,9 +65,6 @@ export function ApiKeySettings() {
       captureClientEvent("mcp:api_key_revoked");
       toast.success("API key revoked");
       void queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
-    },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error));
     },
   });
 

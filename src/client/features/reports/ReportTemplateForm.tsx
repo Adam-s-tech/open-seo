@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Modal } from "@/client/components/Modal";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
@@ -42,6 +43,7 @@ export function ReportTemplateForm({
   onSaved: () => void;
 }) {
   const saveMutation = useMutation({
+    meta: { errorToast: false },
     // A refusal (duplicate name, the cap) comes back as `{ ok: false }` rather
     // than an error, because thrown errors reach the client stripped to their
     // code. Rethrowing it here gives the form one error branch.
@@ -58,6 +60,7 @@ export function ReportTemplateForm({
         is_update: !result.created,
         source: "app",
       });
+      toast.success(result.created ? "Template created" : "Template saved");
       onSaved();
     },
   });

@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { addTrackingKeywords } from "@/serverFunctions/rank-tracking";
 import { MAX_TRACKED_KEYWORD_LENGTH } from "@/shared/rank-tracking";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { Loader2 } from "lucide-react";
 
 export function AddKeywordsPanel({
@@ -31,9 +30,6 @@ export function AddKeywordsPanel({
     onSuccess: (result) => {
       setKeywordInput("");
       onSuccess(result);
-    },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Failed to add keywords"));
     },
   });
   const isPending = mutation.isPending;

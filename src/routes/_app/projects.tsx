@@ -8,7 +8,6 @@ import {
   getProjects,
   restoreProject,
 } from "@/serverFunctions/projects";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { getLastProjectId } from "@/client/lib/active-project";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 
@@ -113,8 +112,6 @@ function ArchivedProjects() {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project restored");
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Failed to restore project")),
   });
 
   if (archived.length === 0) return null;

@@ -6,7 +6,6 @@ import {
   CrawlerAccessForm,
   crawlerCredentialsQueryKey,
 } from "@/client/features/crawler-access/CrawlerAccessForm";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import {
   deleteCrawlerCredential,
   listCrawlerCredentials,
@@ -38,8 +37,6 @@ export function CrawlerAccessSettings({ projectId }: { projectId: string }) {
       });
       toast.success("Crawler access removed");
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "We couldn't remove that")),
   });
 
   const credentials = credentialsQuery.data ?? [];

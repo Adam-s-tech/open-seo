@@ -1,7 +1,6 @@
 import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
 import {
   CrawlerAccessForm,
   crawlerCredentialsQueryKey,
@@ -9,7 +8,6 @@ import {
 } from "@/client/features/crawler-access/CrawlerAccessForm";
 import type { AuditResultsData } from "@/client/features/audit/results/types";
 import { extractHostname } from "@/client/features/audit/shared";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { startAudit } from "@/serverFunctions/audit";
 import { listCrawlerCredentials } from "@/serverFunctions/crawlerAccess";
 import {
@@ -81,8 +79,6 @@ export function ShopifyCrawlWarning({
         search: { auditId: result.auditId, tab: "issues" },
       });
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Failed to start audit")),
   });
 
   const rerunButton = (

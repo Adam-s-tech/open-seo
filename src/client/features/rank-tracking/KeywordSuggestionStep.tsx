@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { getDomainKeywordSuggestions } from "@/serverFunctions/domain";
 import { addTrackingKeywords } from "@/serverFunctions/rank-tracking";
 import { isLabsLocationCode } from "@/client/features/keywords/locations";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import {
   AppDataTable,
   makeSelectionColumn,
@@ -212,9 +211,6 @@ export function KeywordSuggestionStep({
     onSuccess: (result) => {
       toast.success(`Added ${result.added} keywords for tracking`);
       onDone(configId);
-    },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Failed to add keywords"));
     },
   });
 

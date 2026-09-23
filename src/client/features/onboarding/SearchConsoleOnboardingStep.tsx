@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { toast } from "sonner";
 import { GoogleGlyph } from "@/client/features/gsc/GoogleGlyph";
 import { GoogleLinkErrorAlert } from "@/client/features/integrations/GoogleLinkErrorAlert";
 import { SelfHostedSetupWarning } from "@/client/features/gsc/SelfHostedSetupWarning";
@@ -13,7 +12,6 @@ import {
   startGoogleLink,
   useGoogleLinkPending,
 } from "@/client/features/integrations/startGoogleLink";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
   getGscConnection,
@@ -122,7 +120,6 @@ function GscConnect({
       void queryClient.invalidateQueries({ queryKey: ["projects"] });
       onNext();
     },
-    onError: (error) => toast.error(getStandardErrorMessage(error)),
   });
 
   const handleConnect = () => {

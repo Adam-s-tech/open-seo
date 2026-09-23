@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { saveCrawlerCredential } from "@/serverFunctions/crawlerAccess";
 import {
   isCrawlerAccessExpired,
@@ -47,8 +46,6 @@ export function CrawlerAccessForm({
       toast.success(`Crawler access saved for ${saved.host}`);
       onSaved?.();
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "We couldn't save that")),
   });
 
   const isExpired = isCrawlerAccessExpired(

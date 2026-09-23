@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { updateProjectContext } from "@/serverFunctions/projectContext";
 import type { getProjectContext } from "@/serverFunctions/projectContext";
 import type {
@@ -38,8 +37,6 @@ export function useContextUpdate(projectId: string) {
       queryClient.setQueryData(queryKey, context);
       toast.success("Project context updated");
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Couldn't save your changes")),
     // The page instantiates this mutation per section, so two concurrent
     // patches can settle out of order and the slower (earlier-snapshotted)
     // response can land in the cache last; a settle-time refetch converges

@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Modal } from "@/client/components/Modal";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { setLastProjectId } from "@/client/lib/active-project";
 import {
   DEFAULT_LOCATION_CODE,
@@ -45,8 +44,6 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
         params: { projectId: created.id },
       });
     },
-    onError: (error) =>
-      toast.error(getStandardErrorMessage(error, "Failed to create project")),
   });
 
   const isPending = createMutation.isPending;

@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import {
   getWorkspaceMergeStatus,
@@ -30,13 +29,6 @@ export function WorkspaceMergeBanner() {
       // refetch everything rather than enumerating keys.
       void queryClient.invalidateQueries();
     },
-    onError: (error) =>
-      toast.error(
-        getStandardErrorMessage(
-          error,
-          "Couldn't migrate the organizations. Try again.",
-        ),
-      ),
   });
 
   if (!statusQuery.data || statusQuery.data.legacyWorkspaceCount === 0) {

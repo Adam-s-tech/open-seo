@@ -1,8 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { OnboardingAccountMenu } from "@/client/features/onboarding/OnboardingAccountMenu";
 import { PostSignupOnboarding } from "@/client/features/onboarding/PostSignupOnboarding";
 import {
@@ -79,14 +77,6 @@ function OnboardingFlow({
       saveOnboardingAnswers({
         data: buildOnboardingPayload(answers, step, extra),
       }),
-    onError: (error) => {
-      toast.error(
-        getStandardErrorMessage(
-          error,
-          "Couldn’t save your answers. Please try again.",
-        ),
-      );
-    },
   });
 
   const goToStep = (next: number) =>

@@ -89,6 +89,7 @@ export function GoogleAnalyticsConnectionCard({
     });
   };
   const setPropertyMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: (selected: Ga4PropertySelection) =>
       setGa4Property({ data: { projectId, ...selected } }),
     onSuccess: (saved) => {
@@ -104,6 +105,7 @@ export function GoogleAnalyticsConnectionCard({
     },
   });
   const disconnectMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: () => disconnectGa4({ data: { projectId } }),
     onSuccess: () => {
       toast.success("Google Analytics disconnected from this project");

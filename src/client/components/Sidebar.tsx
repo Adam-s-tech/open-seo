@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import type { LinkOptions } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type ComponentType } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeftRight,
   Check,
@@ -24,6 +25,7 @@ import { ProjectSwitcher } from "@/client/features/projects/ProjectSwitcher";
 import { SamSidebarPanel } from "@/client/features/sam/SamSidebarPanel";
 import { ThemePreferenceMenuItems } from "@/client/components/ThemePreferenceMenuItems";
 import { closeDropdown } from "@/client/lib/dropdown";
+import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { signOutAndRedirect, useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { BILLING_ROUTE } from "@/shared/billing";
@@ -254,7 +256,8 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
       // Full reload: every cached query and the project-scoped URL belong to
       // the previous organization.
       window.location.assign("/");
-    } catch {
+    } catch (error) {
+      toast.error(getStandardErrorMessage(error));
       setIsSwitching(false);
     }
   }

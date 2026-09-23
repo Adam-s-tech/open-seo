@@ -85,6 +85,7 @@ export function SearchConsoleConnectionCard({
   }, [accounts, selection, picking, connected]);
 
   const setSiteMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: (selected: GscSiteSelection) =>
       setGscSite({ data: { projectId, ...selected } }),
     onSuccess: (saved) => {
@@ -117,6 +118,7 @@ export function SearchConsoleConnectionCard({
   });
 
   const disconnectMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: () => disconnectGsc({ data: { projectId } }),
     onSuccess: () => {
       toast.success("Search Console disconnected from this project");

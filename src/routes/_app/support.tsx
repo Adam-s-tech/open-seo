@@ -15,7 +15,12 @@ function SupportPage() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(SUPPORT_EMAIL);
+    try {
+      await navigator.clipboard.writeText(SUPPORT_EMAIL);
+    } catch {
+      toast.error("Could not copy to clipboard");
+      return;
+    }
     toast.success("Email copied to clipboard");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

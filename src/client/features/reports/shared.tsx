@@ -59,11 +59,6 @@ export function useDeleteReport(projectId: string, onDeleted?: () => void) {
       });
       onDeleted?.();
     },
-    onError: (error: Error) => {
-      toast.error(
-        getStandardErrorMessage(error, "Failed to delete the report"),
-      );
-    },
   });
 }
 
@@ -113,6 +108,7 @@ export function ShareReportModal({
   // shows the new link without waiting for a refetch; the list is invalidated
   // because its rows carry the same metadata.
   const mutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: (shared: boolean) =>
       shared
         ? shareReport({ data: { projectId, reportId } })

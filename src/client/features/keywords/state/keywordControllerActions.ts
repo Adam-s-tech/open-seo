@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { buildCsv, type CsvValue, downloadCsv } from "@/client/lib/csv";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import type { KeywordResearchRow } from "@/types/keywords";
 import type { SaveKeywordsInput } from "@/types/schemas/keywords";
@@ -40,10 +39,7 @@ type SaveExportActionParams = {
   input: KeywordResearchControllerInput;
   saveKeywordsMutate: (
     variables: SaveKeywordsInput,
-    options: {
-      onSuccess: () => void;
-      onError: (error: unknown) => void;
-    },
+    options: { onSuccess: () => void },
   ) => void;
   setShowSaveDialog: (show: boolean) => void;
 };
@@ -139,9 +135,6 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
           });
           toast.success(`Saved ${selectedRows.size} keywords`);
           setShowSaveDialog(false);
-        },
-        onError: (error: unknown) => {
-          toast.error(getStandardErrorMessage(error, "Save failed."));
         },
       },
     );

@@ -59,9 +59,6 @@ export function TeamSettings() {
       toast.success("Member removed");
       void refreshTeam();
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "We couldn't remove that member.");
-    },
   });
 
   const cancelInvitationMutation = useMutation({
@@ -79,9 +76,6 @@ export function TeamSettings() {
       captureClientEvent("team:invitation_cancel");
       toast.success("Invitation canceled");
       void refreshTeam();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "We couldn't cancel that invitation.");
     },
   });
 

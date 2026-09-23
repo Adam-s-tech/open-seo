@@ -117,6 +117,7 @@ function useLaunchMutations({ projectId }: { projectId: string }) {
     queryClient.invalidateQueries({ queryKey: ["audit-history", projectId] });
 
   const startMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: (data: {
       projectId: string;
       startUrl: string;

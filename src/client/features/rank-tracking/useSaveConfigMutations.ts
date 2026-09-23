@@ -4,7 +4,6 @@ import {
   createRankTrackingConfig,
   updateRankTrackingConfig,
 } from "@/serverFunctions/rank-tracking";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import type {
   RankCheckScheduleTime,
@@ -55,9 +54,6 @@ export function useSaveConfigMutations(input: {
       toast.success("Domain added for rank tracking");
       onCreated(result.id);
     },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Failed to save config"));
-    },
   });
 
   const updateMutation = useMutation({
@@ -78,9 +74,6 @@ export function useSaveConfigMutations(input: {
       captureClientEvent("rank_tracking:config_update");
       toast.success("Configuration updated");
       onUpdated();
-    },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Failed to update config"));
     },
   });
 

@@ -191,9 +191,6 @@ function SavedKeywordsPage() {
         `Updated tags for ${result.taggedCount} keyword${result.taggedCount !== 1 ? "s" : ""}`,
       );
     },
-    onError: (error) => {
-      toast.error(getStandardErrorMessage(error, "Could not update tags"));
-    },
   });
 
   const refreshMetricsMutation = useMutation({
@@ -202,11 +199,6 @@ function SavedKeywordsPage() {
       void invalidateSavedKeywords();
       toast.success(
         `Updated stats for ${result.updated} keyword${result.updated !== 1 ? "s" : ""}`,
-      );
-    },
-    onError: (error) => {
-      toast.error(
-        getStandardErrorMessage(error, "Could not update keyword stats."),
       );
     },
   });
@@ -314,12 +306,15 @@ function SavedKeywordsPage() {
           selectedCount={selectedCount}
           exportingSelection={exporter.exportingSelection}
           onCopy={() => {
-            void navigator.clipboard.writeText(
-              selectedRows.map((row) => row.keyword).join("\n"),
-            );
-            toast.success(
-              `${selectedCount} keyword${selectedCount !== 1 ? "s" : ""} copied`,
-            );
+            navigator.clipboard
+              .writeText(selectedRows.map((row) => row.keyword).join("\n"))
+              .then(
+                () =>
+                  toast.success(
+                    `${selectedCount} keyword${selectedCount !== 1 ? "s" : ""} copied`,
+                  ),
+                () => toast.error("Could not copy to clipboard"),
+              );
           }}
           onOpenTags={() => setShowTagModal(true)}
           onExportCsv={() => exporter.exportSelectionCsv(selectedRows)}

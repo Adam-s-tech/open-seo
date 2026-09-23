@@ -5,6 +5,7 @@ import { useAgentChat } from "@cloudflare/think/react";
 import { useEffect, useRef } from "react";
 import { RotateCcw } from "lucide-react";
 import { findLast } from "remeda";
+import { toast } from "sonner";
 import { ChatComposer } from "@/client/features/sam/ChatComposer";
 import { invalidateSamSessions } from "@/client/features/sam/samQueries";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -94,8 +95,11 @@ export function SamConversation({
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ messageId }),
-    });
-    if (!response.ok) return false;
+    }).catch(() => null);
+    if (!response?.ok) {
+      toast.error("Couldn't change the conversation. Try again.");
+      return false;
+    }
     const fresh = await fetch(
       `/agents/sam-chat/${sessionId}/get-messages`,
     ).then((res) => (res.ok ? res.json() : null));

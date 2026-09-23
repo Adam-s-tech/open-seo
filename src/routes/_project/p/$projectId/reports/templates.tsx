@@ -60,11 +60,6 @@ function ReportTemplatesPage() {
       setPendingDelete(null);
       invalidate();
     },
-    onError: (error: Error) => {
-      toast.error(
-        getStandardErrorMessage(error, "Failed to delete the template"),
-      );
-    },
   });
 
   return (

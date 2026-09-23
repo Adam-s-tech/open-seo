@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import {
@@ -30,6 +31,7 @@ export function GoogleAccountRemovalDialog({
     gcTime: 0,
   });
   const removal = useMutation({
+    meta: { errorToast: false },
     mutationFn: () =>
       removeGoogleAccount({ data: { provider, accountId, confirmed: true } }),
     onSuccess: async () => {
@@ -53,6 +55,7 @@ export function GoogleAccountRemovalDialog({
       await Promise.all(
         keys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
       );
+      toast.success("Google account removed");
       onRemoved();
     },
   });

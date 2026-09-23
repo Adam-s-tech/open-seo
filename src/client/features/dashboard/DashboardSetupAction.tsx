@@ -56,7 +56,6 @@ export function DashboardSetupAction({
       onComplete();
       void navigate({ to: "/p/$projectId/domain", params: { projectId } });
     },
-    onError: (error) => toast.error(getStandardErrorMessage(error)),
   });
   if (step === "domain")
     return project ? (
@@ -238,13 +237,6 @@ function WebsiteForm({
       toast.success("Website saved");
       onComplete();
     },
-    onError: (error) =>
-      toast.error(
-        getStandardErrorMessage(
-          error,
-          "Couldn’t save your website. Try again.",
-        ),
-      ),
   });
   const form = useForm({
     defaultValues: {

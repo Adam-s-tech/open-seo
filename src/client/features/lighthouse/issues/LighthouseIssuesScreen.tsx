@@ -42,6 +42,7 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
   });
 
   const exportMutation = useMutation({
+    meta: { errorToast: false },
     mutationFn: (
       data: ExportPayload,
     ): Promise<{ filename: string; content: string }> =>
