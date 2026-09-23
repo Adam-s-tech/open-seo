@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryState } from "@/client/components/QueryState";
 import { getProjectContext } from "@/serverFunctions/projectContext";
 import {
   PROJECT_CONTEXT_SECTION_KEYS,
@@ -51,59 +51,46 @@ export function ProjectContextPage({ projectId }: { projectId: string }) {
     staleTime: 0,
   });
 
-  if (contextQuery.isPending) {
-    return (
-      <div className="flex justify-center py-10">
-        <span className="loading loading-spinner loading-md" />
-      </div>
-    );
-  }
-
-  if (contextQuery.isError) {
-    return (
-      <div className="alert alert-error">
-        <span className="text-sm">
-          {getStandardErrorMessage(
-            contextQuery.error,
-            "Failed to load project context",
-          )}
-        </span>
-      </div>
-    );
-  }
-
-  const context = contextQuery.data;
-
   return (
-    // key remounts the whole page when the project switches under it, so no
-    // draft, open form, or edit state can carry over to another project.
-    <div key={projectId} className="space-y-8">
-      <p className="text-sm text-base-content/70">
-        What SAM, Claude Code, and any connected MCP client know about this
-        project. They read it before they work and write back what they learn,
-        so correct anything that looks wrong.
-      </p>
+    <QueryState
+      query={contextQuery}
+      errorFallback="Failed to load project context"
+    >
+      {(context) => (
+        // key remounts the whole page when the project switches under it, so no
+        // draft, open form, or edit state can carry over to another project.
+        <div key={projectId} className="space-y-8">
+          <p className="text-sm text-base-content/70">
+            What SAM, Claude Code, and any connected MCP client know about this
+            project. They read it before they work and write back what they
+            learn, so correct anything that looks wrong.
+          </p>
 
-      <ProseSections
-        projectId={projectId}
-        sections={context.sections}
-        missingSections={context.missingSections}
-      />
+          <ProseSections
+            projectId={projectId}
+            sections={context.sections}
+            missingSections={context.missingSections}
+          />
 
-      <CompetitorsSection
-        projectId={projectId}
-        competitors={context.competitors}
-      />
+          <CompetitorsSection
+            projectId={projectId}
+            competitors={context.competitors}
+          />
 
-      <KeyPagesSection projectId={projectId} keyPages={context.keyPages} />
+          <KeyPagesSection projectId={projectId} keyPages={context.keyPages} />
 
-      <CustomSections
-        projectId={projectId}
-        customSections={context.customSections}
-      />
+          <CustomSections
+            projectId={projectId}
+            customSections={context.customSections}
+          />
 
-      <ResearchLog projectId={projectId} researchLog={context.researchLog} />
-    </div>
+          <ResearchLog
+            projectId={projectId}
+            researchLog={context.researchLog}
+          />
+        </div>
+      )}
+    </QueryState>
   );
 }
 

@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getRankTrackingConfigs } from "@/serverFunctions/rank-tracking";
 import { RankTrackingDomainDetail } from "@/client/features/rank-tracking/RankTrackingDomainDetail";
+import { PageLoading } from "@/client/components/Spinner";
 import { RankTrackingConfigModal } from "@/client/features/rank-tracking/RankTrackingConfigModal";
 
 export const Route = createFileRoute(
@@ -41,11 +42,7 @@ function RankTrackingConfigRoute() {
   };
 
   if (isPending) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <span className="loading loading-spinner loading-lg" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!config) {

@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
 import { PlanPageAccountMenu } from "@/client/features/billing/PlanPageAccountMenu";
 import { PlanOfferCard } from "@/client/features/billing/PlanOfferCard";
 import {
@@ -129,7 +131,7 @@ function SubscribePage() {
     subscribeRouteState === "loading" ||
     subscribeRouteState === "redirectToApp"
   ) {
-    return null;
+    return <Spinner />;
   }
 
   if (subscribeRouteState === "finalizing") {
@@ -143,7 +145,7 @@ function SubscribePage() {
         <h1 className="text-xl font-semibold">
           Finalizing your subscription&hellip;
         </h1>
-        <span className="loading loading-spinner loading-md" />
+        <Spinner />
         <p className="text-sm text-base-content/60">
           This usually takes a few seconds.
         </p>
@@ -170,22 +172,12 @@ function SubscribePage() {
           <h1 className="text-xl font-semibold">Billing unavailable</h1>
         </div>
 
-        <p className="text-sm text-center text-base-content/70">
-          {getStandardErrorMessage(
-            customerQuery.error,
-            "We couldn't verify your billing status right now. Please try again.",
-          )}
-        </p>
-
-        <button
-          type="button"
-          className="btn btn-soft w-full"
-          onClick={() => {
-            void customerQuery.refetch();
-          }}
-        >
-          Try again
-        </button>
+        <QueryError
+          error={customerQuery.error}
+          fallback="We couldn't verify your billing status right now. Please try again."
+          onRetry={() => void customerQuery.refetch()}
+          isRetrying={customerQuery.isFetching}
+        />
       </div>
     );
   }

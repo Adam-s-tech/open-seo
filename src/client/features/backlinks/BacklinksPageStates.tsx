@@ -1,4 +1,5 @@
 import { ShieldAlert } from "lucide-react";
+import { Skeleton } from "@/client/components/Skeleton";
 
 export function BacklinksLoadingState() {
   return (
@@ -7,8 +8,8 @@ export function BacklinksLoadingState() {
         {Array.from({ length: 8 }).map((_, index) => (
           <div key={index} className="card bg-base-100 border border-base-300">
             <div className="card-body gap-3 p-4">
-              <div className="skeleton h-3 w-24" />
-              <div className="skeleton h-8 w-28" />
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-28" />
             </div>
           </div>
         ))}
@@ -17,16 +18,16 @@ export function BacklinksLoadingState() {
         {Array.from({ length: 2 }).map((_, index) => (
           <div key={index} className="card bg-base-100 border border-base-300">
             <div className="card-body gap-3">
-              <div className="skeleton h-4 w-32" />
-              <div className="skeleton h-64 w-full" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-64 w-full" />
             </div>
           </div>
         ))}
       </div>
       <div className="card bg-base-100 border border-base-300">
         <div className="card-body gap-3">
-          <div className="skeleton h-8 w-60" />
-          <div className="skeleton h-80 w-full" />
+          <Skeleton className="h-8 w-60" />
+          <Skeleton className="h-80 w-full" />
         </div>
       </div>
     </div>

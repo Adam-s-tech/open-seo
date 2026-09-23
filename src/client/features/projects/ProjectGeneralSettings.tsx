@@ -2,6 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { QueryError, QueryState } from "@/client/components/QueryState";
 import { ProjectMarketFields } from "@/client/features/projects/ProjectMarketFields";
 import {
   clearLastProjectId,
@@ -19,23 +20,26 @@ export function ProjectGeneralSettings({ projectId }: { projectId: string }) {
     queryKey: ["projects"],
     queryFn: () => getProjects(),
   });
-  const projects = projectsQuery.data ?? [];
-  const project = projects.find((entry) => entry.id === projectId) ?? null;
-
-  if (!project) {
-    return (
-      <div className="flex justify-center py-10">
-        <span className="loading loading-spinner loading-md" />
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-8">
-      {/* key resets the form's local state when switching between projects */}
-      <GeneralSection key={project.id} project={project} />
-      <DangerSection project={project} canArchive={projects.length > 1} />
-    </div>
+    <QueryState
+      query={projectsQuery}
+      errorFallback="Failed to load the project"
+    >
+      {(projects) => {
+        const project = projects.find((entry) => entry.id === projectId);
+        if (!project) {
+          return <QueryError fallback="This project was not found." />;
+        }
+        return (
+          <div className="space-y-8">
+            {/* key resets the form's local state when switching between projects */}
+            <GeneralSection key={project.id} project={project} />
+            <DangerSection project={project} canArchive={projects.length > 1} />
+          </div>
+        );
+      }}
+    </QueryState>
   );
 }
 

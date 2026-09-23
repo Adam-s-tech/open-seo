@@ -2,6 +2,8 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { GoogleGlyph } from "@/client/features/gsc/GoogleGlyph";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
 import { GoogleLinkErrorAlert } from "@/client/features/integrations/GoogleLinkErrorAlert";
 import { SelfHostedSetupWarning } from "@/client/features/gsc/SelfHostedSetupWarning";
 import {
@@ -57,7 +59,16 @@ export function SearchConsoleOnboardingStep(props: NavigationProps) {
         <GscConnect key={project.id} projectId={project.id} {...props} />
       ) : (
         <>
-          <Checking />
+          {projectsQuery.isError ? (
+            <QueryError
+              error={projectsQuery.error}
+              fallback="Couldn't load your project."
+              onRetry={() => void projectsQuery.refetch()}
+              isRetrying={projectsQuery.isFetching}
+            />
+          ) : (
+            <Spinner size="sm" label="Checking…" />
+          )}
           <StepNavigation {...props} />
         </>
       )}
@@ -135,18 +146,13 @@ function GscConnect({
   return (
     <fieldset disabled={busy}>
       {connectionQuery.isLoading ? (
-        <Checking />
+        <Spinner size="sm" label="Checking…" />
       ) : connectionQuery.isError && !connection ? (
-        <div role="alert" className="text-sm">
-          <p>Couldn't check your Google connection.</p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => void connectionQuery.refetch()}
-          >
-            Try again
-          </button>
-        </div>
+        <QueryError
+          fallback="Couldn't check your Google connection."
+          onRetry={() => void connectionQuery.refetch()}
+          isRetrying={connectionQuery.isFetching}
+        />
       ) : needsSetup ? (
         <SelfHostedSetupWarning />
       ) : connected ? (
@@ -253,15 +259,6 @@ function StepNavigation({
             </button>
           ))}
       </div>
-    </div>
-  );
-}
-
-function Checking() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-base-content/50">
-      <span className="loading loading-spinner loading-sm" />
-      Checking…
     </div>
   );
 }

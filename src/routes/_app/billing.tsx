@@ -1,6 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
 import { useState } from "react";
+import { QueryError } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
 import { useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { useCanManageBilling } from "@/client/features/team/organizationQueries";
@@ -81,28 +83,19 @@ function BillingPage() {
     parseTopUpAmount(topUpAmount);
 
   if (billingRouteState === "loading") {
-    return null;
+    return <PageLoading />;
   }
 
   if (billingRouteState === "error") {
     return (
       <div className="mx-auto w-full max-w-2xl space-y-4 p-4 py-10 md:p-6 md:py-12">
         <h1 className="text-xl font-semibold">Billing unavailable</h1>
-        <p className="text-sm text-base-content/70">
-          {getStandardErrorMessage(
-            customerQuery.error,
-            "We couldn't load your billing details right now. Please try again.",
-          )}
-        </p>
-        <button
-          type="button"
-          className="btn btn-soft btn-sm"
-          onClick={() => {
-            void customerQuery.refetch();
-          }}
-        >
-          Try again
-        </button>
+        <QueryError
+          error={customerQuery.error}
+          fallback="We couldn't load your billing details right now. Please try again."
+          onRetry={() => void customerQuery.refetch()}
+          isRetrying={customerQuery.isFetching}
+        />
       </div>
     );
   }

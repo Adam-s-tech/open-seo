@@ -4,10 +4,10 @@ import { useState } from "react";
 import { ChevronLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDeleteModal } from "@/client/components/ConfirmDeleteModal";
+import { QueryState } from "@/client/components/QueryState";
 import { ReportTemplateForm } from "@/client/features/reports/ReportTemplateForm";
 import { ReportTemplatesList } from "@/client/features/reports/ReportTemplatesList";
 import { reportsQueryKey } from "@/client/features/reports/shared";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
   deleteReportTemplate,
@@ -92,26 +92,18 @@ function ReportTemplatesPage() {
           </button>
         </div>
 
-        {templatesQuery.isPending ? (
-          <div className="flex justify-center py-10">
-            <span className="loading loading-spinner loading-md" />
-          </div>
-        ) : templatesQuery.isError ? (
-          <div className="alert alert-error">
-            <span className="text-sm">
-              {getStandardErrorMessage(
-                templatesQuery.error,
-                "Failed to load templates",
-              )}
-            </span>
-          </div>
-        ) : (
-          <ReportTemplatesList
-            templates={templatesQuery.data.templates}
-            onEdit={(template) => setForm({ template })}
-            onDelete={setPendingDelete}
-          />
-        )}
+        <QueryState
+          query={templatesQuery}
+          errorFallback="Failed to load templates"
+        >
+          {(data) => (
+            <ReportTemplatesList
+              templates={data.templates}
+              onEdit={(template) => setForm({ template })}
+              onDelete={setPendingDelete}
+            />
+          )}
+        </QueryState>
       </div>
 
       {form ? (

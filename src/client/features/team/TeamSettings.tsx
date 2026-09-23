@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { QueryError } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
 import {
   InviteTeammateModal,
   inviteErrorMessage,
@@ -94,20 +96,19 @@ export function TeamSettings() {
   const members = teamQuery.data?.members ?? [];
   const pendingInvitations = teamQuery.data?.pendingInvitations ?? [];
 
-  if (teamQuery.isError) {
+  // The team query waits on the org context, so a failed context would
+  // otherwise leave the team spinner up for good.
+  const failedQuery = [orgContextQuery, teamQuery].find(
+    (query) => query.isError && query.data === undefined,
+  );
+  if (failedQuery) {
     return (
-      <div className="space-y-3">
-        <p className="text-sm text-base-content/70">
-          We couldn&rsquo;t load your team right now.
-        </p>
-        <button
-          type="button"
-          className="btn btn-soft btn-sm"
-          onClick={() => void teamQuery.refetch()}
-        >
-          Try again
-        </button>
-      </div>
+      <QueryError
+        error={failedQuery.error}
+        fallback="We couldn't load your team right now."
+        onRetry={() => void failedQuery.refetch()}
+        isRetrying={failedQuery.isFetching}
+      />
     );
   }
 
@@ -131,9 +132,7 @@ export function TeamSettings() {
       </p>
 
       {teamQuery.isPending ? (
-        <div className="flex justify-center py-6">
-          <span className="loading loading-spinner loading-md" />
-        </div>
+        <PageLoading />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-base-300">
           <table className="table table-sm">

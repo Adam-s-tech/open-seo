@@ -23,6 +23,7 @@ import type {
   DashboardAuditSummary,
   DashboardBacklinkSummary,
 } from "@/server/features/dashboard/services/DashboardService";
+import { Skeleton } from "@/client/components/Skeleton";
 
 // Plain string-keyed view of the registry: issue types from the DB are not
 // statically guaranteed to be registry keys.
@@ -75,7 +76,7 @@ export function GscCard({
       {reportQuery.isPending ? (
         <div className="grid grid-cols-2 gap-3" aria-busy>
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="skeleton h-20" />
+            <Skeleton key={i} className="h-20" />
           ))}
         </div>
       ) : reportQuery.isError ? (
@@ -218,7 +219,7 @@ export function BacklinkPulseCard({
       <CardShell title="Backlink pulse" stamp="Taking your first snapshot…">
         <div className="grid grid-cols-2 gap-3" aria-busy>
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="skeleton h-20" />
+            <Skeleton key={i} className="h-20" />
           ))}
         </div>
       </CardShell>

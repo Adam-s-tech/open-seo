@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { useHostedAuthRouteGuard } from "@/client/features/auth/useHostedAuthRouteGuard";
+import { PageLoading } from "@/client/components/Spinner";
 import { AuthenticatedAppLayout } from "@/client/layout/AppShell";
 import { useOnboardingRedirect } from "@/client/features/onboarding/useOnboardingRedirect";
 
@@ -12,7 +13,7 @@ function AppRouteLayout() {
   useOnboardingRedirect();
 
   if (!authGate.canRenderAuthenticatedContent) {
-    return null;
+    return <PageLoading fullScreen />;
   }
 
   return (

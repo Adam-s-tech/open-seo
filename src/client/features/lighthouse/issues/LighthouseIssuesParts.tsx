@@ -23,6 +23,7 @@ import { categoryTabs } from "./types";
 export function LighthouseIssuesHeader({
   backLabel,
   onBack,
+  isLoading,
   scannedAt,
   finalUrl,
   scores,
@@ -31,6 +32,7 @@ export function LighthouseIssuesHeader({
 }: {
   backLabel: string;
   onBack: () => void;
+  isLoading: boolean;
   scannedAt?: string;
   finalUrl?: string;
   scores?: LighthouseScores | null;
@@ -46,7 +48,9 @@ export function LighthouseIssuesHeader({
         <span className="text-xs text-base-content/60">
           {scannedAt
             ? `Scanned ${new Date(scannedAt).toLocaleString()}`
-            : "Reading latest issues..."}
+            : isLoading
+              ? "Reading latest issues..."
+              : null}
         </span>
       </div>
 
@@ -55,7 +59,7 @@ export function LighthouseIssuesHeader({
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold">Lighthouse Issues</h1>
             <p className="text-sm text-base-content/70 break-all">
-              {finalUrl ?? "Loading URL..."}
+              {finalUrl ?? (isLoading ? "Loading URL..." : null)}
             </p>
           </div>
           <LighthouseIssuesSummary scores={scores} metrics={metrics} />

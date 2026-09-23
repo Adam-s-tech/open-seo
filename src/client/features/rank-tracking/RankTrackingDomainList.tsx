@@ -27,6 +27,7 @@ import {
   getDomainListFilterOptions,
   type DomainListFilters,
 } from "./RankTrackingFilters";
+import { Skeleton } from "@/client/components/Skeleton";
 
 type ConfigSummary = Awaited<
   ReturnType<typeof getRankTrackingConfigSummaries>
@@ -111,8 +112,8 @@ export function RankTrackingDomainList({
             <div className="space-y-4 px-5 py-4" aria-busy>
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="skeleton h-4 w-48" />
-                  <div className="skeleton h-3 w-72" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-72" />
                 </div>
               ))}
             </div>

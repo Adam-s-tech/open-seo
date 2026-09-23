@@ -1,3 +1,5 @@
+import { Skeleton } from "@/client/components/Skeleton";
+
 type Props = {
   modelCount: number;
 };
@@ -13,17 +15,17 @@ export function PromptExplorerLoadingState({ modelCount }: Props) {
         >
           <header className="flex items-center justify-between border-b border-base-200 bg-base-200/40 px-5 py-3">
             <div className="flex items-center gap-2">
-              <div className="skeleton size-2 rounded-full" />
-              <div className="skeleton h-4 w-20" />
-              <div className="skeleton h-3 w-32" />
+              <Skeleton className="size-2 rounded-full" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-3 w-32" />
             </div>
-            <div className="skeleton h-3 w-16" />
+            <Skeleton className="h-3 w-16" />
           </header>
           <div className="space-y-2 px-5 py-5">
-            <div className="skeleton h-3 w-full" />
-            <div className="skeleton h-3 w-11/12" />
-            <div className="skeleton h-3 w-10/12" />
-            <div className="skeleton h-3 w-9/12" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-11/12" />
+            <Skeleton className="h-3 w-10/12" />
+            <Skeleton className="h-3 w-9/12" />
           </div>
         </article>
       ))}

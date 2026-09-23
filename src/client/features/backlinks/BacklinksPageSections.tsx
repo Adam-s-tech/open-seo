@@ -26,6 +26,7 @@ import {
   type BacklinksTab,
 } from "@/types/schemas/backlinks";
 import type { ResearchScope } from "@/shared/researchScope";
+import { Skeleton } from "@/client/components/Skeleton";
 
 const BACKLINKS_RESULTS_TABS: Array<{
   tab: BacklinksSearchState["tab"];
@@ -355,9 +356,9 @@ function TabLoadingState({ label }: { label: string }) {
   return (
     <div className="space-y-3 py-2">
       <p className="text-sm text-base-content/60">{label}...</p>
-      <div className="skeleton h-10 w-full" />
-      <div className="skeleton h-10 w-full" />
-      <div className="skeleton h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
     </div>
   );
 }

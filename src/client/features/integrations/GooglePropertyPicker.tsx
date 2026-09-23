@@ -1,4 +1,6 @@
 import { GoogleAccountRemovalDialog } from "@/client/features/integrations/GoogleAccountRemovalDialog";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
 import {
   useId,
   useRef,
@@ -178,24 +180,16 @@ export function GooglePropertyPicker({
             </label>
             <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
               {loading ? (
-                <p
-                  role="status"
-                  className="flex items-center gap-2 p-3 text-sm text-base-content/60"
-                >
-                  <span className="loading loading-spinner loading-xs" />
-                  Loading properties…
-                </p>
+                <Spinner
+                  size="sm"
+                  label="Loading properties…"
+                  className="p-3"
+                />
               ) : error ? (
-                <div role="alert" className="p-3 text-sm">
-                  <p className="text-error">Couldn't load properties.</p>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm mt-1"
-                    onClick={onRetry}
-                  >
-                    Try again
-                  </button>
-                </div>
+                <QueryError
+                  fallback="Couldn't load properties."
+                  onRetry={onRetry}
+                />
               ) : (
                 <>
                   {filtered.map((account) => (

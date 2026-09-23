@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Suspense, useCallback, useEffect, useRef } from "react";
-import { Brain, Loader2 } from "lucide-react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Brain } from "lucide-react";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
 import { createSamSession } from "@/serverFunctions/sam";
 import {
   invalidateSamSessions,
@@ -47,8 +49,14 @@ export function SamChat({
   // effect before the mutation state updates, and it resets on settle so
   // archiving the last chat starts a fresh one.
   const creating = useRef(false);
+  // Kept in state: the mutation's own callbacks fire for the create started
+  // from the effect below, but the hook's `isError` can miss it and leave the
+  // spinner up.
+  const [createError, setCreateError] = useState<Error | null>(null);
   const createSession = useMutation({
     mutationFn: () => createSamSession({ data: { projectId } }),
+    onMutate: () => setCreateError(null),
+    onError: (error) => setCreateError(error),
     onSuccess: ({ id }) => {
       invalidateSamSessions(projectId);
       goToSession(id);
@@ -105,10 +113,29 @@ export function SamChat({
 
   if (!activeSessionId) {
     // Sessions are loading or a fresh chat is being created; the effect above
-    // redirects into it.
+    // redirects into it. Either request can fail, and neither retries itself.
+    const loadFailed = sessionsQuery.isError && !sessionsQuery.data;
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="size-5 animate-spin text-base-content/40" />
+      <div className="flex h-full items-center justify-center p-4">
+        {loadFailed ? (
+          <QueryError
+            error={sessionsQuery.error}
+            fallback="Failed to load your chats."
+            onRetry={() => void sessionsQuery.refetch()}
+            isRetrying={sessionsQuery.isFetching}
+          />
+        ) : createError ? (
+          <QueryError
+            error={createError}
+            fallback="Failed to start a new chat."
+            onRetry={() => {
+              creating.current = true;
+              createSessionMutate();
+            }}
+          />
+        ) : (
+          <Spinner />
+        )}
       </div>
     );
   }
@@ -141,7 +168,7 @@ export function SamChat({
         <Suspense
           fallback={
             <div className="flex flex-1 items-center justify-center">
-              <Loader2 className="size-5 animate-spin text-base-content/40" />
+              <Spinner />
             </div>
           }
         >

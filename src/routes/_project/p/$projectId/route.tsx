@@ -7,6 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { setLastProjectId } from "@/client/lib/active-project";
+import { PageLoading } from "@/client/components/Spinner";
 import { useHostedAuthRouteGuard } from "@/client/features/auth/useHostedAuthRouteGuard";
 import { FreePlanBanner } from "@/client/features/billing/FreePlanBanner";
 import { useOnboardingRedirect } from "@/client/features/onboarding/useOnboardingRedirect";
@@ -81,7 +82,7 @@ function ProjectLayout() {
   }, [projectId, isSettingsPage]);
 
   if (!authGate.canRenderAuthenticatedContent) {
-    return null;
+    return <PageLoading fullScreen />;
   }
 
   return (

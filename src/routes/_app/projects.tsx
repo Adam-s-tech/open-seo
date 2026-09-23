@@ -8,6 +8,7 @@ import {
   getProjects,
   restoreProject,
 } from "@/serverFunctions/projects";
+import { QueryState } from "@/client/components/QueryState";
 import { getLastProjectId } from "@/client/lib/active-project";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 
@@ -28,7 +29,6 @@ function ProjectsPage() {
     queryKey: ["projects"],
     queryFn: () => getProjects(),
   });
-  const projects = projectsQuery.data ?? [];
 
   return (
     <div className="h-full overflow-auto bg-base-100 px-4 py-8 pb-24 md:px-6 md:py-12 md:pb-8">
@@ -51,40 +51,41 @@ function ProjectsPage() {
           </button>
         </div>
 
-        {projectsQuery.isLoading ? (
-          <div className="flex justify-center py-10">
-            <span className="loading loading-spinner loading-md" />
-          </div>
-        ) : (
-          <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300">
-            {projects.map((project) => (
-              <li key={project.id}>
-                <Link
-                  to="/p/$projectId/settings"
-                  params={{ projectId: project.id }}
-                  className="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-base-200/40"
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span className="flex items-center gap-2">
-                      <span className="truncate font-medium">
-                        {project.name}
-                      </span>
-                      {project.id === currentProjectId ? (
-                        <span className="shrink-0 rounded-full bg-base-300/70 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-base-content/60">
-                          Current
+        <QueryState
+          query={projectsQuery}
+          errorFallback="Failed to load projects"
+        >
+          {(data) => (
+            <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300">
+              {data.map((project) => (
+                <li key={project.id}>
+                  <Link
+                    to="/p/$projectId/settings"
+                    params={{ projectId: project.id }}
+                    className="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-base-200/40"
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-medium">
+                          {project.name}
                         </span>
-                      ) : null}
+                        {project.id === currentProjectId ? (
+                          <span className="shrink-0 rounded-full bg-base-300/70 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-base-content/60">
+                            Current
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="truncate text-xs text-base-content/50">
+                        {project.domain ?? "No domain set"}
+                      </span>
                     </span>
-                    <span className="truncate text-xs text-base-content/50">
-                      {project.domain ?? "No domain set"}
-                    </span>
-                  </span>
-                  <ChevronRight className="size-4 shrink-0 text-base-content/40" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+                    <ChevronRight className="size-4 shrink-0 text-base-content/40" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </QueryState>
 
         <ArchivedProjects />
       </div>

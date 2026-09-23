@@ -15,6 +15,7 @@ import {
   getDashboardOverview,
   refreshDashboardBacklinkSnapshot,
 } from "@/serverFunctions/dashboard";
+import { Skeleton } from "@/client/components/Skeleton";
 
 export function DashboardPage({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
@@ -71,11 +72,11 @@ export function DashboardPage({ projectId }: { projectId: string }) {
         className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-4 md:px-6 md:py-6"
         aria-busy
       >
-        <div className="skeleton h-8 w-52" />
-        <div className="skeleton h-36" />
+        <Skeleton className="h-8 w-52" />
+        <Skeleton className="h-36" />
         <div className="grid gap-5 lg:grid-cols-2">
-          <div className="skeleton h-44" />
-          <div className="skeleton h-44" />
+          <Skeleton className="h-44" />
+          <Skeleton className="h-44" />
         </div>
       </div>
     );

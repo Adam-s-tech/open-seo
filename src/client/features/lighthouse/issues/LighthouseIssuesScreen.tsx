@@ -1,12 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircle, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
   exportAuditLighthouseIssues,
   getAuditLighthouseIssues,
 } from "@/serverFunctions/lighthouse";
 import { downloadFile } from "@/client/lib/download";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryError } from "@/client/components/QueryState";
+import { getErrorCode } from "@/client/lib/error-messages";
 import { exportTableToSheets } from "@/client/lib/exportToSheets";
 import type { CategoryTab, ExportPayload, LighthouseIssue } from "./types";
 import { categoryLabel, issuesToCsv, issuesToTable } from "./utils";
@@ -71,10 +72,6 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
     allIssues: issuesQuery.data?.issues ?? [],
   });
 
-  const issuesErrorMessage = getStandardErrorMessage(
-    issuesQuery.error,
-    "Failed to load Lighthouse issues.",
-  );
   const showsLegacyPayloadNotice =
     issuesQuery.data != null && !issuesQuery.data.hasIssueDetails;
   const emptyMessage = showsLegacyPayloadNotice
@@ -87,6 +84,7 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
         <LighthouseIssuesHeader
           backLabel={backLabel}
           onBack={onBack}
+          isLoading={issuesQuery.isPending}
           scannedAt={issuesQuery.data?.createdAt}
           finalUrl={issuesQuery.data?.finalUrl}
           scores={issuesQuery.data?.scores}
@@ -97,10 +95,17 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
         <div className="card bg-base-100 border border-base-300">
           <div className="card-body gap-4">
             {issuesQuery.isError ? (
-              <div className="alert alert-error">
-                <AlertCircle className="size-4" />
-                <span>{issuesErrorMessage}</span>
-              </div>
+              <QueryError
+                error={issuesQuery.error}
+                fallback="Failed to load Lighthouse issues."
+                // A missing result stays missing, so retry cannot help.
+                onRetry={
+                  getErrorCode(issuesQuery.error) === "NOT_FOUND"
+                    ? undefined
+                    : () => void issuesQuery.refetch()
+                }
+                isRetrying={issuesQuery.isFetching}
+              />
             ) : null}
 
             {showsLegacyPayloadNotice ? (

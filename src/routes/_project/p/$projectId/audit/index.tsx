@@ -7,6 +7,8 @@ import {
   getAuditStatus,
   getCrawlProgress,
 } from "@/serverFunctions/audit";
+import { QueryError, QueryState } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
 import { auditSearchSchema } from "@/types/schemas/audit";
 import { LaunchView } from "@/client/features/audit/launch/LaunchView";
 import { ResultsView } from "@/client/features/audit/results/ResultsView";
@@ -97,21 +99,18 @@ function AuditDetail({
   });
 
   if (statusQuery.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <span className="loading loading-spinner loading-lg" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (statusQuery.isError) {
     return (
       <div className="px-4 py-6 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
-          <div className="alert alert-error">
-            <AlertCircle className="size-5" />
-            <span>We could not load this audit. It may have been deleted.</span>
-          </div>
+          <QueryError
+            fallback="We could not load this audit. It may have been deleted."
+            onRetry={() => void statusQuery.refetch()}
+            isRetrying={statusQuery.isFetching}
+          />
           <button className="btn btn-ghost btn-sm" onClick={onBack}>
             &larr; Back to audits
           </button>
@@ -220,13 +219,22 @@ function AuditDetail({
           </div>
         )}
 
-        {(isComplete || failedWithResults) && resultsQuery.data && (
-          <ResultsView
-            projectId={projectId}
-            data={resultsQuery.data}
-            tab={tab}
-            onTabChange={onTabChange}
-          />
+        {(isComplete || isFailed) && (
+          <QueryState
+            query={resultsQuery}
+            errorFallback="Failed to load the audit results"
+          >
+            {(data) =>
+              (isComplete || failedWithResults) && (
+                <ResultsView
+                  projectId={projectId}
+                  data={data}
+                  tab={tab}
+                  onTabChange={onTabChange}
+                />
+              )
+            }
+          </QueryState>
         )}
       </div>
     </div>

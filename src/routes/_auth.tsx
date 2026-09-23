@@ -5,6 +5,7 @@ import {
   authRedirectSearchSchema,
 } from "@/client/features/auth/AuthPage";
 import { useSession } from "@/lib/auth-client";
+import { PageLoading } from "@/client/components/Spinner";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { getCurrentAuthRedirect, isDocumentRoute } from "@/lib/auth-redirect";
 
@@ -38,8 +39,9 @@ function AuthPageLayout() {
     });
   }, [navigate, redirectTo, session?.user?.id]);
 
+  // Loading the session, or handing a signed-in user off to the destination.
   if (isHostedMode && (isPending || session?.user?.id)) {
-    return null;
+    return <PageLoading fullScreen />;
   }
 
   return (

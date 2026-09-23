@@ -11,6 +11,8 @@ import {
   getStandardErrorMessage,
 } from "@/client/lib/error-messages";
 import { AuthConfigErrorCard } from "@/client/components/AuthConfigErrorCard";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
 import { UnauthenticatedErrorCard } from "@/client/components/UnauthenticatedErrorCard";
 import { SUBSCRIBE_ROUTE } from "@/shared/billing";
 
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/_app/")({
 function IndexRedirect() {
   const navigate = useNavigate();
 
-  const { data, error, isError, refetch } = useQuery({
+  const { data, error, isError, isFetching, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: () => getProjects(),
     retry: false,
@@ -99,13 +101,13 @@ function IndexRedirect() {
 
     return (
       <div className="flex items-center justify-center h-full p-4">
-        <div className="flex flex-col items-center gap-3 max-w-xl">
-          <p className="text-error text-center">
-            {getStandardErrorMessage(
-              error,
-              "An unexpected error occurred. Please check server logs.",
-            )}
-          </p>
+        <div className="w-full max-w-xl">
+          <QueryError
+            error={error}
+            fallback="An unexpected error occurred. Please check server logs."
+            onRetry={() => void refetch()}
+            isRetrying={isFetching}
+          />
         </div>
       </div>
     );
@@ -113,7 +115,7 @@ function IndexRedirect() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <span className="loading loading-spinner loading-md" />
+      <Spinner />
     </div>
   );
 }

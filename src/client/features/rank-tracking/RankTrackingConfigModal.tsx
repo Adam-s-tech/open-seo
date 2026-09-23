@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Info, Loader2, X } from "lucide-react";
 import { Modal } from "@/client/components/Modal";
@@ -16,7 +17,9 @@ import {
 } from "@/shared/keyword-locations";
 import { LocationSelect } from "@/client/components/LocationSelect";
 import type { ProjectMarket } from "@/client/features/projects/types";
-import { useProjectMarket } from "@/client/features/projects/useProjectMarket";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
+import { getProjects } from "@/serverFunctions/projects";
 import { SearchTargetingField } from "./SearchTargetingField";
 import { KeywordSuggestionStep } from "./KeywordSuggestionStep";
 import { useSaveConfigMutations } from "./useSaveConfigMutations";
@@ -42,9 +45,17 @@ export function RankTrackingConfigModal({
   onSaved,
   onConfigCreated,
 }: Props) {
-  const projectMarket = useProjectMarket(projectId);
+  // A new domain starts from the project's market, so it waits for projects.
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: () => getProjects(),
+    enabled: !existingConfig,
+  });
+  const initialMarket =
+    existingConfig ??
+    projectsQuery.data?.find((project) => project.id === projectId);
 
-  if (!existingConfig && !projectMarket) {
+  if (!initialMarket) {
     return (
       <Modal
         maxWidth="max-w-lg"
@@ -55,7 +66,16 @@ export function RankTrackingConfigModal({
           Add Domain
         </h2>
         <div className="flex min-h-40 items-center justify-center">
-          <Loader2 className="size-5 animate-spin text-base-content/50" />
+          {projectsQuery.isPending ? (
+            <Spinner />
+          ) : (
+            <QueryError
+              error={projectsQuery.error}
+              fallback="Failed to load the project."
+              onRetry={() => void projectsQuery.refetch()}
+              isRetrying={projectsQuery.isFetching}
+            />
+          )}
         </div>
       </Modal>
     );
@@ -65,7 +85,7 @@ export function RankTrackingConfigModal({
     <RankTrackingConfigModalContent
       projectId={projectId}
       existingConfig={existingConfig}
-      initialMarket={existingConfig ?? projectMarket!}
+      initialMarket={initialMarket}
       onClose={onClose}
       onSaved={onSaved}
       onConfigCreated={onConfigCreated}

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Spinner } from "@/client/components/Spinner";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthPageCard, AuthPageShell } from "@/client/features/auth/AuthPage";
@@ -21,7 +22,9 @@ function AcceptInvitationPage() {
 
   return (
     <AuthPageShell>
-      {isSessionPending ? null : session?.user ? (
+      {isSessionPending ? (
+        <Spinner />
+      ) : session?.user ? (
         <InvitationCard invitationId={id} userEmail={session.user.email} />
       ) : (
         <SignedOutInvitationCard invitationId={id} />
@@ -144,7 +147,7 @@ function InvitationCard({
     return (
       <AuthPageCard title="Checking invitation...">
         <div className="flex justify-center py-4">
-          <span className="loading loading-spinner loading-md" />
+          <Spinner />
         </div>
       </AuthPageCard>
     );

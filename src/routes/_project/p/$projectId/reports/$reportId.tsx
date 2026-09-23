@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { PortalMenu } from "@/client/components/PortalMenu";
+import { QueryError } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
 import { ReportViewer } from "@/client/features/reports/ReportViewer";
 import {
   DeleteReportModal,
@@ -24,10 +26,7 @@ import {
 } from "@/client/features/reports/shared";
 import { formatRelativeTime } from "@/client/lib/relative-time";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
-import {
-  getErrorCode,
-  getStandardErrorMessage,
-} from "@/client/lib/error-messages";
+import { getErrorCode } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { getReport } from "@/serverFunctions/reports";
 
@@ -115,29 +114,27 @@ function ReportDetailPage() {
   }, [full, setExpanded]);
 
   if (reportQuery.isPending) {
-    return (
-      <div className="flex justify-center py-10">
-        <span className="loading loading-spinner loading-md" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (reportQuery.isError || !report) {
+    const notFound = getErrorCode(reportQuery.error) === "NOT_FOUND";
     return (
       <div className="px-4 py-6 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
-          <div className="alert alert-error">
-            <span className="text-sm">
-              {/* A deleted report and another project's report are the
-                  same answer on purpose, so ids cannot be probed. */}
-              {getErrorCode(reportQuery.error) === "NOT_FOUND"
-                ? "This report does not exist or you do not have access to it."
-                : getStandardErrorMessage(
-                    reportQuery.error,
-                    "Failed to load the report",
-                  )}
-            </span>
-          </div>
+          {/* A deleted report and another project's report are the same
+              answer on purpose, so ids cannot be probed. Retrying either
+              cannot help. */}
+          {notFound ? (
+            <QueryError fallback="This report does not exist or you do not have access to it." />
+          ) : (
+            <QueryError
+              error={reportQuery.error}
+              fallback="Failed to load the report"
+              onRetry={() => void reportQuery.refetch()}
+              isRetrying={reportQuery.isFetching}
+            />
+          )}
           <Link
             to="/p/$projectId/reports"
             params={{ projectId }}

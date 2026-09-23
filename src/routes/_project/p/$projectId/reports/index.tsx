@@ -7,7 +7,7 @@ import {
   reportsQueryKey,
   useDeleteReport,
 } from "@/client/features/reports/shared";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryState } from "@/client/components/QueryState";
 import { listReports, type ReportListItem } from "@/serverFunctions/reports";
 import { REPORT_APP_LIST_LIMIT } from "@/types/schemas/reports";
 
@@ -53,26 +53,15 @@ function ReportsPage() {
           </Link>
         </div>
 
-        {reportsQuery.isPending ? (
-          <div className="flex justify-center py-10">
-            <span className="loading loading-spinner loading-md" />
-          </div>
-        ) : reportsQuery.isError ? (
-          <div className="alert alert-error">
-            <span className="text-sm">
-              {getStandardErrorMessage(
-                reportsQuery.error,
-                "Failed to load reports",
-              )}
-            </span>
-          </div>
-        ) : (
-          <ReportsList
-            projectId={projectId}
-            reports={reportsQuery.data.reports}
-            onDelete={setPendingDelete}
-          />
-        )}
+        <QueryState query={reportsQuery} errorFallback="Failed to load reports">
+          {(data) => (
+            <ReportsList
+              projectId={projectId}
+              reports={data.reports}
+              onDelete={setPendingDelete}
+            />
+          )}
+        </QueryState>
       </div>
 
       {pendingDelete ? (

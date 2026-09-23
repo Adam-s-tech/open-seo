@@ -20,6 +20,7 @@ import {
   formatCtr,
 } from "@/client/features/search-performance/SearchPerformanceColumns";
 import { getGa4DashboardReport } from "@/serverFunctions/ga4";
+import { Skeleton } from "@/client/components/Skeleton";
 
 function formatTrendDay(date: string): string {
   // Construct in local time: Date.parse("2026-08-01") is UTC midnight, which
@@ -106,10 +107,10 @@ export function Ga4Card({
         <div className="space-y-3" aria-busy>
           <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="skeleton h-16" />
+              <Skeleton key={i} className="h-16" />
             ))}
           </div>
-          <div className="skeleton h-24" />
+          <Skeleton className="h-24" />
         </div>
       ) : reportQuery.isError ? (
         <p className="text-sm text-base-content/60">

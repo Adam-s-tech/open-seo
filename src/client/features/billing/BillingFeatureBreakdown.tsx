@@ -13,6 +13,7 @@ import {
   getBillingUsageEvents,
   type BillingUsageEvent,
 } from "@/serverFunctions/billing";
+import { Skeleton } from "@/client/components/Skeleton";
 
 const BILLING_USAGE_FEATURE_IDS: string[] = [
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
@@ -156,7 +157,7 @@ export function BillingFeatureBreakdown() {
       {eventsQuery.isLoading ? (
         <div className="space-y-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="skeleton h-4 w-full" />
+            <Skeleton key={i} className="h-4 w-full" />
           ))}
         </div>
       ) : rows.length === 0 ? (

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryState } from "@/client/components/QueryState";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -68,8 +69,6 @@ export function ApiKeySettings() {
     },
   });
 
-  const apiKeys = apiKeysQuery.data ?? [];
-
   const closeCreateModal = () => {
     setIsCreateOpen(false);
     setCreatedKey(null);
@@ -108,76 +107,83 @@ export function ApiKeySettings() {
         </button>
       </div>
 
-      {apiKeysQuery.isError ? (
-        <p className="text-sm text-error">We couldn't load your API keys.</p>
-      ) : apiKeys.length > 0 ? (
-        <div className="overflow-x-auto rounded-lg border border-base-300">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Key</th>
-                <th>Created</th>
-                <th>Last used</th>
-                <th className="w-10"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {apiKeys.map((key) => (
-                <tr key={key.id} className="hover">
-                  <td className="max-w-[220px] truncate font-medium">
-                    {key.name || "Unnamed key"}
-                  </td>
-                  <td
-                    className="font-mono text-xs text-base-content/70"
-                    data-ph-mask
-                  >
-                    {key.start || "oseo_"}…
-                  </td>
-                  <td className="text-xs text-base-content/70">
-                    {key.createdAt.toLocaleDateString()}
-                  </td>
-                  <td className="text-xs text-base-content/70">
-                    {key.lastRequest
-                      ? key.lastRequest.toLocaleDateString()
-                      : "Never"}
-                  </td>
-                  <td>
-                    <PortalMenu
-                      ariaLabel={`Actions for ${key.name || "API key"}`}
-                    >
-                      {(close) => (
-                        <li>
-                          <button
-                            className="text-error"
-                            disabled={
-                              revokeMutation.isPending &&
-                              revokeMutation.variables === key.id
-                            }
-                            onClick={() => {
-                              close();
-                              if (
-                                window.confirm(
-                                  `Revoke "${key.name || "Unnamed key"}"? Clients using it will stop working.`,
-                                )
-                              ) {
-                                revokeMutation.mutate(key.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="size-3.5" />
-                            Revoke key
-                          </button>
-                        </li>
-                      )}
-                    </PortalMenu>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+      <QueryState
+        query={apiKeysQuery}
+        errorFallback="We couldn't load your API keys."
+      >
+        {(apiKeys) =>
+          apiKeys.length === 0 ? (
+            <p className="text-sm text-base-content/60">No API keys yet.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-base-300">
+              <table className="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Key</th>
+                    <th>Created</th>
+                    <th>Last used</th>
+                    <th className="w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {apiKeys.map((key) => (
+                    <tr key={key.id} className="hover">
+                      <td className="max-w-[220px] truncate font-medium">
+                        {key.name || "Unnamed key"}
+                      </td>
+                      <td
+                        className="font-mono text-xs text-base-content/70"
+                        data-ph-mask
+                      >
+                        {key.start || "oseo_"}…
+                      </td>
+                      <td className="text-xs text-base-content/70">
+                        {key.createdAt.toLocaleDateString()}
+                      </td>
+                      <td className="text-xs text-base-content/70">
+                        {key.lastRequest
+                          ? key.lastRequest.toLocaleDateString()
+                          : "Never"}
+                      </td>
+                      <td>
+                        <PortalMenu
+                          ariaLabel={`Actions for ${key.name || "API key"}`}
+                        >
+                          {(close) => (
+                            <li>
+                              <button
+                                className="text-error"
+                                disabled={
+                                  revokeMutation.isPending &&
+                                  revokeMutation.variables === key.id
+                                }
+                                onClick={() => {
+                                  close();
+                                  if (
+                                    window.confirm(
+                                      `Revoke "${key.name || "Unnamed key"}"? Clients using it will stop working.`,
+                                    )
+                                  ) {
+                                    revokeMutation.mutate(key.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="size-3.5" />
+                                Revoke key
+                              </button>
+                            </li>
+                          )}
+                        </PortalMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      </QueryState>
 
       {isCreateOpen ? (
         <div className="modal modal-open">
