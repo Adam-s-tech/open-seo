@@ -10,7 +10,11 @@ import {
 import { getFieldError, getFormError } from "@/client/lib/forms";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
-import { getSignInSearch, getVerifyEmailSearch } from "@/lib/auth-redirect";
+import {
+  getSignInSearch,
+  getVerifyEmailSearch,
+  toAuthCallbackURL,
+} from "@/lib/auth-redirect";
 import { z } from "zod";
 
 const signInSchema = z.object({
@@ -29,7 +33,6 @@ function SignInPage() {
   const { redirectTo, oauthQuery, isHostedMode } = useAuthPageState(
     search.redirect,
   );
-  const authCallbackURL = redirectTo;
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isStartingGoogle, setIsStartingGoogle] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
@@ -52,7 +55,7 @@ function SignInPage() {
         const result = await authClient.signIn.email({
           email,
           password: value.password,
-          callbackURL: authCallbackURL,
+          callbackURL: toAuthCallbackURL(redirectTo),
           ...(oauthQuery ? { oauth_query: oauthQuery } : {}),
         });
 
@@ -104,7 +107,7 @@ function SignInPage() {
       });
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: authCallbackURL,
+        callbackURL: toAuthCallbackURL(redirectTo),
       });
 
       if (result.error) {

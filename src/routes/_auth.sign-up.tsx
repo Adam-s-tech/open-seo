@@ -15,7 +15,11 @@ import {
 import { getFieldError, getFormError } from "@/client/lib/forms";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
-import { getSignInSearch, getVerifyEmailSearch } from "@/lib/auth-redirect";
+import {
+  getSignInSearch,
+  getVerifyEmailSearch,
+  toAuthCallbackURL,
+} from "@/lib/auth-redirect";
 import {
   HOSTED_PASSWORD_MAX_LENGTH,
   HOSTED_PASSWORD_MIN_LENGTH,
@@ -389,8 +393,8 @@ function useGoogleSignUp({
       });
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: redirectTo,
-        newUserCallbackURL: postSignupRedirect,
+        callbackURL: toAuthCallbackURL(redirectTo),
+        newUserCallbackURL: toAuthCallbackURL(postSignupRedirect),
         requestSignUp: true,
       });
 

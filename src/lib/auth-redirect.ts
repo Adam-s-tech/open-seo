@@ -84,6 +84,17 @@ export function isDocumentRoute(redirectTo: string) {
   return redirectTo.startsWith("/r/") || redirectTo.startsWith("/s/");
 }
 
+/**
+ * Better Auth only accepts a relative callbackURL made of a narrow character
+ * set, so a redirect like an MCP authorize URL (`redirect_uri=http://...`) or
+ * one with a `#hash` fails as "Invalid callbackURL". An absolute same-origin
+ * URL is checked against trustedOrigins by origin alone. Reads `window`, so
+ * call it from event handlers, not during render.
+ */
+export function toAuthCallbackURL(redirectTo: string) {
+  return new URL(redirectTo, window.location.origin).toString();
+}
+
 export function getSignInSearch(redirectTo: string) {
   return redirectTo === "/" ? {} : { redirect: redirectTo };
 }
