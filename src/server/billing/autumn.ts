@@ -11,6 +11,11 @@ function loadAutumn(): Promise<Autumn> {
     ({ Autumn }) =>
       new Autumn({
         secretKey: () => getRequiredEnvValue("AUTUMN_SECRET_KEY"),
+        // Without this client-wide value the SDK aborts check/track after
+        // 5s; a per-call timeoutMs cannot raise it. A timed-out call fails
+        // open: track then never charges the usage, and check returns no
+        // balance.
+        timeoutMs: 10_000,
         // Retries 429/500/502/503/504 (per-operation retryCodes) plus
         // connection errors. Cloudflare 52x statuses are not in the SDK's
         // retry list, so those still surface immediately.
