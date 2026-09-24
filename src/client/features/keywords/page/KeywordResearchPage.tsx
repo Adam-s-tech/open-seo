@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
+import { formatLocationLabel } from "@/shared/keyword-locations";
 import { useKeywordResearchController } from "@/client/features/keywords/state/useKeywordResearchController";
 import type {
   KeywordResearchControllerInput,
@@ -54,6 +55,7 @@ export function KeywordResearchPage(input: Props) {
         setSearchParams({
           q: undefined,
           loc: undefined,
+          locName: undefined,
           kLimit: undefined,
           mode: undefined,
           cs: undefined,
@@ -65,6 +67,7 @@ export function KeywordResearchPage(input: Props) {
       setSearchParams({
         q: tabInput.keyword,
         loc: tabInput.locationCode,
+        locName: tabInput.locationName,
         kLimit: tabInput.resultLimit === 150 ? undefined : tabInput.resultLimit,
         mode: tabInput.mode === "auto" ? undefined : tabInput.mode,
         cs: tabInput.clickstream ? true : undefined,
@@ -82,6 +85,7 @@ export function KeywordResearchPage(input: Props) {
       type: "keyword",
       keyword,
       locationCode,
+      locationName: input.locationName,
       resultLimit: input.resultLimit,
       mode: input.keywordMode,
       clickstream: input.clickstream,
@@ -92,16 +96,19 @@ export function KeywordResearchPage(input: Props) {
     input.groupKeywords,
     input.keywordInput,
     input.keywordMode,
+    input.locationName,
     locationCode,
     input.resultLimit,
   ]);
   const searchTabs = useSearchTabNavigation({
     storageKey: `keyword:${projectId}`,
     urlInput,
-    getLabel: useCallback(
-      (tabInput) => (tabInput.type === "keyword" ? tabInput.keyword : ""),
-      [],
-    ),
+    getLabel: useCallback((tabInput) => {
+      if (tabInput.type !== "keyword") return "";
+      return tabInput.locationName
+        ? `${tabInput.keyword} · ${formatLocationLabel(tabInput.locationName, 1)}`
+        : tabInput.keyword;
+    }, []),
     navigateToInput: useCallback(
       (tabInput) => {
         navigateToKeywordInput(tabInput?.type === "keyword" ? tabInput : null);
@@ -133,6 +140,7 @@ export function KeywordResearchPage(input: Props) {
         type: "keyword",
         keyword,
         locationCode: value.locationCode,
+        locationName: value.locationName,
         resultLimit: value.resultLimit,
         mode: value.mode,
         clickstream: value.clickstream,
@@ -159,6 +167,7 @@ export function KeywordResearchPage(input: Props) {
             locationCode: activeTab.input.locationCode,
             displayedLocationCode:
               activeTab.input.locationCode ?? displayedLocationCode,
+            locationName: activeTab.input.locationName,
             setPreferredLocationCode,
             resultLimit: activeTab.input.resultLimit,
             keywordMode: activeTab.input.mode,
@@ -238,8 +247,7 @@ function KeywordResearchContent({
   }
 
   if (controller.researchError) {
-    const isCreditsError =
-      getErrorCode(controller.researchMutationError) === "INSUFFICIENT_CREDITS";
+    const errorCode = getErrorCode(controller.researchMutationError);
 
     return (
       <div className="flex-1 flex items-center justify-center pt-1">
@@ -248,11 +256,11 @@ function KeywordResearchContent({
             <AlertCircle className="mt-0.5 size-4 shrink-0" />
             <p className="text-sm">{controller.researchError}</p>
           </div>
-          {isCreditsError ? (
+          {errorCode === "INSUFFICIENT_CREDITS" ? (
             <Link to={BILLING_ROUTE} className="btn btn-sm">
               Go to Billing
             </Link>
-          ) : (
+          ) : errorCode === "UNKNOWN_LOCATION" ? null : (
             <button className="btn btn-sm" onClick={controller.retrySearch}>
               Try again
             </button>
@@ -291,6 +299,12 @@ function KeywordSaveDialog({
           <p className="text-base-content/70 text-sm">
             These keywords will be saved to your current project.
           </p>
+          {controller.locationName ? (
+            <p className="mt-2 text-base-content/70 text-sm">
+              Saved keywords show national metrics. The local volume for{" "}
+              {formatLocationLabel(controller.locationName)} is not saved.
+            </p>
+          ) : null}
         </div>
         <div className="modal-action">
           <button

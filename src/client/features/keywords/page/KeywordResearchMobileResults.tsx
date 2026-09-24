@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import {
   downloadKeywordResearchCsv,
-  KEYWORD_RESEARCH_HEADERS,
   keywordResearchExportRow,
+  keywordResearchHeaders,
 } from "@/client/features/keywords/state/keywordControllerActions";
 import { exportTableToSheets } from "@/client/lib/exportToSheets";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -115,22 +115,23 @@ function MobileKeywordResults({ controller }: Props) {
   const selectedExportRows = rows
     .filter((row) => selectedRows.has(row.keyword))
     .map(keywordResearchExportRow);
+  const exportHeaders = keywordResearchHeaders(controller.locationName);
   const handleExportToSheets = () => {
     void exportTableToSheets({
-      headers: KEYWORD_RESEARCH_HEADERS,
+      headers: exportHeaders,
       rows: sheetsExportRows,
       feature: "keyword_research",
     });
   };
   const handleExportSelectionToSheets = () => {
     void exportTableToSheets({
-      headers: KEYWORD_RESEARCH_HEADERS,
+      headers: exportHeaders,
       rows: selectedExportRows,
       feature: "keyword_research",
     });
   };
   const handleExportSelectionCsv = () => {
-    downloadKeywordResearchCsv(selectedExportRows);
+    downloadKeywordResearchCsv(selectedExportRows, exportHeaders);
     captureClientEvent("data:export", {
       source_feature: "keyword_research",
       result_count: selectedExportRows.length,

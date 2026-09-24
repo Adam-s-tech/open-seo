@@ -214,6 +214,7 @@ function getSearchTabQueryConfig(
     projectId,
     keywordInput: input.keyword,
     locationCode: input.locationCode,
+    locationName: input.locationName,
     resultLimit: input.resultLimit,
     mode: input.mode,
     clickstream: input.clickstream,

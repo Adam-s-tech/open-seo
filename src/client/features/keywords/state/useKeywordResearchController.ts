@@ -34,6 +34,8 @@ export type KeywordResearchControllerInput = {
   keywordInput: string;
   locationCode: number | undefined;
   displayedLocationCode: number;
+  /** City, county, or region for local volume; undefined for national. */
+  locationName: string | undefined;
   setPreferredLocationCode: (locationCode: number) => void;
   resultLimit: ResultLimit;
   keywordMode: KeywordMode;
@@ -96,7 +98,7 @@ export function useKeywordResearchController(
     deepFetchFailed,
     retrySerp,
     serpError,
-  } = useKeywordSerpAnalysis(input.projectId, locationCode);
+  } = useKeywordSerpAnalysis(input.projectId, locationCode, input.locationName);
 
   const {
     history,
@@ -123,6 +125,7 @@ export function useKeywordResearchController(
       keywordInput: input.keywordInput,
       locationCode,
       displayedLocationCode,
+      locationName: input.locationName,
       resultLimit: input.resultLimit,
       mode: input.keywordMode,
       clickstream: input.clickstream,
@@ -137,6 +140,7 @@ export function useKeywordResearchController(
     ? buildKeywordSearchKey({
         keyword: input.keywordInput,
         locationCode,
+        locationName: input.locationName,
         resultLimit: input.resultLimit,
         mode: input.keywordMode,
         clickstream: input.clickstream,
@@ -274,6 +278,7 @@ export function useKeywordResearchController(
     lastSearchError,
     lastSearchKeyword,
     lastSearchLocationCode,
+    locationName: input.locationName,
     mobileTab: uiState.mobileTab,
     overviewKeyword,
     removeHistoryItem,

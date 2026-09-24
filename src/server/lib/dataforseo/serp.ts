@@ -88,13 +88,18 @@ export async function fetchLiveSerp(input: {
   locationCode: number;
   languageCode: string;
   depth?: number;
+  /** Canonical DataForSEO name of a city, county, or region for a local SERP. */
+  locationName?: string;
 }): Promise<DataforseoApiResponse<SerpLiveItem[]>> {
+  const locationParams = input.locationName
+    ? { location_name: input.locationName }
+    : { location_code: input.locationCode };
   const response = await dataforseoPost(
     "/v3/serp/google/organic/live/advanced",
     [
       {
         keyword: input.keyword,
-        location_code: input.locationCode,
+        ...locationParams,
         language_code: input.languageCode,
         device: "desktop",
         os: "windows",

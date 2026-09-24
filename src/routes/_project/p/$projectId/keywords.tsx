@@ -41,6 +41,7 @@ function KeywordResearchPageRoute() {
       projectId={projectId}
       keywordInput={keywordInput}
       locationCode={locationCode}
+      locationName={search.locName}
       resultLimit={isResultLimit(resultLimit) ? resultLimit : 150}
       keywordMode={normalizeKeywordMode(keywordMode)}
       clickstream={search.cs ?? false}

@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { SerpLocationCombobox } from "@/client/components/SerpLocationCombobox";
-import { prewarmSerpLocations } from "@/serverFunctions/serp-locations";
+import { usePrewarmSerpLocations } from "@/client/components/usePrewarmSerpLocations";
 
 type TargetingMode = "national" | "local";
 
@@ -17,17 +16,8 @@ export function SearchTargetingField({
   onLocationNameChange: (locationName: string | undefined) => void;
   countryCode: string;
 }) {
-  // Warm the server-side location cache the moment Local targeting is in
-  // play, so the country list is hot before the first keystroke. Best-effort:
-  // a failed warm just means the first search is slower, so no retries, and
-  // staleTime keeps one warm per country per session.
-  useQuery({
-    queryKey: ["serp-locations-prewarm", countryCode],
-    queryFn: () => prewarmSerpLocations({ data: { countryCode } }),
-    enabled: mode === "local",
-    staleTime: Infinity,
-    retry: false,
-  });
+  // Warm the moment Local targeting is in play.
+  usePrewarmSerpLocations(countryCode, mode === "local");
   return (
     <div className="form-control">
       <label className="label">

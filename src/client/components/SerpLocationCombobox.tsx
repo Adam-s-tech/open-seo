@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, MapPin } from "lucide-react";
 import { searchSerpLocations } from "@/serverFunctions/serp-locations";
 import { formatLocationLabel } from "@/shared/keyword-locations";
 import type { SerpLocationResult } from "@/server/lib/dataforseo/serp-locations";
@@ -12,7 +12,7 @@ type Props = {
   placeholder?: string;
 };
 
-function useDebounce(value: string, delayMs: number): string {
+function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(value), delayMs);
@@ -27,9 +27,8 @@ export function SerpLocationCombobox({
   countryCode,
   placeholder = "Search cities...",
 }: Props) {
-  const [inputValue, setInputValue] = useState(
-    value ? formatLocationLabel(value) : "",
-  );
+  const selectedLabel = value ? formatLocationLabel(value) : "";
+  const [inputValue, setInputValue] = useState(selectedLabel);
   const [results, setResults] = useState<SerpLocationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -37,54 +36,68 @@ export function SerpLocationCombobox({
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  // Selecting a result sets the input to its display label; that change must
-  // not itself trigger a search for the label text.
-  const skipNextFetchRef = useRef(false);
+  // The input shows the selection's label. Searching for that text again would
+  // reopen the list the selection just closed. A ref, so a new selection does
+  // not re-run the search for the text typed before it.
+  const selectedLabelRef = useRef(selectedLabel);
+  // Bumped by a pick or a blur, so a search still in flight cannot reopen the
+  // list the user just dismissed.
+  const searchGenerationRef = useRef(0);
 
-  const debouncedQuery = useDebounce(inputValue, 350);
+  // Each keystroke makes a new query, so retyping a query the user dismissed
+  // before its debounce settled still starts a search.
+  const [editCount, setEditCount] = useState(0);
+  const query = useMemo(
+    () => ({ text: inputValue, editCount }),
+    [inputValue, editCount],
+  );
+  const debouncedQuery = useDebounce(query, 350);
 
-  // Sync display when value prop changes externally (e.g. mode reset)
+  // Show the label of a value set from outside (a reset or a restored search).
   useEffect(() => {
-    if (!value) {
-      setInputValue("");
+    selectedLabelRef.current = selectedLabel;
+    setInputValue(selectedLabel);
+    if (!selectedLabel) {
       setResults([]);
       setOpen(false);
     }
-  }, [value]);
+  }, [selectedLabel]);
 
   // Fetch results when debounced query changes
   useEffect(() => {
-    const trimmed = debouncedQuery.trim();
+    const trimmed = debouncedQuery.text.trim();
     if (!trimmed) {
       setResults([]);
       setOpen(false);
       setIsLoading(false);
       return;
     }
-    if (skipNextFetchRef.current) {
-      skipNextFetchRef.current = false;
+    if (trimmed === selectedLabelRef.current) {
       // Any fetch this change superseded was cancelled before its own
       // finally could clear the spinner, so clear it here.
       setIsLoading(false);
       return;
     }
     let cancelled = false;
+    const generation = searchGenerationRef.current;
+    const isStale = () =>
+      cancelled || generation !== searchGenerationRef.current;
     setIsLoading(true);
     setIsError(false);
     searchSerpLocations({ data: { query: trimmed, countryCode } })
       .then((data) => {
-        if (cancelled) return;
+        if (isStale()) return;
         setResults(data);
         setOpen(true);
         setActiveIndex(0);
       })
       .catch(() => {
-        if (cancelled) return;
+        if (isStale()) return;
         setIsError(true);
         setOpen(true);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!isStale()) setIsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -114,9 +127,14 @@ export function SerpLocationCombobox({
     });
   }, [activeIndex, open]);
 
+  const dismissPendingSearch = () => {
+    searchGenerationRef.current += 1;
+    setIsLoading(false);
+  };
+
   const select = (loc: SerpLocationResult) => {
+    dismissPendingSearch();
     onChange(loc.locationName);
-    skipNextFetchRef.current = true;
     setInputValue(loc.displayLabel);
     setResults([]);
     setOpen(false);
@@ -125,13 +143,22 @@ export function SerpLocationCombobox({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setInputValue(v);
+    setEditCount((count) => count + 1);
     if (!v.trim()) {
       onChange(undefined);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) return;
+    if (!open) {
+      // Text that is not a picked location must not submit the form with
+      // the previous selection: wait for the list, then pick a result.
+      const typed = inputValue.trim();
+      if (e.key === "Enter" && typed && typed !== selectedLabelRef.current) {
+        e.preventDefault();
+      }
+      return;
+    }
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -155,12 +182,26 @@ export function SerpLocationCombobox({
   };
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div
+      ref={containerRef}
+      className="relative w-full"
+      onBlur={(e) => {
+        if (containerRef.current?.contains(e.relatedTarget)) return;
+        // Leaving without picking a result shows the selection again, so the
+        // field never names a place the form will not use.
+        dismissPendingSearch();
+        setInputValue(selectedLabelRef.current);
+        // The matches were for the abandoned text; focusing again must not
+        // offer them under the restored label.
+        setResults([]);
+        setOpen(false);
+      }}
+    >
       <label className="flex items-center gap-2 input input-bordered w-full pr-3">
         {isLoading ? (
           <Loader2 className="size-4 shrink-0 text-base-content/50 animate-spin" />
         ) : (
-          <Search className="size-4 shrink-0 text-base-content/50" />
+          <MapPin className="size-4 shrink-0 text-base-content/50" />
         )}
         <input
           type="text"
@@ -177,14 +218,18 @@ export function SerpLocationCombobox({
       </label>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full rounded-box border border-base-300 bg-base-100 shadow-lg p-1">
+        <div
+          className="absolute z-30 mt-1 w-full rounded-box border border-base-300 bg-base-100 shadow-lg p-1"
+          // Keep focus in the input, so picking a result is not a blur.
+          onMouseDown={(e) => e.preventDefault()}
+        >
           {isError ? (
             <p className="px-3 py-2 text-sm text-error">
               Unable to load locations
             </p>
           ) : results.length === 0 ? (
             <p className="px-3 py-2 text-sm text-base-content/50">
-              No locations found for "{debouncedQuery.trim()}"
+              No locations found for "{debouncedQuery.text.trim()}"
             </p>
           ) : (
             <ul

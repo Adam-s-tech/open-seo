@@ -18,6 +18,10 @@ import {
   type EnrichedKeyword,
 } from "./helpers";
 import {
+  assertLocalResearchLocation,
+  localizeResearchRows,
+} from "./local-volume";
+import {
   fetchGoogleAdsResearchRows,
   fetchResearchRowsBySource,
 } from "./research-data";
@@ -220,14 +224,15 @@ async function buildResearchCacheKey(
     depth: 3,
     clickstream: input.clickstream,
     groupKeywords: input.groupKeywords,
+    locationName: input.locationName,
   });
 }
 
 function persistRows(
   input: ResolvedResearchKeywordsInput,
   rows: EnrichedKeyword[],
-) {
-  void Promise.all(
+): Promise<void> {
+  return Promise.all(
     rows.map((row) =>
       KeywordResearchRepository.upsertKeywordMetric({
         projectId: input.projectId,
@@ -242,9 +247,12 @@ function persistRows(
         monthlySearchesJson: JSON.stringify(row.trend),
       }),
     ),
-  ).catch((error) => {
-    console.error("keywords.research.persist-metrics failed:", error);
-  });
+  ).then(
+    () => undefined,
+    (error: unknown) => {
+      console.error("keywords.research.persist-metrics failed:", error);
+    },
+  );
 }
 
 export async function research(
@@ -264,11 +272,14 @@ export async function research(
   const provider = getKeywordDataProvider(input.locationCode);
   // Labs source modes, clickstream, and synonym filtering don't exist for
   // Google-Ads-served countries; normalize them so equivalent requests share
-  // one cache entry.
+  // one cache entry. Local volume replaces the clickstream volume, so a local
+  // request never pays for clickstream.
   const effectiveInput: ResolvedResearchKeywordsInput =
     provider === "google_ads"
       ? { ...input, mode: "auto", clickstream: false, groupKeywords: false }
-      : input;
+      : input.locationName
+        ? { ...input, clickstream: false }
+        : input;
   const mode = effectiveInput.mode ?? "auto";
   const cacheKey = await buildResearchCacheKey(
     effectiveInput,
@@ -287,8 +298,14 @@ export async function research(
     return cached;
   }
 
-  const result =
-    provider === "google_ads"
+  const result = effectiveInput.locationName
+    ? await researchLocal(
+        effectiveInput,
+        effectiveInput.locationName,
+        billingCustomer,
+        creditFeature,
+      )
+    : provider === "google_ads"
       ? await fetchGoogleAdsRows(
           effectiveInput,
           seedKeyword,
@@ -311,7 +328,46 @@ export async function research(
           );
 
   await setCached(cacheKey, result, CACHE_TTL.researchResult);
-  persistRows(effectiveInput, result.rows);
+  // Keyword metrics are stored per country, so local rows are not persisted.
+  if (!effectiveInput.locationName)
+    void persistRows(effectiveInput, result.rows);
 
   return result;
+}
+
+/**
+ * Keyword ideas, difficulty, and intent come from the national research
+ * (cached and persisted as usual). One Google Ads call then replaces volume,
+ * CPC, and competition with numbers for the city, county, or region.
+ */
+async function researchLocal(
+  input: ResolvedResearchKeywordsInput,
+  locationName: string,
+  billingCustomer: BillingCustomerContext,
+  creditFeature?: CreditFeature,
+): Promise<ResearchResult> {
+  await assertLocalResearchLocation(input.locationCode, locationName);
+  const nationalInput = { ...input, locationName: undefined };
+  const national = await research(
+    nationalInput,
+    billingCustomer,
+    creditFeature,
+  );
+  // A save from local results sends no metrics, so the saved keyword relies on
+  // the stored national ones. Store them before returning, also when the
+  // national result came from the cache.
+  await persistRows(nationalInput, national.rows);
+  return {
+    ...national,
+    rows: await localizeResearchRows(
+      national.rows,
+      {
+        locationCode: input.locationCode,
+        locationName,
+        languageCode: input.languageCode,
+        creditFeature,
+      },
+      billingCustomer,
+    ),
+  };
 }

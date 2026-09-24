@@ -31,6 +31,21 @@ function taskItems<T>(task: KeywordsDataTask<T>): T[] {
   return task.result ?? [];
 }
 
+// Google Ads fails the whole search_volume task when one keyword has one of
+// these symbols or an emoji, is longer than 80 characters, or has more than
+// 10 words.
+const ADS_INVALID_KEYWORD_CHARS =
+  /[!@%,*(){}<>|^~;=?`]|\p{Extended_Pictographic}/u;
+
+/** Whether Google Ads search_volume accepts this keyword text. */
+export function isAdsKeyword(keyword: string): boolean {
+  return (
+    keyword.length <= 80 &&
+    keyword.split(/\s+/).length <= 10 &&
+    !ADS_INVALID_KEYWORD_CHARS.test(keyword)
+  );
+}
+
 export async function fetchAdsSearchVolume(input: {
   keywords: string[];
   locationCode: number;

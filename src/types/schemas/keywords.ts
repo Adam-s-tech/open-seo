@@ -20,6 +20,9 @@ export const researchKeywordsSchema = z.object({
   keywords: z.array(z.string().min(1)).min(1).max(200),
   locationCode: z.number().int().positive().optional(),
   languageCode: z.string().min(2).max(8).optional(),
+  // Canonical DataForSEO name of a city, county, or region inside the
+  // country. Scopes volume, CPC, and competition to that area.
+  locationName: z.string().trim().min(1).max(200).optional(),
   resultLimit: z
     .union([z.literal(150), z.literal(300), z.literal(500)])
     .default(150),
@@ -177,6 +180,8 @@ export const serpAnalysisSchema = z.object({
   keyword: z.string().min(1),
   locationCode: z.number().int().positive().optional(),
   languageCode: z.string().min(2).max(8).optional(),
+  // Same area as the research it belongs to, for a local SERP.
+  locationName: z.string().trim().min(1).max(200).optional(),
   // Only the two depths the app offers: the default top-20 snapshot, and the
   // full 100 the SERP panel buys when a user pages past the loaded results.
   // Each 10 of depth is another crawled Google page (~2.5 credits).
@@ -200,6 +205,7 @@ const keywordModes = ["auto", "related", "suggestions", "ideas"] as const;
 export const keywordsSearchSchema = z.object({
   q: z.string().optional(),
   loc: z.coerce.number().int().positive().optional(),
+  locName: z.string().optional(),
   kLimit: z.union([z.literal(150), z.literal(300), z.literal(500)]).optional(),
   mode: z.enum(keywordModes).optional(),
   cs: booleanSearchParamSchema.optional(),

@@ -11,16 +11,34 @@ import { withMcpProjectAuth } from "@/server/mcp/project-auth";
 import { resolveMarket } from "@/shared/keyword-locations";
 import { formatMcpTable, type McpTableColumn } from "@/server/mcp/table";
 import { assertLanguageForLocation } from "@/server/lib/market";
+import { toolErrorMessage } from "@/server/mcp/tool-error-message";
+import {
+  AUTUMN_SEO_DATA_CREDITS_PER_USD,
+  LOCAL_VOLUME_COST_USD,
+  applyBillingMarkupUsd,
+} from "@/shared/billing";
 import {
   languageCodeSchema,
   locationCodeSchema,
   projectIdSchema,
 } from "@/server/mcp/schemas";
 
+const LOCAL_VOLUME_CREDITS = Math.ceil(
+  applyBillingMarkupUsd(LOCAL_VOLUME_COST_USD) *
+    AUTUMN_SEO_DATA_CREDITS_PER_USD,
+);
+
 const seedSchema = z.object({
   seed: z.string().min(1).describe("Seed keyword to research."),
   locationCode: locationCodeSchema.optional(),
   languageCode: languageCodeSchema.optional(),
+  locationName: z
+    .string()
+    .min(1)
+    .optional()
+    .describe(
+      `Optional city, county, or region inside the seed's country, for local search volume. Call search_serp_locations first and pass its locationName verbatim. Volume, CPC, and competition then come from Google Ads for that area; keyword ideas, KD, and intent stay national. Adds ~${LOCAL_VOLUME_CREDITS} credits per seed.`,
+    ),
 });
 
 const inputSchema = {
@@ -141,6 +159,7 @@ export const researchKeywordsTool = {
               keywords: [item.seed],
               locationCode,
               languageCode,
+              locationName: item.locationName,
               resultLimit: args.resultLimit ?? 150,
               mode: "auto",
               clickstream: args.includeClickstreamData ?? false,
@@ -151,6 +170,7 @@ export const researchKeywordsTool = {
           return {
             seed: item.seed,
             ok: true as const,
+            locationName: item.locationName,
             rowCount: data.rows.length,
             source: data.source,
             usedFallback: data.usedFallback,
@@ -160,7 +180,7 @@ export const researchKeywordsTool = {
           return {
             seed: item.seed,
             ok: false as const,
-            error: error instanceof Error ? error.message : String(error),
+            error: toolErrorMessage(error),
           };
         }
       }),
@@ -174,7 +194,10 @@ export const researchKeywordsTool = {
           if (!r.ok) {
             return `## "${r.seed}" — FAILED\n${r.error}`;
           }
-          const header = `## "${r.seed}" — ${r.rowCount} keywords (source: ${r.source}${r.usedFallback ? ", fallback" : ""})`;
+          const scope = r.locationName
+            ? `, volume/CPC/competition for ${r.locationName}, KD/intent national`
+            : "";
+          const header = `## "${r.seed}" — ${r.rowCount} keywords (source: ${r.source}${r.usedFallback ? ", fallback" : ""}${scope})`;
           if (r.rowCount === 0) {
             return `${header}\n(no keywords returned)`;
           }

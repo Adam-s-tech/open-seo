@@ -17,6 +17,8 @@ const STANDARD_MESSAGES: Record<ErrorCode, string> = {
   AUDIT_ALREADY_RUNNING:
     "You've reached the limit of audits running at once. Wait for one to finish or delete it before starting another.",
   VALIDATION_ERROR: "Please check your input and try again.",
+  UNKNOWN_LOCATION:
+    "We couldn't find that city, county, or region. Pick a location from the list, or clear the field to search the whole country.",
   CRAWL_TARGET_BLOCKED: "This crawl target is blocked by security policy.",
   BACKLINKS_BILLING_ISSUE:
     "The connected DataForSEO account has a billing or balance issue.",

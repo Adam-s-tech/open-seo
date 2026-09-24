@@ -11,15 +11,22 @@ import type {
 } from "@/client/features/keywords/keywordResearchTypes";
 import type { KeywordResearchControllerInput } from "./useKeywordResearchController";
 import type { KeywordResearchDisplayRow } from "@/client/features/keywords/groupSharedVolumeRows";
+import { formatLocationLabel } from "@/shared/keyword-locations";
 
-export const KEYWORD_RESEARCH_HEADERS = [
-  "Keyword",
-  "Volume",
-  "CPC",
-  "Competition",
-  "Score",
-  "Intent",
-];
+/** Local exports name the area the volume, CPC, and competition cover. */
+export function keywordResearchHeaders(locationName?: string) {
+  const scope = locationName ? ` (${formatLocationLabel(locationName)})` : "";
+  return [
+    "Keyword",
+    `Volume${scope}`,
+    `CPC${scope}`,
+    `Competition${scope}`,
+    "Score",
+    "Intent",
+  ];
+}
+
+export const KEYWORD_RESEARCH_HEADERS = keywordResearchHeaders();
 
 export function keywordResearchExportRow(row: KeywordResearchRow): CsvValue[] {
   return [
@@ -59,6 +66,7 @@ export function parseKeywordInput(value: string) {
 export function buildKeywordSearchKey(params: {
   keyword: string;
   locationCode: number | undefined;
+  locationName: string | undefined;
   resultLimit: ResultLimit;
   mode: KeywordMode;
   clickstream: boolean;
@@ -67,6 +75,7 @@ export function buildKeywordSearchKey(params: {
   return [
     parseKeywordInput(params.keyword).join(""),
     params.locationCode,
+    params.locationName,
     params.resultLimit,
     params.mode,
     params.clickstream ? "cs" : "",
@@ -108,17 +117,21 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   };
 
   const confirmSave = () => {
-    const metrics = rows
-      .filter((row) => selectedRows.has(row.keyword))
-      .map((row) => ({
-        keyword: row.keyword,
-        searchVolume: row.searchVolume,
-        cpc: row.cpc,
-        competition: row.competition,
-        keywordDifficulty: row.keywordDifficulty,
-        intent: row.intent,
-        monthlySearches: row.trend,
-      }));
+    // Saved keyword metrics are stored per country, so local numbers are not
+    // saved. The saved list keeps the national metrics.
+    const metrics = input.locationName
+      ? undefined
+      : rows
+          .filter((row) => selectedRows.has(row.keyword))
+          .map((row) => ({
+            keyword: row.keyword,
+            searchVolume: row.searchVolume,
+            cpc: row.cpc,
+            competition: row.competition,
+            keywordDifficulty: row.keywordDifficulty,
+            intent: row.intent,
+            monthlySearches: row.trend,
+          }));
 
     saveKeywordsMutate(
       {
@@ -150,7 +163,10 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
       toast.error("No data to export");
       return;
     }
-    downloadKeywordResearchCsv(sheetsExportRows);
+    downloadKeywordResearchCsv(
+      sheetsExportRows,
+      keywordResearchHeaders(input.locationName),
+    );
     captureClientEvent("data:export", {
       source_feature: "keyword_research",
       result_count: sheetsExportRows.length,
@@ -160,7 +176,10 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   return { handleSaveKeywords, confirmSave, exportCsv, sheetsExportRows };
 }
 
-export function downloadKeywordResearchCsv(rows: CsvValue[][]) {
+export function downloadKeywordResearchCsv(
+  rows: CsvValue[][],
+  headers: string[],
+) {
   // CSV file keeps cents-formatted CPC/competition for human readability.
   const csvRows = rows.map((row) =>
     row.map((cell, idx) =>
@@ -169,8 +188,5 @@ export function downloadKeywordResearchCsv(rows: CsvValue[][]) {
         : cell,
     ),
   );
-  downloadCsv(
-    "keyword-research.csv",
-    buildCsv(KEYWORD_RESEARCH_HEADERS, csvRows),
-  );
+  downloadCsv("keyword-research.csv", buildCsv(headers, csvRows));
 }

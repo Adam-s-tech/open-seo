@@ -89,6 +89,7 @@ function SearchHistoryState({
                   search={{
                     q: item.keyword,
                     loc: item.locationCode,
+                    locName: item.localLocationName,
                     grp: controller.preferredGroupKeywords ? true : undefined,
                   }}
                   replace

@@ -114,3 +114,34 @@ USD × 1.28 markup × 1000):
   clickstream-priced volumes never mix with standard ones.
 - Reverting the clickstream default is a one-line change per fetcher in
   `src/server/lib/dataforseo/labs.ts`; the opt-in plumbing stays either way.
+
+## Local volume (city, county, region)
+
+Keyword research can target one city, county, or region inside the selected
+country. Labs and clickstream serve countries only, so the keyword list,
+keyword difficulty, and intent stay national. One Google Ads `search_volume`
+call with the area's canonical `location_name` then replaces volume, trend,
+CPC, and competition for every row. The SERP panel fetches the organic results
+for the same area.
+
+- The area must be a row of the country's location registry, the same list
+  the rank tracking picker searches. The check runs before any paid call. The
+  registry has no postal codes, so ZIP targeting is not offered.
+- A keyword that Google Ads does not return gets empty metrics, never the
+  national numbers. Google Ads fails a whole task on one keyword with certain
+  symbols, an emoji, more than 80 characters, or more than 10 words, so those
+  keywords are not sent.
+- Local rows are not stored as keyword metrics, because stored metrics are
+  keyed by country. Saved keywords keep national metrics.
+
+Alternatives considered:
+
+- **Append the city to the keyword** ("plumber austin"). This is a different
+  query with its own, much smaller volume, not demand for the head term in
+  that city.
+- **Automatic fallback to the county or metro area when a small city has no
+  volume.** Google geotargets link a city to its state, not to its county or
+  metro area, so the fallback would need a separate city-to-county mapping.
+  The results instead suggest a larger area when no keyword has local volume.
+- **Coordinates or postal codes.** Coordinates resolve to country volume and
+  postal codes return no volume.

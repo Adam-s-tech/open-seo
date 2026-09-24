@@ -13,6 +13,7 @@ const baseInput = {
   projectId: "project_1",
   keywordInput: "technical seo",
   locationCode: 2704,
+  locationName: undefined,
   resultLimit: 150 as const,
   mode: "auto" as const,
   clickstream: false,
@@ -32,6 +33,19 @@ describe("buildKeywordResearchRequest", () => {
     expect(grouped).toMatchObject({ groupKeywords: true });
     expect(buildKeywordResearchQueryKey(grouped)).not.toEqual(
       buildKeywordResearchQueryKey(request),
+    );
+  });
+
+  it("never serves a national result for a local search", () => {
+    const national = buildKeywordResearchRequest(baseInput);
+    const local = buildKeywordResearchRequest({
+      ...baseInput,
+      locationName: "Hanoi,Hanoi,Vietnam",
+    });
+
+    expect(local).toMatchObject({ locationName: "Hanoi,Hanoi,Vietnam" });
+    expect(buildKeywordResearchQueryKey(local)).not.toEqual(
+      buildKeywordResearchQueryKey(national),
     );
   });
 
