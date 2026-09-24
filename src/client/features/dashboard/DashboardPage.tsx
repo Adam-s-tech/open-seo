@@ -86,16 +86,14 @@ export function DashboardPage({ projectId }: { projectId: string }) {
   const gscConnected = activation.gsc.connected;
   const ga4Connected = activation.ga4.connected;
 
+  // Search Console always renders: connected shows the report, otherwise the
+  // connect pitch. It sits ahead of the optional GA4 pitch.
   const cards = [
-    ...(gscConnected
-      ? [
-          {
-            key: "gsc",
-            hasData: true,
-            node: <GscCard projectId={projectId} connected />,
-          },
-        ]
-      : []),
+    {
+      key: "gsc",
+      hasData: gscConnected,
+      node: <GscCard projectId={projectId} connected={gscConnected} />,
+    },
     ...(ga4Connected || !activation.ga4.cardDismissedAt
       ? [
           {

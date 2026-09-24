@@ -30,7 +30,7 @@ export const Route = createFileRoute<"/_project/p/$projectId/audit/">(
 
 function SiteAuditPage() {
   const { projectId } = Route.useParams();
-  const { auditId, tab } = Route.useSearch();
+  const { auditId, tab, url } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const setSearchParams = useCallback(
@@ -47,7 +47,10 @@ function SiteAuditPage() {
     return (
       <LaunchView
         projectId={projectId}
-        onAuditStarted={(id) => setSearchParams({ auditId: id })}
+        initialUrl={url ?? ""}
+        onAuditStarted={(id) =>
+          setSearchParams({ auditId: id, url: undefined })
+        }
       />
     );
   }

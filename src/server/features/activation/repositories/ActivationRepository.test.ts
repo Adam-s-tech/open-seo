@@ -121,7 +121,7 @@ describe("checklist persistence", () => {
     await ActivationRepository.setStepDismissed(
       "bob",
       "project-b",
-      "domain",
+      "audit",
       true,
     );
     state.database!.exec(

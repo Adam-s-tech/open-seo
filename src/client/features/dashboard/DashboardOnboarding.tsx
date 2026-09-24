@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronRight, RotateCcw } from "lucide-react";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { captureClientEvent } from "@/client/lib/posthog";
-import { getGoogleLinkError } from "@/client/features/integrations/googleLinkError";
 import { setDashboardStepDismissed } from "@/serverFunctions/dashboard";
 import type { DashboardActivation } from "@/server/features/dashboard/services/DashboardService";
 import type { DashboardSetupStep } from "@/types/schemas/dashboard";
@@ -18,12 +17,7 @@ export function DashboardOnboarding({
   activation: DashboardActivation;
 }) {
   const queryClient = useQueryClient();
-  const [selected, setSelected] = useState<DashboardSetupStep | null>(() =>
-    getGoogleLinkError("gsc") ||
-    (typeof window !== "undefined" && window.location.hash === "#connect-gsc")
-      ? "gsc"
-      : null,
-  );
+  const [selected, setSelected] = useState<DashboardSetupStep | null>(null);
   const dismiss = useMutation({
     mutationFn: ({
       step,
@@ -61,9 +55,10 @@ export function DashboardOnboarding({
       className="overflow-hidden rounded-xl border border-base-300 bg-base-100"
     >
       <header className="border-b border-base-300 px-5 py-5 sm:px-6">
-        <h2 className="text-lg font-semibold">Set up your workspace</h2>
+        <h2 className="text-lg font-semibold">Get started</h2>
         <p className="mt-1 text-sm text-base-content/65">
-          Add your website, connect your tools, and invite your team.
+          Research competitors and keywords, audit your site, and connect your
+          tools.
         </p>
       </header>
       {remaining.map((item) => {
@@ -93,11 +88,6 @@ export function DashboardOnboarding({
                   {item.detail}
                 </span>
               </span>
-              {item.id === "domain" && (
-                <span className="hidden text-xs text-primary sm:block">
-                  Start here
-                </span>
-              )}
               <ChevronRight
                 className={`size-4 shrink-0 text-base-content/60 transition-transform ${active ? "rotate-90" : ""}`}
               />
@@ -108,6 +98,7 @@ export function DashboardOnboarding({
                   <DashboardSetupAction
                     step={item.id}
                     projectId={projectId}
+                    domain={activation.domain}
                     onComplete={() => setSelected(null)}
                   />
                   <div className="border-t border-base-300 pt-3">

@@ -368,12 +368,13 @@ export const organizationActivationState = pgTable(
 
 // Per-project state for the dashboard's onboarding checklist. Most steps
 // complete via real product state (projects.domain, gsc_connections, MCP
-// activation); the competitor step completes on click-through.
+// activation); the competitor and keyword steps complete on click-through.
 export const projectActivationState = pgTable("project_activation_state", {
   projectId: text("project_id")
     .primaryKey()
     .references(() => projects.id, { onDelete: "cascade" }),
   competitorStepClickedAt: timestampColumn("competitor_step_clicked_at"),
+  keywordStepClickedAt: timestampColumn("keyword_step_clicked_at"),
   // "I already connected" on the MCP card: hides the card for this project
   // without faking the org-level first-tool-call milestone, which stays
   // truthful and self-heals when a real external call lands.

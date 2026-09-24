@@ -37,6 +37,8 @@ export type DashboardActivation = {
     cardDismissedAt: string | null;
   };
   competitorClickedAt: string | null;
+  keywordsClickedAt: string | null;
+  hasAudit: boolean;
   hasMultipleProjects: boolean;
   hasTeammate: boolean;
   dismissedSteps: string[];
@@ -96,6 +98,7 @@ async function getActivation(input: {
     projectCount,
     hasTeammate,
     dismissed,
+    latestAudit,
   ] = await Promise.all([
     Ga4ConnectionRepository.getByProjectId(input.projectId),
     GscConnectionRepository.getByProjectId(input.projectId),
@@ -104,6 +107,7 @@ async function getActivation(input: {
     ProjectRepository.countProjects(input.organizationId),
     ActivationRepository.hasTeammate(input.organizationId),
     ActivationRepository.getDismissedSteps(input.userId, input.projectId),
+    AuditRepository.getLatestAuditForProject(input.projectId),
   ]);
 
   return {
@@ -123,6 +127,8 @@ async function getActivation(input: {
       cardDismissedAt: projectActivation?.mcpCardDismissedAt ?? null,
     },
     competitorClickedAt: projectActivation?.competitorStepClickedAt ?? null,
+    keywordsClickedAt: projectActivation?.keywordStepClickedAt ?? null,
+    hasAudit: latestAudit != null,
   };
 }
 

@@ -8,20 +8,22 @@ const fresh: DashboardActivation = {
   gsc: { connected: false, siteUrl: null },
   mcp: { authorizedAt: null, firstToolCallAt: null, cardDismissedAt: null },
   competitorClickedAt: null,
+  keywordsClickedAt: null,
+  hasAudit: false,
   hasMultipleProjects: false,
   hasTeammate: false,
   dismissedSteps: [],
 };
 
 describe("dashboard checklist", () => {
-  it("starts with the website and has no SAM chat step", () => {
+  it("leads with research and ends with the multi-project step", () => {
     expect(setupSteps.map((step) => step.id)).toEqual([
-      "domain",
-      "project",
       "competitor",
+      "keywords",
+      "audit",
       "mcp",
-      "gsc",
       "team",
+      "project",
     ]);
     expect(
       setupSteps.every((step) => getStepStatus(fresh, step.id) === "todo"),
@@ -41,11 +43,11 @@ describe("dashboard checklist", () => {
   it("recognizes setup completed elsewhere even after skipping it", () => {
     const complete: DashboardActivation = {
       ...fresh,
-      domain: "example.com",
       hasMultipleProjects: true,
       hasTeammate: true,
+      hasAudit: true,
       competitorClickedAt: "2026-09-05",
-      gsc: { connected: true, siteUrl: "sc-domain:example.com" },
+      keywordsClickedAt: "2026-09-05",
       mcp: { ...fresh.mcp, firstToolCallAt: "2026-09-05" },
       dismissedSteps: setupSteps.map((step) => step.id),
     };
@@ -53,8 +55,7 @@ describe("dashboard checklist", () => {
       setupSteps.every((step) => getStepStatus(complete, step.id) === "done"),
     ).toBe(true);
   });
-  it("makes disconnected and no-longer-completed steps available again", () => {
-    expect(getStepStatus(fresh, "gsc")).toBe("todo");
+  it("makes no-longer-completed steps available again", () => {
     expect(getStepStatus(fresh, "team")).toBe("todo");
   });
 });
