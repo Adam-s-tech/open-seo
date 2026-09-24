@@ -4,7 +4,7 @@ import { z } from "zod";
 const storageKey = (projectId: string) =>
   `keyword-preferred-grouping:${projectId}`;
 
-export function loadPreferredGrouping(projectId: string): boolean {
+function loadPreferredGrouping(projectId: string): boolean {
   try {
     const raw = localStorage.getItem(storageKey(projectId));
     if (!raw) return false;

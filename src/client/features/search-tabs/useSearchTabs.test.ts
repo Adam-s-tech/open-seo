@@ -146,7 +146,26 @@ describe("parseStoredState", () => {
       resultLimit: 150,
       mode: "auto",
       clickstream: false,
+      groupKeywords: false,
     });
+  });
+
+  it("keeps the grouping each keyword tab was searched with", () => {
+    const state = parseStoredState({
+      activeTabId: "tab-1",
+      tabs: [
+        persistedTab({
+          type: "keyword",
+          keyword: "seo tools",
+          resultLimit: 150,
+          mode: "auto",
+          clickstream: false,
+          groupKeywords: true,
+        }),
+      ],
+    });
+
+    expect(state.tabs[0].input).toMatchObject({ groupKeywords: true });
   });
 
   it("keeps tabs persisted with an explicit locationCode", () => {

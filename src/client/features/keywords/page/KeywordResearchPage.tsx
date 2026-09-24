@@ -4,8 +4,10 @@ import { AlertCircle, ArrowLeft } from "lucide-react";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
 import { useKeywordResearchController } from "@/client/features/keywords/state/useKeywordResearchController";
-import type { KeywordResearchControllerInput } from "@/client/features/keywords/state/useKeywordResearchController";
-import type { KeywordControlsValues } from "@/client/features/keywords/hooks/useKeywordControlsForm";
+import type {
+  KeywordResearchControllerInput,
+  KeywordSubmitValues,
+} from "@/client/features/keywords/state/useKeywordResearchController";
 import { parseKeywordInput } from "@/client/features/keywords/state/keywordControllerActions";
 import {
   useKeywordSearchParams,
@@ -55,6 +57,7 @@ export function KeywordResearchPage(input: Props) {
           kLimit: undefined,
           mode: undefined,
           cs: undefined,
+          grp: undefined,
         });
         return;
       }
@@ -65,6 +68,7 @@ export function KeywordResearchPage(input: Props) {
         kLimit: tabInput.resultLimit === 150 ? undefined : tabInput.resultLimit,
         mode: tabInput.mode === "auto" ? undefined : tabInput.mode,
         cs: tabInput.clickstream ? true : undefined,
+        grp: tabInput.groupKeywords ? true : undefined,
       });
     },
     [setSearchParams],
@@ -81,9 +85,11 @@ export function KeywordResearchPage(input: Props) {
       resultLimit: input.resultLimit,
       mode: input.keywordMode,
       clickstream: input.clickstream,
+      groupKeywords: input.groupKeywords,
     };
   }, [
     input.clickstream,
+    input.groupKeywords,
     input.keywordInput,
     input.keywordMode,
     locationCode,
@@ -119,7 +125,7 @@ export function KeywordResearchPage(input: Props) {
   }, [searchTabs.activeTabId, searchTabs.tabs, urlInput]);
 
   const onFormSubmit = useCallback(
-    (value: KeywordControlsValues) => {
+    (value: KeywordSubmitValues) => {
       const keywords = parseKeywordInput(value.keyword);
       if (keywords.length === 0) return;
 
@@ -130,6 +136,7 @@ export function KeywordResearchPage(input: Props) {
         resultLimit: value.resultLimit,
         mode: value.mode,
         clickstream: value.clickstream,
+        groupKeywords: value.groupKeywords,
       }));
 
       for (const tabInput of inputs) {
@@ -156,6 +163,7 @@ export function KeywordResearchPage(input: Props) {
             resultLimit: activeTab.input.resultLimit,
             keywordMode: activeTab.input.mode,
             clickstream: activeTab.input.clickstream,
+            groupKeywords: activeTab.input.groupKeywords,
           }
         : {
             ...input,

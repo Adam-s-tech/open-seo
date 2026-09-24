@@ -135,9 +135,9 @@ export function KeywordResearchSearchBar({ controller }: Props) {
               type="checkbox"
               role="switch"
               className="toggle toggle-sm toggle-primary"
-              checked={controller.groupKeywords}
+              checked={controller.preferredGroupKeywords}
               onChange={(event) =>
-                controller.setGroupKeywords(event.target.checked)
+                controller.setPreferredGroupKeywords(event.target.checked)
               }
             />
             <span className="text-sm font-medium text-base-content/80">

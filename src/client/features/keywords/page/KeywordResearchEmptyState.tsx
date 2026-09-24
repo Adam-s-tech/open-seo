@@ -89,6 +89,7 @@ function SearchHistoryState({
                   search={{
                     q: item.keyword,
                     loc: item.locationCode,
+                    grp: controller.preferredGroupKeywords ? true : undefined,
                   }}
                   replace
                   className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1 text-left transition-colors hover:bg-base-200"

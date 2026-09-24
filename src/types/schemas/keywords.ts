@@ -203,6 +203,7 @@ export const keywordsSearchSchema = z.object({
   kLimit: z.union([z.literal(150), z.literal(300), z.literal(500)]).optional(),
   mode: z.enum(keywordModes).optional(),
   cs: booleanSearchParamSchema.optional(),
+  grp: booleanSearchParamSchema.optional(),
   sort: z.enum(keywordSortFields).optional(),
   order: z.enum(sortDirs).optional(),
   minVol: z.string().optional(),

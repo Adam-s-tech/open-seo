@@ -38,6 +38,8 @@ export type KeywordResearchControllerInput = {
   resultLimit: ResultLimit;
   keywordMode: KeywordMode;
   clickstream: boolean;
+  /** Grouping of the displayed search. The toggle only applies to new searches. */
+  groupKeywords: boolean;
   sortField: SortField;
   sortDir: SortDir;
   /**
@@ -45,17 +47,26 @@ export type KeywordResearchControllerInput = {
    * whether the submission opens tabs or just rewrites the URL — the
    * controller stays agnostic.
    */
-  onFormSubmit: (value: KeywordControlsValues) => void;
+  onFormSubmit: (value: KeywordSubmitValues) => void;
+};
+
+export type KeywordSubmitValues = KeywordControlsValues & {
+  groupKeywords: boolean;
 };
 
 export function useKeywordResearchController(
   input: KeywordResearchControllerInput,
 ) {
-  const { displayedLocationCode, locationCode, setPreferredLocationCode } =
-    input;
-  const { groupKeywords, setGroupKeywords } = usePreferredKeywordGrouping(
-    input.projectId,
-  );
+  const {
+    displayedLocationCode,
+    groupKeywords,
+    locationCode,
+    setPreferredLocationCode,
+  } = input;
+  const {
+    groupKeywords: preferredGroupKeywords,
+    setGroupKeywords: setPreferredGroupKeywords,
+  } = usePreferredKeywordGrouping(input.projectId);
   const {
     filtersForm,
     values: filterValues,
@@ -151,13 +162,13 @@ export function useKeywordResearchController(
     },
     (value) => {
       setPreferredLocationCode(value.locationCode);
-      onFormSubmit(value);
+      onFormSubmit({ ...value, groupKeywords: preferredGroupKeywords });
     },
   );
 
-  // The URL and saved grouping preference define keyword research queries. This
-  // effect only resets UI state around a new query key; TanStack Query owns the
-  // actual fetch, cache, dedupe, and error lifecycle.
+  // The URL defines keyword research queries. This effect only resets UI state
+  // around a new query key; TanStack Query owns the actual fetch, cache,
+  // dedupe, and error lifecycle.
   useEffect(() => {
     if (activeSearchKey === previousSearchKeyRef.current) return;
     previousSearchKeyRef.current = activeSearchKey;
@@ -243,8 +254,8 @@ export function useKeywordResearchController(
   };
 
   return {
-    groupKeywords,
-    setGroupKeywords,
+    preferredGroupKeywords,
+    setPreferredGroupKeywords,
     activeFilterCount,
     activeSerpKeyword,
     confirmSave,

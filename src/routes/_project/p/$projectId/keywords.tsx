@@ -44,6 +44,7 @@ function KeywordResearchPageRoute() {
       resultLimit={isResultLimit(resultLimit) ? resultLimit : 150}
       keywordMode={normalizeKeywordMode(keywordMode)}
       clickstream={search.cs ?? false}
+      groupKeywords={search.grp ?? false}
       sortField={normalizeSortField(sortField)}
       sortDir={normalizeSortDir(sortDir)}
     />
