@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { Modal } from "@/client/components/Modal";
+import { DialogField, FormDialog } from "@/client/components/FormDialog";
 import {
   isResultLimit,
   normalizeKeywordMode,
@@ -45,21 +45,22 @@ export function KeywordSearchOptions({ controller }: Props) {
             </button>
 
             {open ? (
-              <Modal
-                maxWidth="max-w-md"
+              <FormDialog
+                title="Search options"
                 onClose={() => setOpen(false)}
-                labelledBy="keyword-search-options-title"
+                actions={
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setOpen(false)}
+                  >
+                    Done
+                  </button>
+                }
               >
-                <h3
-                  id="keyword-search-options-title"
-                  className="text-lg font-semibold"
-                >
-                  Search options
-                </h3>
-
                 <controlsForm.Field name="resultLimit">
                   {(field) => (
-                    <OptionRow label="Results">
+                    <DialogField label="Results">
                       <select
                         className="select select-bordered w-full"
                         value={field.state.value}
@@ -74,13 +75,13 @@ export function KeywordSearchOptions({ controller }: Props) {
                           </option>
                         ))}
                       </select>
-                    </OptionRow>
+                    </DialogField>
                   )}
                 </controlsForm.Field>
 
                 <controlsForm.Field name="mode">
                   {(field) => (
-                    <OptionRow
+                    <DialogField
                       label="Keyword source"
                       help={labs ? undefined : GOOGLE_ADS_ONLY_NOTE}
                     >
@@ -99,7 +100,7 @@ export function KeywordSearchOptions({ controller }: Props) {
                         <option value="ideas">Category ideas</option>
                         <option value="related">People also search for</option>
                       </select>
-                    </OptionRow>
+                    </DialogField>
                   )}
                 </controlsForm.Field>
 
@@ -129,42 +130,12 @@ export function KeywordSearchOptions({ controller }: Props) {
                   disabled={!labs}
                   onChange={setGroupKeywords}
                 />
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                </div>
-              </Modal>
+              </FormDialog>
             ) : null}
           </>
         );
       }}
     </controlsForm.Subscribe>
-  );
-}
-
-function OptionRow({
-  label,
-  help,
-  children,
-}: {
-  label: string;
-  help?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium">{label}</span>
-      {children}
-      {help ? (
-        <span className="text-xs text-base-content/60">{help}</span>
-      ) : null}
-    </label>
   );
 }
 
