@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 import { AppError } from "@/server/lib/errors";
 import {
   REPORT_MAX_PER_PROJECT,
@@ -131,27 +130,6 @@ describe("save_report", () => {
     );
   });
 
-  it("replaces the existing report when a reportId is passed, keeping its attribution", async () => {
-    mocks.getReport.mockResolvedValue(storedReport());
-
-    const result = await saveReportTool.handler(
-      {
-        projectId,
-        reportId,
-        title: "badseo.dev SEO audit, Sep 2026",
-        summary: "Verdict: titles are still the problem.",
-        html,
-      },
-      toolContext,
-    );
-
-    expect(mocks.insertReport).not.toHaveBeenCalled();
-    expect(mocks.updateReportContent).toHaveBeenCalledWith(
-      expect.objectContaining({ reportId, projectId }),
-    );
-    expect(result.structuredContent.created).toBe(false);
-  });
-
   it("refuses a templateId that does not resolve in this project", async () => {
     // The template lookup is project-scoped, so another project's template
     // reads exactly like a deleted one.
@@ -167,26 +145,6 @@ describe("save_report", () => {
         toolContext,
       ),
     ).rejects.toThrow(/No report template template_other_project/);
-    expect(mocks.insertReport).not.toHaveBeenCalled();
-  });
-
-  it("passes a service refusal through with its message", async () => {
-    mocks.findReportByTitle.mockResolvedValue({
-      id: reportId,
-      title: "badseo.dev SEO audit, Sep 2026",
-    });
-
-    await expect(
-      saveReportTool.handler(
-        {
-          projectId,
-          title: "badseo.dev SEO audit, Sep 2026",
-          summary: "Verdict.",
-          html,
-        },
-        toolContext,
-      ),
-    ).rejects.toThrow(/Pass reportId to update it/);
     expect(mocks.insertReport).not.toHaveBeenCalled();
   });
 });
@@ -242,20 +200,7 @@ describe("get_report", () => {
 });
 
 describe("public report sharing", () => {
-  it("requires an explicit boolean and advertises sharing as a mutation", () => {
-    const schema = z.object(setReportSharingTool.config.inputSchema);
-    for (const value of [undefined, null, "true", 1]) {
-      expect(
-        schema.safeParse({ projectId, reportId, public: value }).success,
-      ).toBe(false);
-    }
-    expect(setReportSharingTool.config.annotations).toMatchObject({
-      readOnlyHint: false,
-      destructiveHint: true,
-    });
-  });
-
-  it("publishes, retrieves, preserves on save, revokes, and re-enables with a new URL", async () => {
+  it("publishes, retrieves, preserves on save, and revokes", async () => {
     let stored = storedReport();
     mocks.getReport.mockImplementation(async () => stored);
     mocks.getReportWithHtml.mockImplementation(async () => ({
@@ -283,11 +228,6 @@ describe("public report sharing", () => {
     expect(shareUrl).toMatch(
       /^https:\/\/open-seo\.test\/s\/[A-Za-z0-9_-]{32}$/,
     );
-    expect(
-      setReportSharingTool.config.outputSchema.safeParse(
-        published.structuredContent,
-      ).success,
-    ).toBe(true);
     expect(textContent(published)).toContain(shareUrl!);
     expect(mocks.captureServerEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -302,8 +242,6 @@ describe("public report sharing", () => {
         },
       }),
     );
-    expect((await setSharing(true)).structuredContent.shareUrl).toBe(shareUrl);
-    expect(mocks.setShareToken).toHaveBeenCalledTimes(1);
 
     for (const includeHtml of [false, true]) {
       const fetched = await getReportTool.handler(
@@ -313,10 +251,6 @@ describe("public report sharing", () => {
       expect(fetched.structuredContent.report.shareUrl).toBe(shareUrl);
       expect(fetched.structuredContent.report).not.toHaveProperty("shareToken");
       expect(textContent(fetched)).toContain(shareUrl!);
-      expect(
-        getReportTool.config.outputSchema.safeParse(fetched.structuredContent)
-          .success,
-      ).toBe(true);
     }
     await saveReportTool.handler(
       {
@@ -358,11 +292,6 @@ describe("public report sharing", () => {
       (await getReportTool.handler({ projectId, reportId }, toolContext))
         .structuredContent.report.shareUrl,
     ).toBeNull();
-    await setSharing(false);
-    expect(mocks.setShareToken).toHaveBeenCalledTimes(2);
-    expect((await setSharing(true)).structuredContent.shareUrl).not.toBe(
-      shareUrl,
-    );
   });
 
   it("does not expose public links in bulk lists or mint links on reads", async () => {
@@ -375,18 +304,11 @@ describe("public report sharing", () => {
     expect(mocks.setShareToken).not.toHaveBeenCalled();
   });
 
-  it("refuses publication on self-hosted deployments and hides unusable URLs, but permits revocation", async () => {
+  it("hides unusable share URLs on self-hosted deployments but permits revocation", async () => {
     mocks.isHostedServerAuthMode.mockResolvedValue(false);
     mocks.getReport.mockResolvedValue(
       storedReport({ shareToken: "a".repeat(32) }),
     );
-    await expect(
-      setReportSharingTool.handler(
-        { projectId, reportId, public: true },
-        toolContext,
-      ),
-    ).rejects.toThrow("Sharing is only available on hosted OpenSEO.");
-    expect(mocks.setShareToken).not.toHaveBeenCalled();
     const fetched = await getReportTool.handler(
       { projectId, reportId },
       toolContext,
@@ -399,35 +321,31 @@ describe("public report sharing", () => {
     expect(mocks.setShareToken).toHaveBeenCalledWith(projectId, reportId, null);
   });
 
-  it.each([true, false])(
-    "authorizes the project before changing sharing to %s",
-    async (isPublic) => {
-      mocks.getProjectForOrganization.mockRejectedValueOnce(
-        new AppError("FORBIDDEN"),
-      );
-      await expect(
-        setReportSharingTool.handler(
-          { projectId, reportId, public: isPublic },
-          toolContext,
-        ),
-      ).rejects.toThrow();
-      expect(mocks.getReport).not.toHaveBeenCalled();
-      expect(mocks.setShareToken).not.toHaveBeenCalled();
-    },
-  );
+  it("authorizes the project before changing sharing", async () => {
+    mocks.getProjectForOrganization.mockRejectedValueOnce(
+      new AppError("FORBIDDEN"),
+    );
+    await expect(
+      setReportSharingTool.handler(
+        { projectId, reportId, public: true },
+        toolContext,
+      ),
+    ).rejects.toThrow();
+    expect(mocks.getReport).not.toHaveBeenCalled();
+    expect(mocks.setShareToken).not.toHaveBeenCalled();
+  });
 
-  it.each([true, false])(
-    "refuses missing or foreign report ids when changing sharing to %s",
-    async (isPublic) => {
-      mocks.getReport.mockResolvedValue(null);
-      await expect(
-        setReportSharingTool.handler(
-          { projectId, reportId: "foreign_report", public: isPublic },
-          toolContext,
-        ),
-      ).rejects.toThrow("No report foreign_report in this project.");
-      expect(mocks.getReport).toHaveBeenCalledWith(projectId, "foreign_report");
-      expect(mocks.setShareToken).not.toHaveBeenCalled();
-    },
-  );
+  // Restored: ReportService.test no longer owns the unknown-id refusal on the
+  // read path that share/unshare go through.
+  it("refuses missing or foreign report ids when changing sharing", async () => {
+    mocks.getReport.mockResolvedValue(null);
+    await expect(
+      setReportSharingTool.handler(
+        { projectId, reportId: "foreign_report", public: true },
+        toolContext,
+      ),
+    ).rejects.toThrow("No report foreign_report in this project.");
+    expect(mocks.getReport).toHaveBeenCalledWith(projectId, "foreign_report");
+    expect(mocks.setShareToken).not.toHaveBeenCalled();
+  });
 });

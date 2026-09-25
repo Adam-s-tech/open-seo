@@ -40,12 +40,6 @@ function renderChecklist(activation = fresh) {
 }
 
 describe("dashboard onboarding visibility", () => {
-  it("keeps setup actions collapsed on an ordinary dashboard visit", () => {
-    const markup = renderChecklist();
-    expect(markup).not.toContain("Connection setup");
-    expect(markup).toContain('id="setup-competitor" hidden=""');
-  });
-
   it("renders nothing once every step is completed or skipped", () => {
     expect(
       renderChecklist({

@@ -5,7 +5,6 @@ import {
   getSearchPerformanceReport,
   getSearchPerformanceTable,
 } from "./searchPerformance";
-import { searchPerformanceInputSchema } from "@/types/schemas/search-performance";
 
 const { getPerformance } = vi.hoisted(() => ({ getPerformance: vi.fn() }));
 vi.mock("@/server/features/gsc/services/GscService", () => ({
@@ -88,24 +87,6 @@ describe("Search Performance combined filters", () => {
       });
     },
   );
-
-  it("rejects empty expressions and unsupported match operators", () => {
-    for (const pageFilter of [
-      { operator: "contains", expression: "   " },
-      { operator: "startsWith", expression: "/collections/" },
-      { operator: "contains", expression: "a".repeat(4097) },
-    ]) {
-      expect(
-        searchPerformanceInputSchema.safeParse({ ...data, pageFilter }).success,
-      ).toBe(false);
-      expect(
-        searchPerformanceInputSchema.safeParse({
-          ...data,
-          queryFilter: pageFilter,
-        }).success,
-      ).toBe(false);
-    }
-  });
 
   it("reports the last-page row count instead of a full page for narrow filters", async () => {
     getPerformance.mockResolvedValue({

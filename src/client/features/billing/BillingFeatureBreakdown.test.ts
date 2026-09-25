@@ -7,7 +7,7 @@ vi.mock("@/serverFunctions/billing", () => ({
 import { getBillingFeatureBreakdownRows } from "./BillingFeatureBreakdown";
 
 describe("getBillingFeatureBreakdownRows", () => {
-  it("uses explicit creditFeature when present", () => {
+  it("prefers an explicit creditFeature (or its raw alias) over the path", () => {
     const rows = getBillingFeatureBreakdownRows([
       {
         value: 250,
@@ -16,13 +16,6 @@ describe("getBillingFeatureBreakdownRows", () => {
           paths: ["v3/serp/google/organic/live/regular"],
         },
       },
-    ]);
-
-    expect(rows).toEqual([{ label: "Rank Tracking", usd: 0.25 }]);
-  });
-
-  it("supports raw Autumn property aliases", () => {
-    const rows = getBillingFeatureBreakdownRows([
       {
         value: 200,
         properties: {
@@ -32,7 +25,10 @@ describe("getBillingFeatureBreakdownRows", () => {
       },
     ]);
 
-    expect(rows).toEqual([{ label: "Local SEO", usd: 0.2 }]);
+    expect(rows).toEqual([
+      { label: "Rank Tracking", usd: 0.25 },
+      { label: "Local SEO", usd: 0.2 },
+    ]);
   });
 
   it("infers legacy events from DataForSEO paths", () => {
@@ -83,16 +79,5 @@ describe("getBillingFeatureBreakdownRows", () => {
     ]);
 
     expect(rows).toEqual([{ label: "AI Prompt Responses", usd: 0.5 }]);
-  });
-
-  it("falls back to Other when neither feature nor path is available", () => {
-    const rows = getBillingFeatureBreakdownRows([
-      {
-        value: 100,
-        properties: {},
-      },
-    ]);
-
-    expect(rows).toEqual([{ label: "Other", usd: 0.1 }]);
   });
 });

@@ -97,20 +97,6 @@ describe.each(["gsc", "ga4", "onboarding"] as const)(
       expect(html).toContain("Select a property");
       expect(html).not.toContain("Connect with Google");
     });
-    it("offers authorization when no account has been linked", () => {
-      const html = renderSetup(surface, false);
-      expect(html).not.toContain("Select a property");
-      expect(html).toContain(
-        surface === "onboarding" ? "Connect with Google" : "Connect",
-      );
-    });
-    it("shows the saved connection rather than reopening setup", () => {
-      const html = renderSetup(surface, true, true);
-      expect(html).not.toContain("Select a property");
-      expect(html).toContain(
-        surface === "ga4" ? "Example" : "https://example.com/",
-      );
-    });
   },
 );
 
@@ -146,28 +132,5 @@ describe("onboarding connection actions", () => {
     expect(html).toContain("Try again");
     expect(html).not.toContain("Choose property");
     expect(html).toMatch(/disabled="">Save and continue<\/button>/);
-  });
-
-  it("requires saving a property or explicitly skipping before advancing", () => {
-    const html = renderSetup("onboarding", true);
-    expect(html).toContain("Save and continue");
-    expect(html).toContain("Skip for now");
-    expect(html).not.toMatch(/>Continue[ <]/);
-    expect(html).not.toContain("Save property");
-  });
-
-  it("offers an explicit skip before Google authorization", () => {
-    const html = renderSetup("onboarding", false);
-    expect(html).toContain("Skip for now");
-    expect(html).not.toMatch(/>Continue[ <]/);
-    expect(html).toContain("Save and continue");
-    expect(html).toMatch(/disabled="">Save and continue<\/button>/);
-  });
-
-  it("allows continuing without another save for an existing connection", () => {
-    const html = renderSetup("onboarding", true, true);
-    expect(html).toMatch(/>Continue[ <]/);
-    expect(html).not.toContain("Save and continue");
-    expect(html).not.toContain("Skip for now");
   });
 });

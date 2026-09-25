@@ -41,7 +41,7 @@ export function getOAuthSignedQuery(search: string | null | undefined) {
   return signedParams.toString();
 }
 
-export function getOAuthAuthorizeRedirectFromSearch(
+function getOAuthAuthorizeRedirectFromSearch(
   search: string | null | undefined,
 ) {
   const signedQuery = getOAuthSignedQuery(search);

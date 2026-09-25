@@ -10,7 +10,6 @@ it("preserves seven saved conditions and offers recovery before a filtered reque
     "choose All links (spammy included) from Best links",
   );
   expect(backlinksFilterBudgetError(values, "subdomains", false)).toBeNull();
-  expect(values.exclude).toBe("a,b,c,d,e,f,g");
 });
 
 it("accounts for subfolder conditions and accepts the exact remaining budget", () => {

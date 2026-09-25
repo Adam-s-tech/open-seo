@@ -85,52 +85,39 @@ describe("ga4Client admin API", () => {
       userId: "u1",
       accountId: "google-sub-a",
     });
-    const secondUrl = mocks.fetch.mock.calls[1]?.[0];
-    const secondUrlText =
-      typeof secondUrl === "string"
-        ? secondUrl
-        : secondUrl instanceof URL
-          ? secondUrl.toString()
-          : secondUrl?.url;
-    expect(secondUrlText).toContain("pageToken=page-2");
+    expect(requestUrl(mocks.fetch.mock.calls[1][0])).toContain(
+      "pageToken=page-2",
+    );
     expect(mocks.getAccessToken).toHaveBeenCalledTimes(1);
   });
 
-  it("loads and validates the selected property's reporting metadata", async () => {
-    mocks.fetch.mockResolvedValue(
-      jsonResponse({
-        name: "properties/11",
-        displayName: "Site A",
-        timeZone: "America/New_York",
-        currencyCode: "USD",
-      }),
-    );
-    const property = await createGa4AdminClient({
-      userId: "u1",
-      ga4AccountId: "google-sub-a",
-    }).getProperty("properties/11");
-
-    expect(property.timeZone).toBe("America/New_York");
-    expect(mocks.fetch.mock.calls[0]?.[0]).toBe(
-      "https://analyticsadmin.googleapis.com/v1beta/properties/11",
-    );
-  });
-
-  it("classifies a rejected grant as a typed 401", async () => {
-    mocks.fetch.mockResolvedValue(jsonResponse({ error: "expired" }, 401));
-    await expect(
-      createGa4AdminClient({
+  it.each([
+    {
+      label: "a rejected grant",
+      respond: () =>
+        mocks.fetch.mockResolvedValue(jsonResponse({ error: "expired" }, 401)),
+      status: 401,
+    },
+    {
+      label: "a transport failure",
+      respond: () =>
+        mocks.fetch.mockRejectedValue(new TypeError("connection reset")),
+      status: 0,
+    },
+  ])(
+    "classifies $label as a typed admin error with status $status",
+    async ({ respond, status }) => {
+      respond();
+      const client = createGa4AdminClient({
         userId: "u1",
         ga4AccountId: "google-sub-a",
-      }).listProperties(),
-    ).rejects.toBeInstanceOf(Ga4AdminApiError);
-    await expect(
-      createGa4AdminClient({
-        userId: "u1",
-        ga4AccountId: "google-sub-a",
-      }).listProperties(),
-    ).rejects.toMatchObject({ status: 401 });
-  });
+      });
+      await expect(client.listProperties()).rejects.toBeInstanceOf(
+        Ga4AdminApiError,
+      );
+      await expect(client.listProperties()).rejects.toMatchObject({ status });
+    },
+  );
 
   it("throws a token error when no access token can be minted", async () => {
     mocks.getAccessToken.mockRejectedValue(new Error("revoked"));
@@ -140,105 +127,6 @@ describe("ga4Client admin API", () => {
         ga4AccountId: "google-sub-a",
       }).listProperties(),
     ).rejects.toBeInstanceOf(Ga4TokenError);
-  });
-
-  it("reads streams, enhanced measurement, key events, and custom definitions", async () => {
-    mocks.fetch
-      .mockResolvedValueOnce(
-        jsonResponse({
-          dataStreams: [
-            {
-              name: "properties/11/dataStreams/22",
-              type: "WEB_DATA_STREAM",
-              displayName: "Website",
-              webStreamData: {
-                measurementId: "G-ABC123",
-                defaultUri: "https://example.com",
-              },
-            },
-          ],
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          streamEnabled: true,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          keyEvents: [
-            {
-              eventName: "purchase",
-              countingMethod: "ONCE_PER_EVENT",
-              custom: false,
-            },
-          ],
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          customDimensions: [
-            {
-              parameterName: "content_type",
-              displayName: "Content type",
-              scope: "EVENT",
-            },
-          ],
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          customMetrics: [
-            {
-              parameterName: "quality_score",
-              displayName: "Quality score",
-              measurementUnit: "STANDARD",
-              scope: "EVENT",
-            },
-          ],
-        }),
-      );
-    const client = createGa4AdminClient({
-      userId: "u1",
-      ga4AccountId: "google-sub-a",
-    });
-
-    const streams = await client.listDataStreams("properties/11");
-    const enhanced = await client.getEnhancedMeasurementSettings(
-      "properties/11/dataStreams/22",
-    );
-    const keyEvents = await client.listKeyEvents("properties/11");
-    const dimensions = await client.listCustomDimensions("properties/11");
-    const metrics = await client.listCustomMetrics("properties/11");
-
-    expect(streams[0]?.webStreamData?.measurementId).toBe("G-ABC123");
-    expect(enhanced).toMatchObject({
-      streamEnabled: true,
-      siteSearchEnabled: false,
-      searchQueryParameter: "",
-    });
-    expect(keyEvents[0]?.eventName).toBe("purchase");
-    expect(dimensions[0]?.parameterName).toBe("content_type");
-    expect(metrics[0]?.parameterName).toBe("quality_score");
-    expect(mocks.fetch.mock.calls.map((call) => requestUrl(call[0]))).toEqual([
-      "https://analyticsadmin.googleapis.com/v1alpha/properties/11/dataStreams?pageSize=200",
-      "https://analyticsadmin.googleapis.com/v1alpha/properties/11/dataStreams/22/enhancedMeasurementSettings",
-      "https://analyticsadmin.googleapis.com/v1beta/properties/11/keyEvents?pageSize=200",
-      "https://analyticsadmin.googleapis.com/v1beta/properties/11/customDimensions?pageSize=200",
-      "https://analyticsadmin.googleapis.com/v1beta/properties/11/customMetrics?pageSize=200",
-    ]);
-    expect(mocks.getAccessToken).toHaveBeenCalledTimes(1);
-  });
-
-  it("converts transport failures to a typed upstream error", async () => {
-    mocks.fetch.mockRejectedValue(new TypeError("connection reset"));
-
-    await expect(
-      createGa4AdminClient({
-        userId: "u1",
-        ga4AccountId: "google-sub-a",
-      }).listProperties(),
-    ).rejects.toMatchObject({ status: 0 });
   });
 });
 

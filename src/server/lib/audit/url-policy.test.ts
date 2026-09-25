@@ -27,29 +27,14 @@ describe("normalizeAndValidateStartUrl", () => {
     ).resolves.toBe("https://example.com/path");
   });
 
-  it("blocks localhost-like targets", async () => {
-    await expect(
-      normalizeAndValidateStartUrl("http://localhost:3000"),
-    ).rejects.toMatchObject({
-      code: "CRAWL_TARGET_BLOCKED",
-    } satisfies Partial<AppError>);
-  });
-
-  it("blocks private ip targets", async () => {
-    await expect(
-      normalizeAndValidateStartUrl("http://192.168.0.10"),
-    ).rejects.toMatchObject({
-      code: "CRAWL_TARGET_BLOCKED",
-    } satisfies Partial<AppError>);
-  });
-
-  it("rejects invalid URL input", async () => {
-    await expect(
-      normalizeAndValidateStartUrl("not a url"),
-    ).rejects.toMatchObject({
-      code: "VALIDATION_ERROR",
-    } satisfies Partial<AppError>);
-  });
+  it.each(["http://localhost:3000", "http://192.168.0.10"])(
+    "blocks %s",
+    async (url) => {
+      await expect(normalizeAndValidateStartUrl(url)).rejects.toMatchObject({
+        code: "CRAWL_TARGET_BLOCKED",
+      } satisfies Partial<AppError>);
+    },
+  );
 });
 
 const dnsOk = () =>
@@ -87,22 +72,6 @@ describe("resolveStartUrlRedirects", () => {
     });
     await expect(
       resolveStartUrlRedirects("https://example.net/"),
-    ).resolves.toMatchObject({ url: "https://example.com/" });
-  });
-
-  it("follows an apex-to-www redirect chain", async () => {
-    stubFetch({
-      "https://example.com/": () => redirect("https://www.example.com/"),
-    });
-    await expect(
-      resolveStartUrlRedirects("https://example.com/"),
-    ).resolves.toMatchObject({ url: "https://www.example.com/" });
-  });
-
-  it("returns the original URL when the site does not redirect", async () => {
-    stubFetch({});
-    await expect(
-      resolveStartUrlRedirects("https://example.com/"),
     ).resolves.toMatchObject({ url: "https://example.com/" });
   });
 

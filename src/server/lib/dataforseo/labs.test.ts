@@ -1,9 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import {
-  fetchRelatedKeywords,
-  fetchKeywordSuggestions,
-  fetchKeywordIdeas,
-} from "./labs";
+import { fetchRelatedKeywords } from "./labs";
 
 vi.mock("@/server/lib/runtime-env", () => ({
   getRequiredEnvValue: vi.fn(async () => "test-api-key"),
@@ -11,16 +7,14 @@ vi.mock("@/server/lib/runtime-env", () => ({
 
 afterEach(() => vi.unstubAllGlobals());
 
-it("sends synonym filtering for every Labs research source and preserves omitted defaults", async () => {
-  const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (url) =>
+it("sends ignoreSynonyms to DataForSEO as ignore_synonyms", async () => {
+  const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
     Response.json({
       status_code: 20000,
       tasks: [
         {
           status_code: 20000,
-          path: new URL(url instanceof Request ? url.url : url).pathname
-            .split("/")
-            .filter(Boolean),
+          path: ["v3", "dataforseo_labs", "google", "related_keywords", "live"],
           cost: 0,
           result: [{ items: [] }],
         },
@@ -28,25 +22,18 @@ it("sends synonym filtering for every Labs research source and preserves omitted
     }),
   );
   vi.stubGlobal("fetch", fetchMock);
-  for (const fetchKeywords of [
-    fetchRelatedKeywords,
-    fetchKeywordSuggestions,
-    fetchKeywordIdeas,
-  ]) {
-    for (const ignoreSynonyms of [true, false, undefined]) {
-      await fetchKeywords({
-        keyword: "caregiving",
-        locationCode: 2840,
-        languageCode: "en",
-        limit: 150,
-        ignoreSynonyms,
-      });
-      const body = fetchMock.mock.lastCall?.[1]?.body;
-      if (typeof body !== "string")
-        throw new Error("Expected JSON request body");
-      expect(JSON.parse(body)).toEqual([
-        expect.objectContaining({ ignore_synonyms: ignoreSynonyms ?? false }),
-      ]);
-    }
-  }
+
+  await fetchRelatedKeywords({
+    keyword: "caregiving",
+    locationCode: 2840,
+    languageCode: "en",
+    limit: 150,
+    ignoreSynonyms: true,
+  });
+
+  const body = fetchMock.mock.lastCall?.[1]?.body;
+  if (typeof body !== "string") throw new Error("Expected JSON request body");
+  expect(JSON.parse(body)).toEqual([
+    expect.objectContaining({ ignore_synonyms: true }),
+  ]);
 });

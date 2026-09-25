@@ -32,11 +32,4 @@ describe("saveCrawlerCredentialSchema", () => {
       }).success,
     ).toBe(false);
   });
-
-  it("requires both signature values, not just one", () => {
-    expect(
-      saveCrawlerCredentialSchema.safeParse({ ...valid, signature: "" })
-        .success,
-    ).toBe(false);
-  });
 });

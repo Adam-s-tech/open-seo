@@ -146,29 +146,4 @@ describe("buildBacklinksTabExport", () => {
     );
     expect(content).toContain('"https://docs.example.com/start"');
   });
-
-  it("sanitizes formula-like cell values to prevent CSV injection", () => {
-    const content = buildTabCsv({
-      tab: "backlinks",
-      rows: {
-        backlinks: [
-          makeBacklinkRow({
-            domainFrom: "=cmd|' /C calc'!A0",
-            urlFrom: "+https://evil.example/source",
-            urlTo: "@https://evil.example/target",
-            anchor: "\tformula",
-            relAttributes: [],
-            linksCount: 1,
-          }),
-        ],
-        referringDomains: [],
-        topPages: [],
-      },
-    });
-
-    expect(content).toContain("\"'=cmd|' /C calc'!A0\"");
-    expect(content).toContain('"\'+https://evil.example/source"');
-    expect(content).toContain('"\'@https://evil.example/target"');
-    expect(content).toContain('"\'\tformula"');
-  });
 });

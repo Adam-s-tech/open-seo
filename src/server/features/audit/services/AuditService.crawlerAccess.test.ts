@@ -57,13 +57,10 @@ vi.mock("@/server/lib/audit/progress-kv", () => ({ AuditProgressKV: {} }));
 import { symmetricEncrypt } from "better-auth/crypto";
 import { AuditService } from "@/server/features/audit/services/AuditService";
 
-async function credentialRow(
-  expiresAt: string | null,
-  host = "store.example.com",
-) {
+async function credentialRow(expiresAt: string | null) {
   return {
     id: "cred-1",
-    host,
+    host: "store.example.com",
     signatureInput: await symmetricEncrypt({ key: SECRET, data: "sig1=(...)" }),
     signature: await symmetricEncrypt({ key: SECRET, data: "sig1=:abc:" }),
     expiresAt,
@@ -120,6 +117,7 @@ describe("startAudit crawler access", () => {
   it("records the Shopify platform and keeps the signature encrypted at rest", async () => {
     await AuditService.startAudit(input);
 
+    expect(probeSignature()).toBe("sig1=:abc:");
     const config = createAuditMock.mock.calls[0][0].config;
     expect(config.sitePlatform).toBe("shopify");
     expect(config.crawlerCredentialId).toBe("cred-1");
@@ -128,22 +126,6 @@ describe("startAudit crawler access", () => {
     const params = workflowCreateMock.mock.calls[0][0].params;
     expect(JSON.stringify([config, params])).not.toContain("sig1");
     expect(params.access).toMatchObject({ host: "store.example.com" });
-  });
-
-  it("starts the probe with the decrypted signature", async () => {
-    await AuditService.startAudit(input);
-
-    expect(probeSignature()).toBe("sig1=:abc:");
-  });
-
-  it("binds the signature to the domain it was created for", async () => {
-    findCredentialMock.mockResolvedValue([
-      await credentialRow(null, "www.store.example.com"),
-    ]);
-
-    await AuditService.startAudit(input);
-
-    expect(probeSignature()).toBeNull();
   });
 
   it("does not replay an expired signature", async () => {

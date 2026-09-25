@@ -52,7 +52,7 @@ type SaveReportParams = {
  * written, so a rejected save leaves the stored report untouched — there is no
  * version history, and a half-written overwrite is unrecoverable.
  */
-export async function saveReport(params: SaveReportParams): Promise<{
+async function saveReport(params: SaveReportParams): Promise<{
   reportId: string;
   title: string;
   created: boolean;
@@ -204,7 +204,7 @@ async function listReports(params: {
   };
 }
 
-export async function getReport(
+async function getReport(
   projectId: string,
   reportId: string,
 ): Promise<ReportMetadata> {
@@ -224,7 +224,7 @@ async function getReportWithHtml(
   return { report, html };
 }
 
-export async function deleteReport(
+async function deleteReport(
   projectId: string,
   reportId: string,
 ): Promise<void> {

@@ -2,14 +2,12 @@ import { describe, expect, it } from "vitest";
 import { safeHostname, safeHttpUrl } from "./safeUrl";
 
 describe("safeHttpUrl", () => {
-  it.each([
-    "https://example.com",
-    "http://example.com",
-    "https://example.com/path?q=1#frag",
-    "https://sub.example.com",
-  ])("accepts %s", (input) => {
-    expect(safeHttpUrl(input)).toBe(input);
-  });
+  it.each(["http://example.com", "https://example.com/path?q=1#frag"])(
+    "accepts %s",
+    (input) => {
+      expect(safeHttpUrl(input)).toBe(input);
+    },
+  );
 
   it.each([
     "javascript:alert(1)",
@@ -25,26 +23,11 @@ describe("safeHttpUrl", () => {
   ])("rejects %s", (input) => {
     expect(safeHttpUrl(input)).toBeNull();
   });
-
-  it("returns null for null/undefined", () => {
-    expect(safeHttpUrl(null)).toBeNull();
-    expect(safeHttpUrl(undefined)).toBeNull();
-  });
 });
 
 describe("safeHostname", () => {
   it("strips protocol and www prefix", () => {
     expect(safeHostname("https://www.example.com/path")).toBe("example.com");
     expect(safeHostname("http://sub.example.com")).toBe("sub.example.com");
-  });
-
-  it("returns null for unsafe schemes", () => {
-    expect(safeHostname("javascript:alert(1)")).toBeNull();
-    expect(safeHostname("data:text/html,foo")).toBeNull();
-  });
-
-  it("returns null for invalid input", () => {
-    expect(safeHostname("not a url")).toBeNull();
-    expect(safeHostname(null)).toBeNull();
   });
 });

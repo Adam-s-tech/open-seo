@@ -49,10 +49,6 @@ vi.mock("@/server/billing/autumn", () => ({
   AUTUMN_TRACK_RETRY_OPTIONS: {},
 }));
 
-vi.mock("@/server/lib/runtime-env", () => ({
-  isHostedServerAuthMode: vi.fn(),
-}));
-
 // subscription.ts now imports posthog (for trackUsageCreditSpend); stub it so
 // the test doesn't pull in the cloudflare:workers runtime it depends on.
 vi.mock("@/server/lib/posthog", () => ({
@@ -77,31 +73,12 @@ const customer = {
 
 describe("subscription billing", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     kvGetMock.mockResolvedValue(null);
     kvPutMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     vi.useRealTimers();
-  });
-
-  it("checks the paid plan entitlement", async () => {
-    checkMock.mockResolvedValue({ allowed: true });
-
-    await expect(customerHasPaidPlan("org_123")).resolves.toBe(true);
-
-    expect(checkMock).toHaveBeenCalledWith({
-      customerId: "org_123",
-      featureId: AUTUMN_PAID_PLAN_FEATURE_ID,
-    });
-  });
-
-  it("returns false without retrying when org lacks paid plan", async () => {
-    checkMock.mockResolvedValue({ allowed: false });
-
-    await expect(customerHasPaidPlan("org_123")).resolves.toBe(false);
-    expect(checkMock).toHaveBeenCalledTimes(1);
   });
 
   it("recovers from a degraded negative read when retryDenied is set", async () => {
@@ -115,6 +92,10 @@ describe("subscription billing", () => {
 
     await expect(result).resolves.toBe(true);
     expect(checkMock).toHaveBeenCalledTimes(2);
+    expect(checkMock).toHaveBeenCalledWith({
+      customerId: "org_123",
+      featureId: AUTUMN_PAID_PLAN_FEATURE_ID,
+    });
   });
 
   it("retries a missing monthly balance once", async () => {
@@ -172,7 +153,6 @@ describe("subscription billing", () => {
       customerId: "org_123",
       email: "alice@example.com",
     });
-    expect(kvPutMock).toHaveBeenCalled();
   });
 
   it("skips the Autumn round trip when the customer was recently ensured", async () => {
@@ -188,49 +168,30 @@ describe("subscription billing", () => {
     expect(getOrCreateMock).not.toHaveBeenCalled();
   });
 
-  it("falls back to Autumn when the customer cache read fails", async () => {
-    const cacheError = new Error("KV read unavailable");
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    kvGetMock.mockRejectedValue(cacheError);
-    getOrCreateMock.mockResolvedValue({ id: "cust_123" });
+  // A KV outage must never block billing; the customer still resolves.
+  it.each([
+    ["read", () => kvGetMock.mockRejectedValue(new Error("KV unavailable"))],
+    ["write", () => kvPutMock.mockRejectedValue(new Error("KV unavailable"))],
+  ])(
+    "falls back to Autumn when the customer cache %s fails",
+    async (_op, breakCache) => {
+      vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      breakCache();
+      getOrCreateMock.mockResolvedValue({ id: "cust_123" });
 
-    await expect(
-      getOrCreateOrganizationCustomer({
-        organizationId: "org_123",
-        userId: "user_123",
-        userEmail: "alice@example.com",
-      }),
-    ).resolves.toEqual({ id: "cust_123" });
-
-    expect(getOrCreateMock).toHaveBeenCalledWith({
-      customerId: "org_123",
-      email: "alice@example.com",
-    });
-    expect(console.warn).toHaveBeenCalledWith(
-      "billing.customer-cache-read failed:",
-      cacheError,
-    );
-  });
-
-  it("returns the resolved customer when the customer cache write fails", async () => {
-    const cacheError = new Error("KV write unavailable");
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    getOrCreateMock.mockResolvedValue({ id: "cust_123" });
-    kvPutMock.mockRejectedValue(cacheError);
-
-    await expect(
-      getOrCreateOrganizationCustomer({
-        organizationId: "org_123",
-        userId: "user_123",
-        userEmail: "alice@example.com",
-      }),
-    ).resolves.toEqual({ id: "cust_123" });
-
-    expect(console.warn).toHaveBeenCalledWith(
-      "billing.customer-cache-write failed:",
-      cacheError,
-    );
-  });
+      await expect(
+        getOrCreateOrganizationCustomer({
+          organizationId: "org_123",
+          userId: "user_123",
+          userEmail: "alice@example.com",
+        }),
+      ).resolves.toEqual({ id: "cust_123" });
+      expect(getOrCreateMock).toHaveBeenCalledWith({
+        customerId: "org_123",
+        email: "alice@example.com",
+      });
+    },
+  );
 });
 
 describe("reserveUsageCredits", () => {

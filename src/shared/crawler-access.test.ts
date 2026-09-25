@@ -15,10 +15,14 @@ describe("crawlerHeadersFor", () => {
     expect(crawlerHeadersFor("https://store.example.com/a", access)).toEqual(
       access.headers,
     );
-    expect(
-      crawlerHeadersFor("https://www.store.example.com/a", access),
-    ).toEqual({});
-    expect(crawlerHeadersFor("http://store.example.com/a", access)).toEqual({});
+    for (const url of [
+      "https://www.store.example.com/a",
+      "http://store.example.com/a",
+      "https://cdn.example.com/a",
+      "https://evil.test/a",
+    ]) {
+      expect(crawlerHeadersFor(url, access)).toEqual({});
+    }
   });
 
   it("stops sending the signature once it expires mid-crawl", () => {
@@ -26,10 +30,5 @@ describe("crawlerHeadersFor", () => {
     expect(crawlerHeadersFor("https://store.example.com/a", expired)).toEqual(
       {},
     );
-  });
-
-  it("never sends the signature to another host", () => {
-    expect(crawlerHeadersFor("https://cdn.example.com/a", access)).toEqual({});
-    expect(crawlerHeadersFor("https://evil.test/a", access)).toEqual({});
   });
 });

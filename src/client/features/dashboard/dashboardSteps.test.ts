@@ -16,19 +16,6 @@ const fresh: DashboardActivation = {
 };
 
 describe("dashboard checklist", () => {
-  it("leads with research and ends with the multi-project step", () => {
-    expect(setupSteps.map((step) => step.id)).toEqual([
-      "competitor",
-      "keywords",
-      "audit",
-      "mcp",
-      "team",
-      "project",
-    ]);
-    expect(
-      setupSteps.every((step) => getStepStatus(fresh, step.id) === "todo"),
-    ).toBe(true);
-  });
   it("does not count skipped steps as completed", () => {
     expect(
       getStepStatus({ ...fresh, dismissedSteps: ["project"] }, "project"),
@@ -54,8 +41,5 @@ describe("dashboard checklist", () => {
     expect(
       setupSteps.every((step) => getStepStatus(complete, step.id) === "done"),
     ).toBe(true);
-  });
-  it("makes no-longer-completed steps available again", () => {
-    expect(getStepStatus(fresh, "team")).toBe("todo");
   });
 });

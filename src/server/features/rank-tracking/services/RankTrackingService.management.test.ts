@@ -61,6 +61,10 @@ describe("RankTrackingService management invariants", () => {
       { id: "kw_1", keyword: "seo" },
       { id: "kw_2", keyword: "audit" },
     ]);
+    // Persistent implementations survive clearMocks, so the billing gates get
+    // explicit defaults; the plan tests override them per case.
+    mocks.isHostedServerAuthMode.mockResolvedValue(true);
+    mocks.customerHasPaidPlan.mockResolvedValue(true);
   });
 
   it("reports only keyword rows actually inserted", async () => {
@@ -196,41 +200,6 @@ describe("RankTrackingService management invariants", () => {
     expect(mocks.getKeywordCountForConfig).not.toHaveBeenCalled();
   });
 
-  it("deduplicates removal IDs and reports only owned rows deleted", async () => {
-    mocks.removeKeywordsFromConfig.mockResolvedValue(["owned_id"]);
-
-    const result = await RankTrackingService.removeKeywords(
-      "config_1",
-      "project_1",
-      ["owned_id", "foreign_id", "missing_id", "owned_id"],
-    );
-
-    expect(mocks.removeKeywordsFromConfig).toHaveBeenCalledWith(
-      ["owned_id", "foreign_id", "missing_id"],
-      "config_1",
-    );
-    expect(result).toEqual({ removed: 1, removedIds: ["owned_id"] });
-  });
-
-  it("uses the same live cost invariant exposed to the browser", async () => {
-    mocks.getKeywordCountForConfig.mockResolvedValue(5);
-
-    await expect(
-      RankTrackingService.estimateCost("config_1", "project_1"),
-    ).resolves.toMatchObject({
-      keywordCount: 5,
-      devicesCount: 2,
-      totalChecks: 10,
-      method: "live",
-      existingKeywordCount: 5,
-      additionalKeywordCount: 0,
-      scheduledEstimate: {
-        scheduleInterval: "weekly",
-        checksPerMonth: 4,
-      },
-    });
-  });
-
   it("rejects a hosted unpaid run before keyword or workflow work", async () => {
     mocks.isHostedServerAuthMode.mockResolvedValue(true);
     mocks.customerHasPaidPlan.mockResolvedValue(false);
@@ -276,11 +245,16 @@ describe("RankTrackingService management invariants", () => {
     expect(mocks.customerHasPaidPlan).not.toHaveBeenCalled();
   });
 
-  it("rejects a run above its approved credit ceiling", async () => {
-    const error: unknown = await RankTrackingService.triggerCheck({
+  it("starts a run only at or below its approved credit ceiling", async () => {
+    mocks.beginRankCheckRun.mockResolvedValue({ ok: true, runId: "run_1" });
+    const run = {
       configId: "config_1",
       projectId: "project_1",
       billingCustomer,
+    };
+
+    const error: unknown = await RankTrackingService.triggerCheck({
+      ...run,
       maxCostCredits: 11,
     }).catch((cause: unknown) => cause);
     expect(error).toBeInstanceOf(Error);
@@ -288,21 +262,9 @@ describe("RankTrackingService management invariants", () => {
     expect(error.code).toBe("VALIDATION_ERROR");
     expect(error.message).toContain("costs 12 credits");
     expect(mocks.beginRankCheckRun).not.toHaveBeenCalled();
-  });
-
-  it("starts a run at or below its approved credit ceiling", async () => {
-    mocks.beginRankCheckRun.mockResolvedValue({
-      ok: true,
-      runId: "run_1",
-    });
 
     await expect(
-      RankTrackingService.triggerCheck({
-        configId: "config_1",
-        projectId: "project_1",
-        billingCustomer,
-        maxCostCredits: 12,
-      }),
+      RankTrackingService.triggerCheck({ ...run, maxCostCredits: 12 }),
     ).resolves.toEqual({ ok: true, runId: "run_1" });
     expect(mocks.beginRankCheckRun).toHaveBeenCalledWith(
       expect.objectContaining({ maxCostCredits: 12 }),
@@ -322,22 +284,6 @@ describe("RankTrackingService management invariants", () => {
     ).rejects.toMatchObject({ code: "PAYMENT_REQUIRED" });
     expect(mocks.createDataforseoClient).not.toHaveBeenCalled();
     expect(mocks.fetchKeywordMetricsForList).not.toHaveBeenCalled();
-  });
-
-  it("allows self-hosted metrics refresh without a plan check", async () => {
-    mocks.isHostedServerAuthMode.mockResolvedValue(false);
-    mocks.createDataforseoClient.mockReturnValue({});
-    mocks.fetchKeywordMetricsForList.mockResolvedValue([]);
-
-    await expect(
-      RankTrackingService.refreshKeywordMetrics(
-        "config_1",
-        "project_1",
-        billingCustomer,
-      ),
-    ).resolves.toEqual({ updated: 0 });
-    expect(mocks.customerHasPaidPlan).not.toHaveBeenCalled();
-    expect(mocks.fetchKeywordMetricsForList).toHaveBeenCalledTimes(1);
   });
 
   it("matches metrics back to a cased keyword and its lowercase twin", async () => {

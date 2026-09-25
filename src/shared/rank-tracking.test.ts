@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  computeNextCheckAt,
-  estimateRankCheckCredits,
-  scheduleLabel,
-} from "./rank-tracking";
+import { computeNextCheckAt, estimateRankCheckCredits } from "./rank-tracking";
 
 describe("rank tracking cost estimates", () => {
   it.each([
@@ -54,10 +50,6 @@ describe("rank tracking schedules", () => {
     vi.useRealTimers();
   });
 
-  it("labels monthly schedules", () => {
-    expect(scheduleLabel("monthly")).toBe("Monthly");
-  });
-
   it("schedules new monthly configs for the end of the current month", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-15T12:00:00.000Z"));
@@ -74,44 +66,36 @@ describe("rank tracking schedules", () => {
     expect(computeNextCheckAt("monthly")).toBe("2026-02-28T04:00:00.000Z");
   });
 
-  it("advances monthly schedules on month end across shorter months", () => {
+  it("advances monthly schedules on month end until the next check is in the future", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-02-01T00:00:00.000Z"));
-
     expect(computeNextCheckAt("monthly", "2026-01-31T05:30:00.000Z")).toBe(
       "2026-02-28T05:30:00.000Z",
     );
-  });
 
-  it("keeps advancing monthly schedules until the next check is in the future", () => {
-    vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-10T00:00:00.000Z"));
-
     expect(computeNextCheckAt("monthly", "2026-01-31T05:30:00.000Z")).toBe(
       "2026-03-31T05:30:00.000Z",
     );
   });
 
-  it("preserves the time-of-day anchor for heavily overdue daily schedules", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
+  // 2026-01-31 is a Saturday; every weekly advance lands on a Saturday.
+  it.each([
+    ["daily", "2026-03-11T05:30:00.000Z"],
+    ["weekly", "2026-03-14T05:30:00.000Z"],
+  ] as const)(
+    "preserves the time anchor for heavily overdue %s schedules",
+    (frequency, expected) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
 
-    expect(computeNextCheckAt("daily", "2026-01-31T05:30:00.000Z")).toBe(
-      "2026-03-11T05:30:00.000Z",
-    );
-  });
+      expect(computeNextCheckAt(frequency, "2026-01-31T05:30:00.000Z")).toBe(
+        expected,
+      );
+    },
+  );
 
-  it("preserves the weekday and time anchor for heavily overdue weekly schedules", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
-
-    // 2026-01-31 is a Saturday; every advance lands on a Saturday.
-    expect(computeNextCheckAt("weekly", "2026-01-31T05:30:00.000Z")).toBe(
-      "2026-03-14T05:30:00.000Z",
-    );
-  });
-
-  it("starts a chosen weekly time on its next occurrence", () => {
+  it("starts a chosen time on its next occurrence", () => {
     vi.useFakeTimers();
     // A Tuesday.
     vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
@@ -124,6 +108,10 @@ describe("rank tracking schedules", () => {
     // Today's weekday but already past: a week out, not a run in the past.
     expect(computeNextCheckAt("weekly", null, tuesday9am)).toBe(
       "2026-03-17T09:00:00.000Z",
+    );
+    // A daily time still ahead runs later today.
+    expect(computeNextCheckAt("daily", null, { hour: 21, minute: 15 })).toBe(
+      "2026-03-10T21:15:00.000Z",
     );
   });
 
@@ -147,15 +135,6 @@ describe("rank tracking schedules", () => {
         timeZone: "Asia/Kolkata",
       }),
     ).toBe("2026-03-15T15:30:00.000Z");
-  });
-
-  it("runs a chosen daily time later today when it is still ahead", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-03-10T12:00:00.000Z"));
-
-    expect(computeNextCheckAt("daily", null, { hour: 21, minute: 15 })).toBe(
-      "2026-03-10T21:15:00.000Z",
-    );
   });
 
   it("keeps monthly on the user's last day when it is another UTC date", () => {
@@ -184,14 +163,5 @@ describe("rank tracking schedules", () => {
     expect(computeNextCheckAt("monthly", kolkata)).toBe(
       "2026-03-30T19:30:00.000Z",
     );
-  });
-
-  it("keeps monthly on the last day when a time is chosen", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-02-10T12:00:00.000Z"));
-
-    expect(
-      computeNextCheckAt("monthly", null, { weekday: 0, hour: 21, minute: 0 }),
-    ).toBe("2026-02-28T21:00:00.000Z");
   });
 });

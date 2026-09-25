@@ -174,62 +174,35 @@ describe("RankTrackingService.createConfig", () => {
     expect(mocks.createConfig).not.toHaveBeenCalled();
   });
 
-  it("creates a new config when none exists for the domain + location", async () => {
-    mocks.getConfigByProjectDomainLocation.mockResolvedValue(null);
-    mocks.getConfigsForProject.mockResolvedValue([]);
-    mocks.createConfig.mockResolvedValue(undefined);
+  // Omitted fields fall back to the project market; a location alone snaps
+  // the language to that location, not to the project's.
+  it.each([
+    ["the project's market", {}, { locationCode: 2704, languageCode: "vi" }],
+    [
+      "the location's language",
+      { locationCode: 2276 },
+      { locationCode: 2276, languageCode: "de" },
+    ],
+  ])(
+    "resolves an omitted language to %s",
+    async (_case, overrides, expected) => {
+      mocks.getConfigByProjectDomainLocation.mockResolvedValue(null);
+      mocks.getConfigsForProject.mockResolvedValue([]);
+      mocks.createConfig.mockResolvedValue(undefined);
 
-    const result = await RankTrackingService.createConfig(baseInput);
-
-    expect(result.id).toBeTruthy();
-    expect(mocks.createConfig).toHaveBeenCalledTimes(1);
-    expect(mocks.updateConfig).not.toHaveBeenCalled();
-    expect(mocks.createConfig).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: result.id,
+      await RankTrackingService.createConfig({
         projectId: "project_1",
+        projectMarket: { locationCode: 2704, languageCode: "vi" },
         domain: "acme.com",
-        devices: "desktop",
         serpDepth: 40,
-        scheduleInterval: "daily",
-      }),
-    );
-  });
+        ...overrides,
+      });
 
-  it("uses the project's market when location and language are omitted", async () => {
-    mocks.getConfigByProjectDomainLocation.mockResolvedValue(null);
-    mocks.getConfigsForProject.mockResolvedValue([]);
-    mocks.createConfig.mockResolvedValue(undefined);
-
-    await RankTrackingService.createConfig({
-      projectId: "project_1",
-      projectMarket: { locationCode: 2704, languageCode: "vi" },
-      domain: "acme.com",
-      serpDepth: 40,
-    });
-
-    expect(mocks.createConfig).toHaveBeenCalledWith(
-      expect.objectContaining({ locationCode: 2704, languageCode: "vi" }),
-    );
-  });
-
-  it("snaps the language when only location overrides the project market", async () => {
-    mocks.getConfigByProjectDomainLocation.mockResolvedValue(null);
-    mocks.getConfigsForProject.mockResolvedValue([]);
-    mocks.createConfig.mockResolvedValue(undefined);
-
-    await RankTrackingService.createConfig({
-      projectId: "project_1",
-      projectMarket: { locationCode: 2704, languageCode: "vi" },
-      domain: "acme.com",
-      locationCode: 2276,
-      serpDepth: 40,
-    });
-
-    expect(mocks.createConfig).toHaveBeenCalledWith(
-      expect.objectContaining({ locationCode: 2276, languageCode: "de" }),
-    );
-  });
+      expect(mocks.createConfig).toHaveBeenCalledWith(
+        expect.objectContaining(expected),
+      );
+    },
+  );
 
   it("rejects a locationName the sandbox refuses, pointing at search_serp_locations", async () => {
     stubSandbox(40501, "Invalid Field: 'location_name'.");
@@ -282,21 +255,21 @@ describe("RankTrackingService.updateConfig schedule", () => {
     );
   });
 
-  it("rejects a weekly time without a weekday", async () => {
-    await expect(
-      RankTrackingService.updateConfig("config_archived", "project_1", {
+  it.each([
+    [
+      "a weekly time without a weekday",
+      { scheduleTime: { hour: 9, minute: 30 } },
+    ],
+    [
+      "a chosen time on a manual schedule",
+      {
+        scheduleInterval: "manual" as const,
         scheduleTime: { hour: 9, minute: 30 },
-      }),
-    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
-    expect(mocks.updateConfig).not.toHaveBeenCalled();
-  });
-
-  it("rejects a chosen time on a manual schedule", async () => {
+      },
+    ],
+  ])("rejects %s", async (_case, input) => {
     await expect(
-      RankTrackingService.updateConfig("config_archived", "project_1", {
-        scheduleInterval: "manual",
-        scheduleTime: { hour: 9, minute: 30 },
-      }),
+      RankTrackingService.updateConfig("config_archived", "project_1", input),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
     expect(mocks.updateConfig).not.toHaveBeenCalled();
   });

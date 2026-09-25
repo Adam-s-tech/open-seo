@@ -14,14 +14,9 @@ const saved = {
   foundVia: "Google",
 };
 
+// Persisted analytics values must round-trip unchanged (not become "Other")
+// even when the display labels change.
 describe("historical onboarding values", () => {
-  it("keeps a previously saved Google source recognized", () => {
-    const answers = restoreOnboardingAnswers({ ...saved, foundVia: "Google" });
-    expect(answers.source).toBe("Google");
-    expect(answers.sourceOther).toBe("");
-    expect(buildOnboardingPayload(answers, 4).foundVia).toBe("Google");
-  });
-
   it.each(["My own startup or business", "My employer's website"])(
     "restores and saves the original work-for value: %s",
     (workFor) => {
@@ -32,13 +27,15 @@ describe("historical onboarding values", () => {
     },
   );
 
-  it("keeps the original AI workflow value when restoring and saving", () => {
+  it("keeps the original source and AI workflow values", () => {
     const interestedFeatures = ["AI workflows with Claude or Codex (MCP)"];
     const answers = restoreOnboardingAnswers({ ...saved, interestedFeatures });
+    expect(answers.source).toBe("Google");
+    expect(answers.sourceOther).toBe("");
     expect(answers.selectedInterests).toEqual(interestedFeatures);
     expect(answers.interestOther).toBe("");
-    expect(buildOnboardingPayload(answers, 4).interestedFeatures).toEqual(
-      interestedFeatures,
-    );
+    const payload = buildOnboardingPayload(answers, 4);
+    expect(payload.foundVia).toBe("Google");
+    expect(payload.interestedFeatures).toEqual(interestedFeatures);
   });
 });

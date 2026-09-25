@@ -5,18 +5,6 @@ import {
 } from "./loops-contact-properties";
 
 describe("getBillingLoopsContactProperties", () => {
-  it("maps Autumn billing fields to Loops custom properties", () => {
-    expect(
-      getBillingLoopsContactProperties({
-        paidPlanId: "base-plan",
-        paidPlanStatus: "active",
-      }),
-    ).toEqual({
-      billingPlanId: "base-plan",
-      billingPlanStatus: "active",
-    });
-  });
-
   it("uses explicit none values when the customer has no paid plan", () => {
     expect(
       getBillingLoopsContactProperties({

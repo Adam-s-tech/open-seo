@@ -49,7 +49,7 @@ interface RankCheckParams {
   maxCostCredits?: number;
 }
 
-export async function prepareRankCheckKeywords(input: {
+async function prepareRankCheckKeywords(input: {
   runId: string;
   configId: string;
   billingCustomer: BillingCustomerContext;

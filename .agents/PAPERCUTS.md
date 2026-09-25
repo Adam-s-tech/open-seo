@@ -10,6 +10,7 @@ data, or sensitive paths.
 
 ## Open
 
+- [ ] `2026-09-24T21:20:00Z` — `claude` — `pnpm format:write` is `prettier . --write`, so passing file paths (`pnpm format:write src/foo.ts`) silently formats the whole repository instead of the named files, which surprises agents working in parallel on one checkout. Use `pnpm exec prettier --write <files>` for targeted runs, or make the script forward arguments.
 - [ ] `2026-09-23T05:50:00Z` — `claude` — `pnpm install --frozen-lockfile` in `web/` rewrites the tracked `web/pnpm-workspace.yaml`, adding an `allowBuilds` block with `esbuild`/`workerd` set to the placeholder "set this to true or false". This leaves a dirty tree that is easy to commit by accident. Commit explicit `allowBuilds` values for those two packages.
 - [ ] `2026-09-23T04:52:00Z` — `claude` — `pnpm dev:agents` names the portless host after the git branch, and Linear branch names like `carter/eve-125-keyword-research-city-and-county-volume-not-just-country` make a 64-character DNS label (limit 63), so browsers show `chrome-error` for the `.localhost` URL. Workaround: open `http://127.0.0.1:<port>` from `.logs/dev-server.log`; fix: pass a truncated `--name` to portless in the script.
 - [ ] `2026-09-22T02:21:38Z` — `codex` — The documented portless `.localhost` development URL produces a Google OAuth `invalid_request` because Google rejects that callback hostname. Document registering `http://localhost:<assigned-port>/api/gsc/oauth/callback` and starting the connection from that direct origin while the server remains managed by portless.

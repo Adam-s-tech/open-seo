@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { LlmResponseResult } from "@/server/lib/dataforseoLlmSchemas";
+import { extractCitations } from "./promptExplorer";
 
 vi.mock("cloudflare:workers", () => ({ waitUntil: vi.fn() }));
-
-const { extractCitations } = await import("./promptExplorer");
 
 // DataForSEO's LLM Responses payload nests references as untyped
 // `{ title, url }` objects under items[].sections[].annotations — mirroring the
@@ -16,8 +15,15 @@ function response(
     web_search: true,
     items: [
       {
+        // Annotations outside message items are never citations.
         type: "reasoning",
-        sections: [{ type: "summary_text", text: "thinking" }],
+        sections: [
+          {
+            type: "summary_text",
+            text: "thinking",
+            annotations: [{ title: "x", url: "https://x.test/1" }],
+          },
+        ],
       },
       {
         type: "message",
@@ -54,25 +60,5 @@ describe("extractCitations", () => {
     );
     expect(citations).toHaveLength(1);
     expect(citations[0]?.url).toBe("https://example.com/a");
-  });
-
-  it("ignores annotations outside message items and returns [] when absent", () => {
-    expect(extractCitations({ items: [] })).toEqual([]);
-    expect(
-      extractCitations({
-        items: [
-          {
-            type: "reasoning",
-            sections: [
-              {
-                type: "summary_text",
-                text: "t",
-                annotations: [{ title: "x", url: "https://x.test/1" }],
-              },
-            ],
-          },
-        ],
-      }),
-    ).toEqual([]);
   });
 });
