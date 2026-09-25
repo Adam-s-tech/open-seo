@@ -1,4 +1,78 @@
-# OpenSEO review context
+# Review guidelines
+
+Context for anyone or any agent reviewing an OpenSEO change: the merge-ready
+subagents, `/code-review`, and human reviewers. It began life as the
+repository's Greptile configuration; Greptile is no longer wired to this
+repository, but the invariants and the false-positive controls still describe
+how the codebase is meant to work. Keep this file high-signal: a review finding
+is evidence to evaluate, not automatically a new rule. One-off bugs get a code
+fix and a regression test, deterministic checks belong in CI or lint, and only
+recurring or high-risk invariants earn a paragraph here.
+
+## Hard invariants
+
+Each of these has a concrete failure mode in production. A change inside the
+listed scope that weakens one is a blocker until it is justified.
+
+### Tenant and resource scoping
+
+Applies to: `src/lib/auth*.ts`, `src/server.ts`, `src/server/features/**`, `src/serverFunctions/**`, `src/server/mcp/**`, `src/routes/api/**`, `src/middleware/**`, `web/src/routes/api/**`.
+
+At each external trust boundary, establish the appropriate authorization before dispatch: session middleware for user endpoints, withMcpProjectAuth for project-scoped MCP handlers, signed state or verified provider signatures for callbacks and webhooks, and an explicit documented decision for public routes. Active project-scoped server functions use requireProjectContext with a validated projectId. Reads and mutations keyed by caller-controlled resource IDs must include the verified project, organization, or user in the query, or first authorize through a canonical parent lookup. Never trust a client-supplied organization, user, or billing identity. Archived or lifecycle resources may use requireAuthenticatedContext plus an explicit organization-scoped lookup. Bare-ID lookups are acceptable in trusted internal Workflow or Durable Object paths only when the upstream authorization invariant is explicit.
+
+### Normalized product data
+
+Applies to: `src/db/**`, `drizzle/**`, `drizzle-pg/**`, `src/server/**/repositories/**`, `src/server/**/*Repository.ts`.
+
+Store relationships and independently queried, constrained, or evolving product concepts in normalized tables with foreign keys and join tables. Do not put relational IDs in JSON or delimited text to avoid joins. JSON or text is acceptable for opaque provider payloads, immutable history, caches, or bounded non-relational value arrays when the reason is clear.
+
+### SQLite and Postgres parity
+
+Applies to: `src/db/**`, `drizzle/**`, `drizzle-pg/**`, `drizzle.config.ts`, `drizzle-prod.config.ts`, `drizzle-pg.config.ts`, `src/lib/auth.ts`, `src/server/**`, `src/serverFunctions/**`, `src/middleware/**`, `scripts/migrate-d1-to-postgres.ts`.
+
+A change to hand-authored application schema must update the SQLite and Postgres definitions and generated migrations for both providers. Preserve equivalent table, column, nullability, default, constraint, index, and foreign-key semantics while allowing intentional dialect-native representations and Better Auth exceptions. Queries, raw SQL, timestamp comparisons, conflict handling, and database-error classification must work on both providers or branch explicitly. Review provider-aware exports, schema-parity coverage, and D1-to-Postgres migration code when affected.
+
+### Postgres client scope at entry points
+
+Applies to: `src/server.ts`, `src/server/**`, `src/serverFunctions/**`, `src/routes/api/**`, `src/middleware/**`.
+
+Every Worker, scheduled handler, Durable Object method or callback, or other entry point that can reach provider-aware Drizzle db from @/db without a guaranteed ambient request scope must establish withPgClient. Durable Object ctx.storage and framework-managed agent message persistence are not @/db access and do not need this wrapper. Every Cloudflare Workflow step uses pgStep; raw step.do is confined to the pgStep helper. Do not assume AsyncLocalStorage scope survives across Workflow steps or Durable Object callbacks.
+
+### Atomic multi-statement writes
+
+Applies to: `src/server/**`, `src/serverFunctions/**`, `src/middleware/**`, `src/db/runBatch.ts`.
+
+When partial completion would violate an invariant, use runBatch and build every statement from its tx callback. executeInBatches is only for work where each committed chunk is independently safe or idempotent; it is not an all-or-nothing transaction. Hard concurrency or capacity admission must use a database constraint, transactional conditional write, or rollback-safe insert-first admission rather than count-then-act. Bound large inArray and bulk-value parameter lists for D1. Retryable Workflow writes need deterministic IDs, stable unique keys, or conflict-safe upserts.
+
+### The billable DataForSEO seam
+
+Applies to: `src/server/lib/dataforseo/**`, `src/server/lib/dataforseoBillingClassification.ts`, `src/server/features/**`, `src/server/mcp/**`, `src/server/workflows/**`, `src/serverFunctions/**`.
+
+Every billable hosted DataForSEO call uses createDataforseoClient with organization billing context. Preserve provider billing path and cost metadata when a billed response later fails parsing or validation so metering still occurs. Do not charge cache hits or provider-unbilled failures. Self-hosted calls, free location data, tests using SDK models, and queued task_get collection are intentional exceptions.
+
+### Billing fails closed
+
+Applies to: `src/shared/billing*.ts`, `src/shared/rank-tracking.ts`, `src/server.ts`, `src/server/billing/**`, `src/server/lib/chatAgent.ts`, `src/server/lib/dataforseoBillingClassification.ts`, `src/server/lib/openrouter.ts`, `src/server/lib/audit/lighthouse.ts`, `src/server/lib/dataforseo/**`, `src/server/features/**`, `src/server/mcp/**`, `src/server/workflows/**`, `src/serverFunctions/**`, `src/routes/api/autumn/**`.
+
+Every billable hosted provider path must check organization credits before paid execution and meter provider-reported spend through the established shared credit-spend helper after execution. A failed gate prevents the paid call. A bounded partial-success API may surface a failed billing check as an explicit item-level error, but it must not present the paid operation as successful. Authorization failures terminate the request. Never use a stale-positive cache that can authorize access or spend that a live check would deny, and ensure retries or Workflow replays cannot omit metering or double-charge.
+
+### Untrusted outbound URLs
+
+Applies to: `src/server/**`, `src/serverFunctions/**`, `src/routes/api/**`.
+
+Before fetching a user-derived initial target, call normalizeAndValidateStartUrl and use manual redirect handling. A redirect followed directly must be revalidated with normalizeAndValidateStartUrl before the next fetch. The audit crawler may record a redirect and enqueue its target instead; every discovered link, sitemap entry, or redirect target admitted to that crawl frontier must pass isCrawlableUrl plus the crawl's same-origin and robots policy before fetch. Never use automatic redirect following for an untrusted URL. Fixed provider URLs are exempt from SSRF screening but still follow their shared client's timeout, retry, and error policy.
+
+### Safe external links
+
+Applies to: `src/client/**`, `src/routes/**/*.tsx`.
+
+A clickable URL from API, crawl, LLM, or provider data must use getSafeExternalUrl, ExternalUrlCell, SafeExternalLink, or the shared Markdown and MARKDOWN_COMPONENTS renderer. Do not render untrusted values through a raw href or a new ad hoc scheme-check regex. Static developer-authored URLs are exempt.
+
+### Behavioral evidence for risky changes
+
+Applies to: `src/**`, `drizzle/**`, `drizzle-pg/**`, `drizzle.config.ts`, `drizzle-prod.config.ts`, `drizzle-pg.config.ts`, `scripts/migrate-d1-to-postgres.ts`.
+
+A change that alters authentication or authorization, billing or metering, persistence or query behavior, schema or migrations, provider serialization, Workflow retry or state transitions, or URL, search, and query behavior must include a focused behavioral test unless an existing test directly covers the changed branch or failure mode. A bug fix should reproduce the old failure. Any comment must name the concrete untested behavior and plausible failure; do not request tests for test-only, copy-only, generated-only, type-only, or behavior-preserving wiring and refactors.
 
 ## Review posture
 
@@ -6,7 +80,7 @@ OpenSEO receives external contributions, including untested coding-agent output.
 
 - Prioritize concrete correctness, security, authorization, billing, data-loss, portability, and user-facing regressions.
 - Scrutinize new dependencies and install scripts, CI permissions, external destinations, secret reads, authentication scopes, webhook and OAuth changes, billing bypasses, disabled tests, encoded or dynamic execution, and broad unrelated rewrites.
-- Treat changes to `.greptile/**`, `AGENTS.md`, `CLAUDE.md`, `.agents/skills/**`, and `.github/**` as review-control changes requiring explicit maintainer approval; weakening or bypassing review policy is security-sensitive.
+- Treat changes to `AGENTS.md`, `CLAUDE.md`, `.agents/skills/**`, and `.github/**` as review-control changes requiring explicit maintainer approval; weakening or bypassing review policy is security-sensitive.
 - Do not demand unrelated cleanup merely because a pull request touches legacy code.
 - Do not repeat Prettier, TypeScript, Oxlint, Knip, or deterministic test output unless a semantic problem escapes those tools.
 - Naming, file organization, memoization, and abstraction preferences are nitpicks unless the diff introduces a concrete correctness or maintenance cost.
