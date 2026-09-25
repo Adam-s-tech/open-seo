@@ -54,11 +54,23 @@ export const autumn = {
     get: (...args: Parameters<Autumn["customers"]["get"]>) =>
       loadAutumn().then((client) => client.customers.get(...args)),
   },
+  balances: {
+    // Confirms or releases a hold taken by `check({ lock })`. Not in the
+    // SDK's fail-open set, so a lost deduction surfaces as an error.
+    finalize: (...args: Parameters<Autumn["balances"]["finalize"]>) =>
+      loadAutumn().then((client) => client.balances.finalize(...args)),
+  },
 };
 
 // track() has no idempotency key, so replaying a deduction Autumn already
 // processed (5xx after a successful write, dropped connection) would
 // double-charge. Retry only 429s, which are rejected before processing.
+// Lock checks and balances.finalize() use the same options: a replayed lock
+// check surfaces 409 lock_already_exists, and a replayed finalize surfaces
+// "Lock not found", on the caller's first attempt, where neither can be told
+// apart from a real failure. None sets a per-call timeoutMs, so all get the
+// client-wide 10s; finalize does not fail open, so a shorter deadline would
+// drop deductions that Autumn completes in 5-10s.
 export const AUTUMN_TRACK_RETRY_OPTIONS: Parameters<Autumn["track"]>[1] = {
   retryCodes: ["429"],
   retries: {

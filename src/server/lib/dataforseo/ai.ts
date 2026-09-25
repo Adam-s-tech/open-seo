@@ -37,6 +37,13 @@ function clampLimit(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Math.floor(value)));
 }
 
+// Request defaults shared with pricing.ts, whose estimates must reserve for
+// what this module actually sends.
+export function resolveLlmMentionsLimit(limit?: number): number {
+  return clampLimit(limit ?? 100, 1, 1000);
+}
+export const LLM_RESPONSE_WEB_SEARCH_DEFAULT = true;
+
 function targetList(target: LlmTarget): LlmTarget[] {
   return [target];
 }
@@ -69,7 +76,7 @@ export async function fetchLlmMentionsSearch(
         platform: input.platform,
         location_code: input.locationCode,
         language_code: input.languageCode,
-        limit: clampLimit(input.limit ?? 100, 1, 1000),
+        limit: resolveLlmMentionsLimit(input.limit),
       },
     ],
     { classify: classifyAiSearchError },
@@ -246,7 +253,11 @@ export async function fetchLlmCrossAggregatedMetrics(
 // LLM Responses (per-model)
 // ---------------------------------------------------------------------------
 
-type LlmResponseModelSlug = "chat_gpt" | "claude" | "gemini" | "perplexity";
+export type LlmResponseModelSlug =
+  | "chat_gpt"
+  | "claude"
+  | "gemini"
+  | "perplexity";
 
 /**
  * Accepted `model_name` values per slug, mirroring DataForSEO's
@@ -302,7 +313,7 @@ export async function fetchLlmResponse(
   const fields: LlmResponseRequestFields = {
     user_prompt: input.userPrompt,
     model_name: input.modelName,
-    web_search: input.webSearch ?? true,
+    web_search: input.webSearch ?? LLM_RESPONSE_WEB_SEARCH_DEFAULT,
     max_output_tokens: clampLimit(input.maxOutputTokens ?? 1024, 256, 4096),
     ...(supportsCountry && input.webSearchCountryCode
       ? { web_search_country_iso_code: input.webSearchCountryCode }

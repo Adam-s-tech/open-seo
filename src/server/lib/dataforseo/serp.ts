@@ -23,7 +23,7 @@ import { AppError } from "@/server/lib/errors";
 export const SERP_ANALYSIS_DEPTH = 20;
 
 /** DataForSEO bills SERPs in pages of 10; depth outside 10-100 is rejected. */
-function clampSerpDepth(depth: number): number {
+export function clampSerpDepth(depth: number): number {
   return Math.min(100, Math.max(10, depth));
 }
 

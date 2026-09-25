@@ -1,6 +1,6 @@
 import {
-  AUTUMN_SEO_DATA_CREDITS_PER_USD,
-  SEO_DATA_COST_MARKUP,
+  applyBillingMarkupUsd,
+  creditsForProviderUsd,
   roundUsdForBilling,
 } from "./billing";
 import type {
@@ -60,7 +60,10 @@ export const rankCheckCostApprovalError = (
 // ---------------------------------------------------------------------------
 
 /** DataForSEO cost for a single SERP request at the given depth. */
-function costPerSerpAtDepth(depth: number, method: RankCheckMethod): number {
+export function costPerSerpAtDepth(
+  depth: number,
+  method: RankCheckMethod,
+): number {
   const pages = depth / 10;
   return method === "queued"
     ? QUEUED_BASE_PAGE_COST_USD + (pages - 1) * QUEUED_EXTRA_PAGE_COST_USD
@@ -92,11 +95,9 @@ export function estimateRankCheckCredits(
   // once can therefore understate the credits that will actually be charged.
   for (let offset = 0; offset < totalChecks; offset += checksPerMeteredCall) {
     const checksInCall = Math.min(checksPerMeteredCall, totalChecks - offset);
-    const callCostUsd = roundUsdForBilling(
-      checksInCall * costPerSerpAtDepth(depth, method) * SEO_DATA_COST_MARKUP,
-    );
-    costUsd += callCostUsd;
-    costCredits += Math.ceil(callCostUsd * AUTUMN_SEO_DATA_CREDITS_PER_USD);
+    const callRawUsd = checksInCall * costPerSerpAtDepth(depth, method);
+    costUsd += applyBillingMarkupUsd(callRawUsd);
+    costCredits += creditsForProviderUsd(callRawUsd);
   }
 
   // This is the nominal queued task_post estimate. Rejected, failed, or

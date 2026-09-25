@@ -15,7 +15,7 @@ export const AUTUMN_MANAGED_ACCESS_FEATURE_ID = "managed_service_access";
 export const AUTUMN_SEO_DATA_BALANCE_FEATURE_ID = "usage_credits";
 export const AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID = "topup_credits";
 export const AUTUMN_SEO_DATA_CREDITS_PER_USD = 1000;
-export const SEO_DATA_COST_MARKUP = 1.28;
+const SEO_DATA_COST_MARKUP = 1.28;
 export const LOW_CREDITS_THRESHOLD_USD = 0.25;
 // DataForSEO's raw price for one Google Ads search_volume live call (up to
 // 1,000 keywords). Local keyword research adds one call to each search.
@@ -56,4 +56,15 @@ export function autumnSeoDataCreditsToUsd(credits: number) {
  */
 export function applyBillingMarkupUsd(rawUsd: number): number {
   return roundUsdForBilling(rawUsd * SEO_DATA_COST_MARKUP);
+}
+
+/**
+ * Credits charged for one raw provider (DataForSEO) USD cost: marked-up,
+ * rounded, then ceiled per call. This is the single charging formula, so a
+ * pre-call estimate and the post-call deduction cannot drift apart.
+ */
+export function creditsForProviderUsd(rawUsd: number): number {
+  return Math.ceil(
+    applyBillingMarkupUsd(rawUsd) * AUTUMN_SEO_DATA_CREDITS_PER_USD,
+  );
 }

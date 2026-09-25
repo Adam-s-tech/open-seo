@@ -203,6 +203,10 @@ export async function fetchBacklinksSummary(input: BacklinksRequest) {
   };
 }
 
+// Shared with pricing.ts, whose estimate must reserve for the rows this
+// module actually requests.
+export const BACKLINKS_DEFAULT_LIMIT = 100;
+
 export async function fetchBacklinksRows(input: BacklinksListRequest) {
   const filters = combineFilters(
     input.filters,
@@ -219,7 +223,7 @@ export async function fetchBacklinksRows(input: BacklinksListRequest) {
     [
       {
         ...buildCommonPayload(input),
-        limit: input.limit ?? 100,
+        limit: input.limit ?? BACKLINKS_DEFAULT_LIMIT,
         offset: input.offset,
         order_by: input.orderBy ?? ["rank,desc"],
         mode: input.mode,
@@ -253,7 +257,7 @@ export async function fetchReferringDomains(input: BacklinksListRequest) {
     [
       {
         ...buildCommonPayload(input),
-        limit: input.limit ?? 100,
+        limit: input.limit ?? BACKLINKS_DEFAULT_LIMIT,
         offset: input.offset,
         order_by: input.orderBy ?? ["backlinks,desc"],
         ...(filters ? { filters } : {}),
@@ -286,7 +290,7 @@ export async function fetchDomainPagesSummary(input: BacklinksListRequest) {
     [
       {
         ...buildCommonPayload(input),
-        limit: input.limit ?? 100,
+        limit: input.limit ?? BACKLINKS_DEFAULT_LIMIT,
         offset: input.offset,
         order_by: input.orderBy ?? ["backlinks,desc"],
         ...(filters ? { filters } : {}),
