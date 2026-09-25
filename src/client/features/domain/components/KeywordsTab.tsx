@@ -17,10 +17,6 @@ import {
   buildKeywordsSearchUpdate,
   countKeywordFilterConditions,
 } from "@/client/features/domain/domainFilterUtils";
-import {
-  debugDomain,
-  useDomainRenderDebug,
-} from "@/client/features/domain/domainDebug";
 import { useDomainKeywordsQuery } from "@/client/features/domain/hooks/useDomainKeywordsQuery";
 import { useSaveKeywordsMutation } from "@/client/features/domain/mutations";
 import { useDomainKeywordFilterPreferences } from "@/client/features/domain/useDomainFilterPreferences";
@@ -141,18 +137,6 @@ export function KeywordsTab({
   const hasNextPage = query.data?.hasMore ?? false;
   const isLoading = query.isFetching;
   const showTableLoading = isLoading && (showFilters || rows.length === 0);
-  useDomainRenderDebug("KeywordsTab", {
-    showFilters,
-    isLoading,
-    isPending: query.isPending,
-    rows: rows.length,
-    totalCount,
-    selectedCount: selectedKeywords.size,
-    activeTab: routeState.tab,
-    page: routeState.page,
-    sort: routeState.sort,
-    order: routeState.order,
-  });
 
   const visibleKeywords = useMemo(() => rows.map((r) => r.keyword), [rows]);
   useEffect(() => {
@@ -192,10 +176,8 @@ export function KeywordsTab({
   const applyFilters = useCallback(
     (values: KeywordsFilterValues) => {
       if (countKeywordFilterConditions(values) > maxConditions) return;
-      const update = buildKeywordsSearchUpdate(values);
-      debugDomain("KeywordsTab:apply-filters", { values, update });
       savePreferredFilters(values);
-      setSearchParams(update);
+      setSearchParams(buildKeywordsSearchUpdate(values));
     },
     [maxConditions, savePreferredFilters, setSearchParams],
   );
@@ -203,7 +185,6 @@ export function KeywordsTab({
   const resetFilters = useCallback(() => {
     const update: SearchUpdate = { page: undefined };
     for (const key of KEYWORD_FILTER_FIELDS) update[key] = undefined;
-    debugDomain("KeywordsTab:reset-filters", { update });
     clearPreferredFilters();
     setSearchParams(update);
   }, [clearPreferredFilters, setSearchParams]);
@@ -339,7 +320,6 @@ export function KeywordsTab({
         filterPanel={
           showFilters ? (
             <DomainFilterPanel
-              debugName="KeywordsFilterPanel"
               activeFilterCount={activeFilterCount}
               appliedFilters={restoredFilters}
               fields={KEYWORD_FILTER_FIELDS}

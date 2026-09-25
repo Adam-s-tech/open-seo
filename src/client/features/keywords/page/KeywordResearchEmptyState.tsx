@@ -9,9 +9,8 @@ type Props = {
 };
 
 export function KeywordResearchEmptyState({ controller, projectId }: Props) {
-  const { hasSearched, isLoading, lastSearchError } = controller;
-
-  if (hasSearched && !isLoading && !lastSearchError) {
+  // The page renders loading and error states before this component.
+  if (controller.hasSearched) {
     return <NoResultsState controller={controller} />;
   }
 

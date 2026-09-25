@@ -4,7 +4,6 @@ import { Search } from "lucide-react";
 import {
   createFormValidationErrors,
   getFieldError,
-  getFormError,
   shouldValidateFieldOnChange,
 } from "@/client/lib/forms";
 import { ResearchScopeSelect } from "@/client/components/ResearchScopeSelect";
@@ -127,17 +126,9 @@ export function BacklinksSearchCard({
                 )}
               </form.Field>
 
-              <form.Subscribe selector={(state) => state.isSubmitting}>
-                {(isSubmitting) => (
-                  <button
-                    type="submit"
-                    className="btn btn-primary shrink-0 px-6"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Loading..." : "Search"}
-                  </button>
-                )}
-              </form.Subscribe>
+              <button type="submit" className="btn btn-primary shrink-0 px-6">
+                Search
+              </button>
             </div>
 
             <form.Field name="target">
@@ -149,16 +140,6 @@ export function BacklinksSearchCard({
                 ) : null;
               }}
             </form.Field>
-
-            <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
-              {(submitError) => {
-                const formError = getFormError(submitError);
-
-                return formError ? (
-                  <p className="text-sm text-error">{formError}</p>
-                ) : null;
-              }}
-            </form.Subscribe>
           </div>
         </form>
 

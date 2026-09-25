@@ -104,7 +104,7 @@ export function RankTrackingDomainDetail({
 
   // Also feeds the History toggle: the matrix view only earns its tab once
   // there are two checks to compare.
-  const { data: matrixCells, isLoading: matrixLoading } = useQuery({
+  const { data: matrixCells } = useQuery({
     queryKey: ["rankPositionMatrix", projectId, config.id, activeDevice],
     queryFn: () =>
       getRankPositionMatrix({
@@ -218,7 +218,7 @@ export function RankTrackingDomainDetail({
         </div>
       )}
 
-      {latestRun?.status === "failed" && !isRunning && (
+      {latestRun?.status === "failed" && (
         <div className="alert alert-error text-sm py-2">
           <AlertTriangle className="size-4" />
           <span>
@@ -326,7 +326,6 @@ export function RankTrackingDomainDetail({
           {effectiveViewMode === "history" ? (
             <RankTrackingHistoryMatrix
               cells={matrixCells ?? []}
-              isLoading={matrixLoading}
               keywords={filtered.map((r) => ({
                 trackingKeywordId: r.trackingKeywordId,
                 keyword: r.keyword,

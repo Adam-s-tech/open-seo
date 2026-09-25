@@ -6,28 +6,21 @@ export function TableBulkActionBar({
   selectedLabel = "selected",
   actions,
   onClear,
-  placement = "fixed",
 }: {
   selectedCount: number;
   selectedLabel?: string;
   actions: ReactNode;
   onClear: () => void;
-  placement?: "fixed" | "inline";
 }) {
   if (selectedCount === 0) return null;
 
-  const wrapperClass =
-    placement === "fixed"
-      ? "pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4"
-      : "flex justify-center";
-  const toolbarClass =
-    placement === "fixed"
-      ? "pointer-events-auto flex items-stretch overflow-visible rounded-xl border border-base-content/15 bg-base-300/85 shadow-2xl backdrop-blur"
-      : "flex items-stretch overflow-visible rounded-xl border border-base-content/15 bg-base-200";
-
   return (
-    <div className={wrapperClass}>
-      <div role="toolbar" aria-label="Bulk actions" className={toolbarClass}>
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-4">
+      <div
+        role="toolbar"
+        aria-label="Bulk actions"
+        className="pointer-events-auto flex items-stretch overflow-visible rounded-xl border border-base-content/15 bg-base-300/85 shadow-2xl backdrop-blur"
+      >
         <div className="flex items-center gap-2 border-r border-base-content/10 px-3 py-2 text-sm">
           <button
             type="button"

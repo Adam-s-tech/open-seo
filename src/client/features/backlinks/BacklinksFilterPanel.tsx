@@ -32,7 +32,6 @@ export function BacklinksFilterPanel({
     return (
       <DomainFilterPanel
         key="backlinks"
-        debugName="BacklinksFilterPanel"
         appliedFilters={state.values}
         fields={BACKLINKS_FILTER_FIELDS}
         activeFilterCount={state.activeFilterCount}
@@ -88,7 +87,6 @@ export function BacklinksFilterPanel({
     return (
       <DomainFilterPanel
         key="domains"
-        debugName="ReferringDomainsFilterPanel"
         appliedFilters={state.values}
         fields={REFERRING_DOMAINS_FILTER_FIELDS}
         activeFilterCount={state.activeFilterCount}
@@ -136,7 +134,6 @@ export function BacklinksFilterPanel({
   return (
     <DomainFilterPanel
       key="pages"
-      debugName="TopPagesFilterPanel"
       appliedFilters={state.values}
       fields={TOP_PAGES_FILTER_FIELDS}
       activeFilterCount={state.activeFilterCount}

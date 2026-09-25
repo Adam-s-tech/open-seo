@@ -26,7 +26,6 @@ import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOauthConsentRouteImport } from './routes/_authenticated.oauth-consent'
 import { Route as AuthSignUpRouteImport } from './routes/_auth.sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth.sign-in'
-import { Route as AppTeamRouteImport } from './routes/_app/team'
 import { Route as AppSupportRouteImport } from './routes/_app/support'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppProjectsRouteImport } from './routes/_app/projects'
@@ -58,7 +57,6 @@ import { Route as ProjectPProjectIdDomainRouteImport } from './routes/_project/p
 import { Route as ProjectPProjectIdContextRouteImport } from './routes/_project/p/$projectId/context'
 import { Route as ProjectPProjectIdBrandLookupRouteImport } from './routes/_project/p/$projectId/brand-lookup'
 import { Route as ProjectPProjectIdBacklinksRouteImport } from './routes/_project/p/$projectId/backlinks'
-import { Route as ProjectPProjectIdAuditRouteImport } from './routes/_project/p/$projectId/audit'
 import { Route as ProjectPProjectIdSettingsIndexRouteImport } from './routes/_project/p/$projectId/settings/index'
 import { Route as ProjectPProjectIdReportsIndexRouteImport } from './routes/_project/p/$projectId/reports/index'
 import { Route as ProjectPProjectIdRankTrackingIndexRouteImport } from './routes/_project/p/$projectId/rank-tracking/index'
@@ -151,11 +149,6 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
   getParentRoute: () => AuthRoute,
-} as any)
-const AppTeamRoute = AppTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSupportRoute = AppSupportRouteImport.update({
   id: '/support',
@@ -322,11 +315,6 @@ const ProjectPProjectIdBacklinksRoute =
     path: '/backlinks',
     getParentRoute: () => ProjectPProjectIdRouteRoute,
   } as any)
-const ProjectPProjectIdAuditRoute = ProjectPProjectIdAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => ProjectPProjectIdRouteRoute,
-} as any)
 const ProjectPProjectIdSettingsIndexRoute =
   ProjectPProjectIdSettingsIndexRouteImport.update({
     id: '/',
@@ -347,9 +335,9 @@ const ProjectPProjectIdRankTrackingIndexRoute =
   } as any)
 const ProjectPProjectIdAuditIndexRoute =
   ProjectPProjectIdAuditIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ProjectPProjectIdAuditRoute,
+    id: '/audit/',
+    path: '/audit/',
+    getParentRoute: () => ProjectPProjectIdRouteRoute,
   } as any)
 const ProjectPProjectIdSettingsIntegrationsRoute =
   ProjectPProjectIdSettingsIntegrationsRouteImport.update({
@@ -383,9 +371,9 @@ const ProjectPProjectIdRankTrackingConfigIdRoute =
   } as any)
 const ProjectPProjectIdAuditIssuesResultIdRoute =
   ProjectPProjectIdAuditIssuesResultIdRouteImport.update({
-    id: '/issues/$resultId',
-    path: '/issues/$resultId',
-    getParentRoute: () => ProjectPProjectIdAuditRoute,
+    id: '/audit/issues/$resultId',
+    path: '/audit/issues/$resultId',
+    getParentRoute: () => ProjectPProjectIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -400,7 +388,6 @@ export interface FileRoutesByFullPath {
   '/projects': typeof AppProjectsRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/support': typeof AppSupportRoute
-  '/team': typeof AppTeamRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/oauth-consent': typeof AuthenticatedOauthConsentRoute
@@ -420,7 +407,6 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AppSettingsIndexRoute
   '/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/s/$token/': typeof STokenIndexRoute
-  '/p/$projectId/audit': typeof ProjectPProjectIdAuditRouteWithChildren
   '/p/$projectId/backlinks': typeof ProjectPProjectIdBacklinksRoute
   '/p/$projectId/brand-lookup': typeof ProjectPProjectIdBrandLookupRoute
   '/p/$projectId/context': typeof ProjectPProjectIdContextRoute
@@ -457,7 +443,6 @@ export interface FileRoutesByTo {
   '/billing': typeof AppBillingRoute
   '/projects': typeof AppProjectsRoute
   '/support': typeof AppSupportRoute
-  '/team': typeof AppTeamRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/oauth-consent': typeof AuthenticatedOauthConsentRoute
@@ -515,7 +500,6 @@ export interface FileRoutesById {
   '/_app/projects': typeof AppProjectsRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/support': typeof AppSupportRoute
-  '/_app/team': typeof AppTeamRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
   '/_authenticated/oauth-consent': typeof AuthenticatedOauthConsentRoute
@@ -536,7 +520,6 @@ export interface FileRoutesById {
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_authenticated/onboarding/': typeof AuthenticatedOnboardingIndexRoute
   '/s/$token/': typeof STokenIndexRoute
-  '/_project/p/$projectId/audit': typeof ProjectPProjectIdAuditRouteWithChildren
   '/_project/p/$projectId/backlinks': typeof ProjectPProjectIdBacklinksRoute
   '/_project/p/$projectId/brand-lookup': typeof ProjectPProjectIdBrandLookupRoute
   '/_project/p/$projectId/context': typeof ProjectPProjectIdContextRoute
@@ -576,7 +559,6 @@ export interface FileRouteTypes {
     | '/projects'
     | '/settings'
     | '/support'
-    | '/team'
     | '/sign-in'
     | '/sign-up'
     | '/oauth-consent'
@@ -596,7 +578,6 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/onboarding/'
     | '/s/$token/'
-    | '/p/$projectId/audit'
     | '/p/$projectId/backlinks'
     | '/p/$projectId/brand-lookup'
     | '/p/$projectId/context'
@@ -633,7 +614,6 @@ export interface FileRouteTypes {
     | '/billing'
     | '/projects'
     | '/support'
-    | '/team'
     | '/sign-in'
     | '/sign-up'
     | '/oauth-consent'
@@ -690,7 +670,6 @@ export interface FileRouteTypes {
     | '/_app/projects'
     | '/_app/settings'
     | '/_app/support'
-    | '/_app/team'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
     | '/_authenticated/oauth-consent'
@@ -711,7 +690,6 @@ export interface FileRouteTypes {
     | '/_app/settings/'
     | '/_authenticated/onboarding/'
     | '/s/$token/'
-    | '/_project/p/$projectId/audit'
     | '/_project/p/$projectId/backlinks'
     | '/_project/p/$projectId/brand-lookup'
     | '/_project/p/$projectId/context'
@@ -880,13 +858,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/sign-in'
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof AuthRoute
-    }
-    '/_app/team': {
-      id: '/_app/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof AppTeamRouteImport
-      parentRoute: typeof AppRouteRoute
     }
     '/_app/support': {
       id: '/_app/support'
@@ -1105,13 +1076,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectPProjectIdBacklinksRouteImport
       parentRoute: typeof ProjectPProjectIdRouteRoute
     }
-    '/_project/p/$projectId/audit': {
-      id: '/_project/p/$projectId/audit'
-      path: '/audit'
-      fullPath: '/p/$projectId/audit'
-      preLoaderRoute: typeof ProjectPProjectIdAuditRouteImport
-      parentRoute: typeof ProjectPProjectIdRouteRoute
-    }
     '/_project/p/$projectId/settings/': {
       id: '/_project/p/$projectId/settings/'
       path: '/'
@@ -1135,10 +1099,10 @@ declare module '@tanstack/react-router' {
     }
     '/_project/p/$projectId/audit/': {
       id: '/_project/p/$projectId/audit/'
-      path: '/'
+      path: '/audit'
       fullPath: '/p/$projectId/audit/'
       preLoaderRoute: typeof ProjectPProjectIdAuditIndexRouteImport
-      parentRoute: typeof ProjectPProjectIdAuditRoute
+      parentRoute: typeof ProjectPProjectIdRouteRoute
     }
     '/_project/p/$projectId/settings/integrations': {
       id: '/_project/p/$projectId/settings/integrations'
@@ -1177,10 +1141,10 @@ declare module '@tanstack/react-router' {
     }
     '/_project/p/$projectId/audit/issues/$resultId': {
       id: '/_project/p/$projectId/audit/issues/$resultId'
-      path: '/issues/$resultId'
+      path: '/audit/issues/$resultId'
       fullPath: '/p/$projectId/audit/issues/$resultId'
       preLoaderRoute: typeof ProjectPProjectIdAuditIssuesResultIdRouteImport
-      parentRoute: typeof ProjectPProjectIdAuditRoute
+      parentRoute: typeof ProjectPProjectIdRouteRoute
     }
   }
 }
@@ -1205,7 +1169,6 @@ interface AppRouteRouteChildren {
   AppProjectsRoute: typeof AppProjectsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppSupportRoute: typeof AppSupportRoute
-  AppTeamRoute: typeof AppTeamRoute
   AppIndexRoute: typeof AppIndexRoute
   AppHelpDataforseoApiKeyRoute: typeof AppHelpDataforseoApiKeyRoute
   AppHelpOpenrouterApiKeyRoute: typeof AppHelpOpenrouterApiKeyRoute
@@ -1217,7 +1180,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppProjectsRoute: AppProjectsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppSupportRoute: AppSupportRoute,
-  AppTeamRoute: AppTeamRoute,
   AppIndexRoute: AppIndexRoute,
   AppHelpDataforseoApiKeyRoute: AppHelpDataforseoApiKeyRoute,
   AppHelpOpenrouterApiKeyRoute: AppHelpOpenrouterApiKeyRoute,
@@ -1226,23 +1188,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
   AppRouteRouteChildren,
 )
-
-interface ProjectPProjectIdAuditRouteChildren {
-  ProjectPProjectIdAuditIndexRoute: typeof ProjectPProjectIdAuditIndexRoute
-  ProjectPProjectIdAuditIssuesResultIdRoute: typeof ProjectPProjectIdAuditIssuesResultIdRoute
-}
-
-const ProjectPProjectIdAuditRouteChildren: ProjectPProjectIdAuditRouteChildren =
-  {
-    ProjectPProjectIdAuditIndexRoute: ProjectPProjectIdAuditIndexRoute,
-    ProjectPProjectIdAuditIssuesResultIdRoute:
-      ProjectPProjectIdAuditIssuesResultIdRoute,
-  }
-
-const ProjectPProjectIdAuditRouteWithChildren =
-  ProjectPProjectIdAuditRoute._addFileChildren(
-    ProjectPProjectIdAuditRouteChildren,
-  )
 
 interface ProjectPProjectIdRankTrackingRouteChildren {
   ProjectPProjectIdRankTrackingConfigIdRoute: typeof ProjectPProjectIdRankTrackingConfigIdRoute
@@ -1283,7 +1228,6 @@ const ProjectPProjectIdSettingsRouteWithChildren =
   )
 
 interface ProjectPProjectIdRouteRouteChildren {
-  ProjectPProjectIdAuditRoute: typeof ProjectPProjectIdAuditRouteWithChildren
   ProjectPProjectIdBacklinksRoute: typeof ProjectPProjectIdBacklinksRoute
   ProjectPProjectIdBrandLookupRoute: typeof ProjectPProjectIdBrandLookupRoute
   ProjectPProjectIdContextRoute: typeof ProjectPProjectIdContextRoute
@@ -1298,12 +1242,13 @@ interface ProjectPProjectIdRouteRouteChildren {
   ProjectPProjectIdIndexRoute: typeof ProjectPProjectIdIndexRoute
   ProjectPProjectIdReportsReportIdRoute: typeof ProjectPProjectIdReportsReportIdRoute
   ProjectPProjectIdReportsTemplatesRoute: typeof ProjectPProjectIdReportsTemplatesRoute
+  ProjectPProjectIdAuditIndexRoute: typeof ProjectPProjectIdAuditIndexRoute
   ProjectPProjectIdReportsIndexRoute: typeof ProjectPProjectIdReportsIndexRoute
+  ProjectPProjectIdAuditIssuesResultIdRoute: typeof ProjectPProjectIdAuditIssuesResultIdRoute
 }
 
 const ProjectPProjectIdRouteRouteChildren: ProjectPProjectIdRouteRouteChildren =
   {
-    ProjectPProjectIdAuditRoute: ProjectPProjectIdAuditRouteWithChildren,
     ProjectPProjectIdBacklinksRoute: ProjectPProjectIdBacklinksRoute,
     ProjectPProjectIdBrandLookupRoute: ProjectPProjectIdBrandLookupRoute,
     ProjectPProjectIdContextRoute: ProjectPProjectIdContextRoute,
@@ -1322,7 +1267,10 @@ const ProjectPProjectIdRouteRouteChildren: ProjectPProjectIdRouteRouteChildren =
       ProjectPProjectIdReportsReportIdRoute,
     ProjectPProjectIdReportsTemplatesRoute:
       ProjectPProjectIdReportsTemplatesRoute,
+    ProjectPProjectIdAuditIndexRoute: ProjectPProjectIdAuditIndexRoute,
     ProjectPProjectIdReportsIndexRoute: ProjectPProjectIdReportsIndexRoute,
+    ProjectPProjectIdAuditIssuesResultIdRoute:
+      ProjectPProjectIdAuditIssuesResultIdRoute,
   }
 
 const ProjectPProjectIdRouteRouteWithChildren =

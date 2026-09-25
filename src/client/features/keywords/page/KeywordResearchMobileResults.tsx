@@ -231,7 +231,6 @@ function MobileKeywordResults({ controller }: Props) {
       {showFilters ? <MobileFilters controller={controller} /> : null}
 
       <KeywordResearchDesktopTable
-        activeFilterCount={controller.activeFilterCount}
         filteredRows={pageRows}
         overviewKeyword={controller.overviewKeyword}
         selectedRows={controller.selectedRows}

@@ -11,23 +11,12 @@ import {
 } from "lucide-react";
 import { Markdown } from "@/client/components/Markdown";
 
-// Shared chat-message rendering. A chat supplies which tools are available and
-// how tool names become labels (resolveToolLabel) plus which message actions
-// its server supports (onUndo/onEdit); the UI itself lives here.
-
-type ToolLabel = { running: string; done: string };
-
-// Maps a UIMessage tool part type (e.g. "tool-get_serp_results") to its label,
-// or null to hide the badge entirely.
-type ResolveToolLabel = (partType: string) => ToolLabel | null;
-
 // Turn a tool part type ("tool-get_serp_results") into a readable label
-// ("Get serp results"). Used for chats that expose too many tools to curate a
-// per-tool label map by hand.
-export function humanizeToolLabel(partType: string): ToolLabel {
+// ("Get serp results"). SAM exposes the full MCP tool surface, too many tools
+// to curate a per-tool label map by hand.
+function humanizeToolLabel(partType: string): string {
   const name = partType.replace(/^tool-/, "").replace(/_/g, " ");
-  const label = name.charAt(0).toUpperCase() + name.slice(1);
-  return { running: label, done: label };
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 // activate_skill is the one tool where the target matters more than the tool
@@ -179,17 +168,14 @@ function ReasoningBlock({
 function ToolBadge({
   part,
   live,
-  resolveToolLabel,
 }: {
   part: UIMessage["parts"][number];
   live: boolean;
-  resolveToolLabel: ResolveToolLabel;
 }) {
-  const labels = resolveToolLabel(part.type);
-  if (!labels) return null;
+  const label = humanizeToolLabel(part.type);
   const skillName = skillNameFromPart(part);
-  const runningText = skillName ? `Activating ${skillName}` : labels.running;
-  const doneText = skillName ? `Skill: ${skillName}` : labels.done;
+  const runningText = skillName ? `Activating ${skillName}` : label;
+  const doneText = skillName ? `Skill: ${skillName}` : label;
   const state = "state" in part ? part.state : undefined;
   const isDone = state === "output-available";
   // A "running" part in a message that is no longer being generated never
@@ -217,8 +203,7 @@ function ToolBadge({
 /**
  * One chat message bubble. User turns render as a right-aligned bubble;
  * assistant turns render each part (reasoning, markdown text, tool badges) in
- * document order, flush with the column. `resolveToolLabel` maps tool part
- * types to labels.
+ * document order, flush with the column.
  *
  * Every settled message gets a hover copy button. User messages additionally
  * get undo (rewind the conversation to before this message) and edit (rewind,
@@ -227,13 +212,11 @@ function ToolBadge({
  */
 export function ChatMessage({
   message,
-  resolveToolLabel,
   streaming,
   onUndo,
   onEdit,
 }: {
   message: UIMessage;
-  resolveToolLabel: ResolveToolLabel;
   /** True while this message is still being generated: reasoning spinners
    * stay live and the hover actions (copy) are held back until it settles. */
   streaming?: boolean;
@@ -334,12 +317,7 @@ export function ChatMessage({
           }
           if (part.type.startsWith("tool-")) {
             return (
-              <ToolBadge
-                key={index}
-                part={part}
-                live={Boolean(streaming)}
-                resolveToolLabel={resolveToolLabel}
-              />
+              <ToolBadge key={index} part={part} live={Boolean(streaming)} />
             );
           }
           return null;

@@ -12,7 +12,6 @@ const saved = {
   workFor: "My own startup or business",
   clientWebsiteCount: null,
   foundVia: "Google",
-  mcpSetupIntent: null,
 };
 
 describe("historical onboarding values", () => {
@@ -41,53 +40,5 @@ describe("historical onboarding values", () => {
     expect(buildOnboardingPayload(answers, 4).interestedFeatures).toEqual(
       interestedFeatures,
     );
-  });
-});
-
-describe("signup agent setup", () => {
-  it("saves the optional agent choice on the final step only", () => {
-    const answers = {
-      ...restoreOnboardingAnswers(saved),
-      mcpSetupIntent: "yes" as const,
-    };
-    expect(buildOnboardingPayload(answers, 3)).not.toHaveProperty(
-      "mcpSetupIntent",
-    );
-    expect(
-      buildOnboardingPayload(answers, 4, { completed: true }),
-    ).toMatchObject({ mcpSetupIntent: "yes", completed: true });
-  });
-  it("lets users finish without an agent or without making a choice", () => {
-    const answers = restoreOnboardingAnswers(saved);
-    expect(
-      buildOnboardingPayload(answers, 4, { completed: true }),
-    ).toMatchObject({ completed: true });
-    expect(
-      buildOnboardingPayload({ ...answers, mcpSetupIntent: "no" }, 4, {
-        completed: true,
-      }),
-    ).toMatchObject({ mcpSetupIntent: "no", completed: true });
-  });
-  it("saves No when finishing immediately, even before React updates the previous answer", () => {
-    const answers = {
-      ...restoreOnboardingAnswers(saved),
-      mcpSetupIntent: "yes" as const,
-    };
-    expect(
-      buildOnboardingPayload(answers, 4, {
-        completed: true,
-        mcpSetupIntent: "no",
-      }),
-    ).toMatchObject({ mcpSetupIntent: "no", completed: true });
-  });
-  it("restores a saved setup intent", () => {
-    expect(
-      restoreOnboardingAnswers({ ...saved, mcpSetupIntent: "yes" })
-        .mcpSetupIntent,
-    ).toBe("yes");
-    expect(
-      restoreOnboardingAnswers({ ...saved, mcpSetupIntent: "no" })
-        .mcpSetupIntent,
-    ).toBe("no");
   });
 });

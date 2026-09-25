@@ -193,7 +193,6 @@ function SignInPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="email"
-                    disabled={!isHostedMode}
                     required
                   />
                   {error ? (
@@ -217,7 +216,6 @@ function SignInPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="current-password"
-                    disabled={!isHostedMode}
                     required
                   />
                   {error ? (
@@ -243,7 +241,7 @@ function SignInPage() {
                   ) : null}
                   <button
                     className="btn btn-soft w-full"
-                    disabled={!isHostedMode || isSubmitting}
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? "Signing in..." : "Sign in"}
                   </button>

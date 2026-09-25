@@ -11,10 +11,6 @@ import {
   FilterRangeGroup,
   FilterTextInput,
 } from "@/client/features/domain/components/DomainFilterFields";
-import {
-  debugDomain,
-  useDomainRenderDebug,
-} from "@/client/features/domain/domainDebug";
 import { MAX_DATAFORSEO_FILTER_CONDITIONS } from "@/types/schemas/domain";
 
 type FilterValues = Record<string, string>;
@@ -33,7 +29,6 @@ type FilterRangeField<TValues extends FilterValues> = {
 };
 
 type Props<TValues extends FilterValues> = {
-  debugName: string;
   activeFilterCount: number;
   appliedFilters: TValues;
   fields: ReadonlyArray<keyof TValues>;
@@ -52,7 +47,6 @@ type Props<TValues extends FilterValues> = {
 };
 
 export function DomainFilterPanel<TValues extends FilterValues>({
-  debugName,
   activeFilterCount,
   appliedFilters,
   fields,
@@ -86,33 +80,14 @@ export function DomainFilterPanel<TValues extends FilterValues>({
       }),
     [appliedFilters, countConditions, draftFilters, fields, maxConditions],
   );
-  useDomainRenderDebug(debugName, {
-    activeFilterCount,
-    conditionCount: meta.conditionCount,
-    dirtyCount: meta.dirtyCount,
-  });
   const applyFilters = useCallback(() => {
     if (meta.overLimit) return;
-    debugDomain(`${debugName}:apply`, {
-      conditionCount: meta.conditionCount,
-      dirtyCount: meta.dirtyCount,
-      draftFilters,
-    });
     onApply(draftFilters);
-  }, [
-    debugName,
-    draftFilters,
-    meta.conditionCount,
-    meta.dirtyCount,
-    meta.overLimit,
-    onApply,
-  ]);
+  }, [draftFilters, meta.overLimit, onApply]);
   const cancelFilterEdits = useCallback(() => {
-    debugDomain(`${debugName}:cancel`);
     setDraftFilters(appliedFilters);
-  }, [appliedFilters, debugName]);
+  }, [appliedFilters]);
   const resetFilters = useCallback(() => {
-    debugDomain(`${debugName}:clear`);
     // Also clear unapplied draft edits — when the applied filters are already
     // empty, the applied-sync effect won't fire (appliedKey is unchanged).
     setDraftFilters((current) => {
@@ -121,7 +96,7 @@ export function DomainFilterPanel<TValues extends FilterValues>({
       return next;
     });
     onClear();
-  }, [debugName, fields, onClear]);
+  }, [fields, onClear]);
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key !== "Enter") return;
     // Let buttons (Cancel, toggles) handle their own Enter activation.
@@ -130,16 +105,9 @@ export function DomainFilterPanel<TValues extends FilterValues>({
     event.preventDefault();
     applyFilters();
   };
-  const handleValueChange = useCallback(
-    (key: keyof TValues, value: string) => {
-      debugDomain(`${debugName}:draft-change`, {
-        field: String(key),
-        valueLength: value.length,
-      });
-      setDraftFilters((current) => ({ ...current, [key]: value }));
-    },
-    [debugName],
-  );
+  const handleValueChange = useCallback((key: keyof TValues, value: string) => {
+    setDraftFilters((current) => ({ ...current, [key]: value }));
+  }, []);
 
   return (
     <div

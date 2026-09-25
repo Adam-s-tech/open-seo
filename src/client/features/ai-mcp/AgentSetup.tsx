@@ -13,11 +13,7 @@ export function AgentSetup({
   onBack: () => void;
   disabled?: boolean;
 }) {
-  const prompt = getAgentSetupPrompt(
-    typeof window === "undefined"
-      ? "https://app.openseo.so"
-      : window.location.origin,
-  );
+  const prompt = getAgentSetupPrompt(window.location.origin);
 
   return (
     <fieldset disabled={disabled}>
@@ -45,7 +41,7 @@ export function AgentSetup({
         <button
           type="button"
           className="btn btn-ghost btn-sm gap-2"
-          onClick={() => onComplete()}
+          onClick={onComplete}
         >
           Skip for now <ArrowRight className="size-4" />
         </button>

@@ -12,23 +12,9 @@ type Props = {
   rows: CsvValue[][];
   /** PostHog `source_feature` for the `data:export_sheets` event. */
   feature: string;
-  disabled?: boolean;
-  label?: string;
-  /** Render the icon without a text label (icon-only mode for tight rows). */
-  iconOnly?: boolean;
-  /** Extra classes appended to the default button classes. */
-  className?: string;
 };
 
-export function ExportToSheetsButton({
-  headers,
-  rows,
-  feature,
-  disabled,
-  label = "Export to Sheets",
-  iconOnly,
-  className,
-}: Props) {
+export function ExportToSheetsButton({ headers, rows, feature }: Props) {
   const [busy, setBusy] = useState(false);
 
   const handleClick = async () => {
@@ -44,14 +30,13 @@ export function ExportToSheetsButton({
   return (
     <button
       type="button"
-      className={`btn btn-ghost btn-xs gap-1 ${className ?? ""}`}
+      className="btn btn-ghost btn-xs gap-1"
       onClick={handleClick}
-      disabled={disabled || rows.length === 0 || busy}
+      disabled={rows.length === 0 || busy}
       title="Copy table and open a new Google Sheet"
-      aria-label={iconOnly ? "Export to Sheets" : undefined}
     >
       <Sheet className="size-3.5" />
-      {iconOnly ? null : label}
+      Export to Sheets
     </button>
   );
 }

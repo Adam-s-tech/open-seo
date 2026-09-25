@@ -245,7 +245,6 @@ function DesktopTableCard({ controller }: Props) {
 
       {showFilters ? <DesktopFilters controller={controller} /> : null}
       <KeywordResearchDesktopTable
-        activeFilterCount={controller.activeFilterCount}
         filteredRows={pageRows}
         overviewKeyword={controller.overviewKeyword}
         selectedRows={controller.selectedRows}

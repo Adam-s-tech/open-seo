@@ -152,10 +152,8 @@ function CompactRangeInput({
 }
 
 export function EmptyFilterResults({
-  activeFilterCount,
   resetFilters,
 }: {
-  activeFilterCount: number;
   resetFilters: () => void;
 }) {
   return (
@@ -163,11 +161,9 @@ export function EmptyFilterResults({
       <p className="text-sm font-medium">
         No keywords match your current filters.
       </p>
-      {activeFilterCount > 0 ? (
-        <button className="btn btn-ghost btn-sm" onClick={resetFilters}>
-          Clear filters
-        </button>
-      ) : null}
+      <button className="btn btn-ghost btn-sm" onClick={resetFilters}>
+        Clear filters
+      </button>
     </div>
   );
 }

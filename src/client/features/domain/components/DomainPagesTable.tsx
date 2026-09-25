@@ -6,7 +6,6 @@ import {
 } from "@/client/components/table/AppDataTable";
 import { ExternalUrlCell } from "@/client/components/table/url";
 import { SortableHeader } from "@/client/features/domain/components/SortableHeader";
-import { useDomainRenderDebug } from "@/client/features/domain/domainDebug";
 import {
   formatNumber,
   formatRounded,
@@ -35,7 +34,6 @@ function DomainPagesTableComponent({
   currentSortOrder,
   onSortClick,
 }: Props) {
-  const renderStarted = performance.now();
   const columns = useMemo<ColumnDef<PageRow>[]>(
     () => [
       pageColumnHelper.display({
@@ -86,13 +84,6 @@ function DomainPagesTableComponent({
     data: tableData,
     columns,
   });
-  useDomainRenderDebug("DomainPagesTable", {
-    rows: rows.length,
-    durationMs: Math.round(performance.now() - renderStarted),
-    sortMode,
-    currentSortOrder,
-  });
-
   return (
     <AppDataTable
       table={table}

@@ -11,7 +11,6 @@ import {
 } from "@/client/features/keywords/hooks/useKeywordResearchData";
 import { getBacklinksOverview } from "@/serverFunctions/backlinks";
 import { getDomainOverview } from "@/serverFunctions/domain";
-export type { SearchTab } from "./types";
 
 type Props = {
   activeTabId: string | null;

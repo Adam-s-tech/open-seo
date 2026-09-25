@@ -3,7 +3,6 @@ import type { SortingState, Updater } from "@tanstack/react-table";
 import { BacklinksSearchCard } from "./BacklinksSearchCard";
 import { BacklinksBody } from "./BacklinksPageContent";
 import type { BacklinksPageProps } from "./backlinksPageTypes";
-import type { BacklinksSearchState } from "./backlinksPageTypes";
 import {
   navigateToBacklinksSearch,
   useBacklinksPageData,
@@ -11,10 +10,7 @@ import {
 import { useBacklinksDomainExpansion } from "./useBacklinksDomainExpansion";
 import { useBacklinksFilters } from "./useBacklinksFilters";
 import { useBacklinksSearchHistory } from "@/client/hooks/useBacklinksSearchHistory";
-import type {
-  BacklinksSearchTabInput,
-  SearchTabInput,
-} from "@/client/features/search-tabs/types";
+import type { SearchTabInput } from "@/client/features/search-tabs/types";
 import { useSearchTabNavigation } from "@/client/features/search-tabs/useSearchTabNavigation";
 import {
   BACKLINKS_DEFAULT_SORT,
@@ -38,82 +34,32 @@ export function BacklinksPage({
     return [{ id: field, desc: order === "desc" }];
   }, [searchState.order, searchState.sort, searchState.tab]);
 
+  const updateSearch = useCallback(
+    (updates: Record<string, unknown>) => {
+      navigate({ search: (prev) => ({ ...prev, ...updates }), replace: true });
+    },
+    [navigate],
+  );
+
   const handleSortingChange = useCallback(
     (updater: Updater<SortingState>) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
       const first = next[0];
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          sort: first?.id,
-          order: first ? (first.desc ? "desc" : "asc") : undefined,
-          page: undefined,
-        }),
-        replace: true,
+      updateSearch({
+        sort: first?.id,
+        order: first ? (first.desc ? "desc" : "asc") : undefined,
+        page: undefined,
       });
     },
-    [navigate, sorting],
+    [sorting, updateSearch],
   );
 
-  const handlePageChange = useCallback(
-    (nextPage: number) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          page: nextPage === 1 ? undefined : nextPage,
-        }),
-        replace: true,
-      });
-    },
-    [navigate],
-  );
-
-  const handlePageSizeChange = useCallback(
-    (nextPageSize: number) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          size:
-            nextPageSize === DEFAULT_BACKLINKS_PAGE_SIZE
-              ? undefined
-              : nextPageSize,
-          page: undefined,
-        }),
-        replace: true,
-      });
-    },
-    [navigate],
-  );
-
-  const handleViewChange = useCallback(
-    (nextView: "all" | undefined) => {
-      navigate({
-        search: (prev) => ({ ...prev, view: nextView, page: undefined }),
-        replace: true,
-      });
-    },
-    [navigate],
-  );
-
-  const {
-    activeTabErrorMessage,
-    activeTabQuery,
-    overviewErrorMessage,
-    overviewQuery,
-    referringDomainsQuery,
-    rowsQuery,
-    searchCardInitialValues,
-    topPagesQuery,
-  } = useBacklinksPageData({
-    projectId,
-    searchState,
-    filters,
-  });
+  const data = useBacklinksPageData({ projectId, searchState, filters });
 
   const domainExpansion = useBacklinksDomainExpansion({
     projectId,
     searchState,
-    rows: activeTabErrorMessage ? [] : (rowsQuery.data?.rows ?? []),
+    rows: data.activeTabErrorMessage ? [] : (data.rowsQuery.data?.rows ?? []),
   });
 
   const {
@@ -146,21 +92,6 @@ export function BacklinksPage({
     },
     [navigate],
   );
-  const handleResultTabChange = useCallback(
-    (tab: BacklinksSearchState["tab"]) => {
-      navigate({
-        search: (prev) => ({
-          ...prev,
-          tab: tab === "backlinks" ? undefined : tab,
-          page: undefined,
-          sort: undefined,
-          order: undefined,
-        }),
-        replace: true,
-      });
-    },
-    [navigate],
-  );
   const searchTabs = useSearchTabNavigation({
     storageKey: `backlinks:${projectId}`,
     urlInput: urlTabInput,
@@ -170,16 +101,6 @@ export function BacklinksPage({
     ),
     navigateToInput: navigateToTab,
   });
-  const toBacklinksTabInput = useCallback(
-    (
-      values: Pick<BacklinksSearchState, "target" | "scope">,
-    ): BacklinksSearchTabInput => ({
-      type: "backlinks",
-      target: values.target,
-      scope: values.scope,
-    }),
-    [],
-  );
   return (
     <div className="px-4 py-4 pb-24 overflow-auto md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-7xl space-y-4">
@@ -192,10 +113,10 @@ export function BacklinksPage({
         </div>
 
         <BacklinksSearchCard
-          errorMessage={overviewErrorMessage}
-          initialValues={searchCardInitialValues}
+          errorMessage={data.overviewErrorMessage}
+          initialValues={data.searchCardInitialValues}
           onSubmit={(values) => {
-            searchTabs.openTab(toBacklinksTabInput(values));
+            searchTabs.openTab({ type: "backlinks", ...values });
             navigateToBacklinksSearch(navigate, values);
             addSearch({ target: values.target, scope: values.scope });
           }}
@@ -205,46 +126,40 @@ export function BacklinksPage({
           projectId={projectId}
           history={history}
           historyLoaded={historyLoaded}
-          overviewData={overviewQuery.data}
-          overviewError={overviewErrorMessage}
-          overviewLoading={overviewQuery.isLoading}
-          backlinksRowsPage={rowsQuery.data}
-          referringDomainsPage={referringDomainsQuery.data}
-          topPagesPage={topPagesQuery.data}
+          data={data}
           searchState={searchState}
           filters={filters}
           sorting={sorting}
           domainExpansion={domainExpansion}
-          tabErrorMessage={activeTabErrorMessage}
-          tabLoading={activeTabQuery.isLoading}
-          tabFetching={activeTabQuery.isFetching}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          onRemoveHistoryItem={removeHistoryItem}
-          onRetryOverview={() => void overviewQuery.refetch()}
-          onSortingChange={handleSortingChange}
-          onTabChange={handleResultTabChange}
-          onViewChange={handleViewChange}
-          onHideSpamChange={(hideSpam) =>
-            navigate({
-              search: (prev) => ({
-                ...prev,
-                includeSpam: hideSpam ? undefined : true,
-                page: undefined,
-              }),
-              replace: true,
+          searchTabs={searchTabs}
+          onPageChange={(nextPage) =>
+            updateSearch({ page: nextPage === 1 ? undefined : nextPage })
+          }
+          onPageSizeChange={(nextPageSize) =>
+            updateSearch({
+              size:
+                nextPageSize === DEFAULT_BACKLINKS_PAGE_SIZE
+                  ? undefined
+                  : nextPageSize,
+              page: undefined,
             })
           }
-          searchTabs={
-            searchState.target
-              ? {
-                  activeTabId: searchTabs.activeTabId,
-                  tabs: searchTabs.tabs,
-                  onSelect: searchTabs.selectTab,
-                  onClose: searchTabs.closeTab,
-                  onViewed: searchTabs.markTabViewed,
-                }
-              : null
+          onRemoveHistoryItem={removeHistoryItem}
+          onSortingChange={handleSortingChange}
+          onTabChange={(tab) =>
+            updateSearch({
+              tab: tab === "backlinks" ? undefined : tab,
+              page: undefined,
+              sort: undefined,
+              order: undefined,
+            })
+          }
+          onViewChange={(view) => updateSearch({ view, page: undefined })}
+          onHideSpamChange={(hideSpam) =>
+            updateSearch({
+              includeSpam: hideSpam ? undefined : true,
+              page: undefined,
+            })
           }
         />
       </div>

@@ -4,7 +4,7 @@ import { isHostedClientAuthMode } from "@/lib/auth-mode";
 
 type UnauthenticatedErrorCardProps = {
   message: string;
-  onRetry?: () => void;
+  onRetry: () => void;
 };
 
 export function UnauthenticatedErrorCard({
@@ -38,13 +38,11 @@ export function UnauthenticatedErrorCard({
           This deployment uses external authentication. Refresh your access
           session, then try again.
         </p>
-        {onRetry ? (
-          <div className="card-actions justify-end">
-            <button className="btn btn-primary btn-sm" onClick={onRetry}>
-              Try Again
-            </button>
-          </div>
-        ) : null}
+        <div className="card-actions justify-end">
+          <button className="btn btn-primary btn-sm" onClick={onRetry}>
+            Try Again
+          </button>
+        </div>
       </div>
     </div>
   );

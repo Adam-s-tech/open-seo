@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -18,18 +19,20 @@ import {
 } from "./LighthouseIssuesParts";
 import { categoryTabs } from "./types";
 
-type LighthouseIssuesScreenProps = {
+export function LighthouseIssuesScreen({
+  projectId,
+  resultId,
+  category,
+  auditId,
+}: {
   projectId: string;
   resultId: string;
   category: CategoryTab;
-  backLabel: string;
-  onBack: () => void;
-  onCategoryChange: (next: CategoryTab) => void;
-};
-
-export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
-  const { projectId, resultId, category, backLabel, onBack, onCategoryChange } =
-    props;
+  auditId: string | undefined;
+}) {
+  const navigate = useNavigate({
+    from: "/p/$projectId/audit/issues/$resultId",
+  });
 
   const issuesQuery = useQuery({
     queryKey: ["auditLighthouseIssues", projectId, resultId],
@@ -82,8 +85,13 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
     <div className="px-4 py-3 md:px-6 md:py-4 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto max-w-5xl space-y-4">
         <LighthouseIssuesHeader
-          backLabel={backLabel}
-          onBack={onBack}
+          onBack={() =>
+            void navigate({
+              to: "/p/$projectId/audit",
+              params: { projectId },
+              search: auditId ? { auditId } : undefined,
+            })
+          }
           isLoading={issuesQuery.isPending}
           scannedAt={issuesQuery.data?.createdAt}
           finalUrl={issuesQuery.data?.finalUrl}
@@ -126,7 +134,12 @@ export function LighthouseIssuesScreen(props: LighthouseIssuesScreenProps) {
               isBusy={exportMutation.isPending}
               visibleIssues={visibleIssues}
               allIssues={allIssues}
-              onCategoryChange={onCategoryChange}
+              onCategoryChange={(next) =>
+                void navigate({
+                  search: (prev) => ({ ...prev, category: next }),
+                  replace: true,
+                })
+              }
               onCopy={(data, message) => {
                 void runCopy(data, message);
               }}

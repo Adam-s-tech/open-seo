@@ -26,8 +26,6 @@ function OAuthConsentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const userEmail = session?.user?.email ?? null;
-
   useEffect(() => {
     captureClientEvent("mcp:consent_viewed");
   }, []);
@@ -83,17 +81,16 @@ function OAuthConsentPage() {
         </p>
       </div>
 
-      {userEmail ? (
-        <div className="mt-6 flex items-center gap-3 rounded-lg border border-base-300 bg-base-200/50 px-3 py-2 text-sm">
-          <div className="flex size-7 items-center justify-center rounded-full bg-base-300">
-            <User className="size-4" />
-          </div>
-          <div className="flex-1">
-            <div className="text-xs text-base-content/60">Signed in as</div>
-            <div className="font-medium">{userEmail}</div>
-          </div>
+      {/* _authenticated only renders this page with a signed-in user. */}
+      <div className="mt-6 flex items-center gap-3 rounded-lg border border-base-300 bg-base-200/50 px-3 py-2 text-sm">
+        <div className="flex size-7 items-center justify-center rounded-full bg-base-300">
+          <User className="size-4" />
         </div>
-      ) : null}
+        <div className="flex-1">
+          <div className="text-xs text-base-content/60">Signed in as</div>
+          <div className="font-medium">{session?.user.email}</div>
+        </div>
+      </div>
 
       <div className="mt-6">
         <div className="text-xs font-medium uppercase tracking-wide text-base-content/60">

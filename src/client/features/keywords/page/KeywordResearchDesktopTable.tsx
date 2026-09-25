@@ -23,7 +23,6 @@ import type { KeywordResearchRow } from "@/types/keywords";
 import { EmptyFilterResults } from "./keywordResearchFilters";
 
 type Props = {
-  activeFilterCount: number;
   filteredRows: KeywordResearchDisplayRow[];
   overviewKeyword: KeywordResearchRow | null;
   selectedRows: Set<string>;
@@ -38,7 +37,6 @@ type Props = {
 const keywordColumnHelper = createColumnHelper<KeywordResearchDisplayRow>();
 
 export function KeywordResearchDesktopTable({
-  activeFilterCount,
   filteredRows,
   overviewKeyword,
   selectedRows,
@@ -205,10 +203,7 @@ export function KeywordResearchDesktopTable({
   return (
     <div className="flex-1 min-h-0">
       {filteredRows.length === 0 ? (
-        <EmptyFilterResults
-          activeFilterCount={activeFilterCount}
-          resetFilters={resetFilters}
-        />
+        <EmptyFilterResults resetFilters={resetFilters} />
       ) : (
         <AppDataTable
           table={table}

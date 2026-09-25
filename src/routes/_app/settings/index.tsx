@@ -25,7 +25,7 @@ const THEME_OPTIONS: {
 function PersonalSettings() {
   const isHosted = isHostedClientAuthMode();
   const { themePreference, setThemePreference } = useThemePreference();
-  const { data: session, isPending: isSessionPending } = useSession();
+  const { data: session } = useSession();
   const [isSaving, setIsSaving] = useState(false);
 
   const analyticsEnabled = session?.user?.analyticsOptedOut !== true;
@@ -104,7 +104,7 @@ function PersonalSettings() {
                 type="checkbox"
                 className="toggle toggle-primary"
                 checked={analyticsEnabled}
-                disabled={isSessionPending || isSaving || !session?.user}
+                disabled={isSaving}
                 onChange={(event) => {
                   void updateAnalyticsPreference(event.currentTarget.checked);
                 }}

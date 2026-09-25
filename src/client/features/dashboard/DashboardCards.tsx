@@ -46,18 +46,17 @@ export function GscCard({
       }),
     enabled: connected,
   });
+  const report = reportQuery.data;
 
   // Not connected (or a dead grant discovered by the report call): the
   // connection card sells and runs the whole flow itself.
-  if (!connected || (reportQuery.data && !reportQuery.data.connected)) {
+  if (!connected || (report && !report.connected)) {
     return (
       <div id="connect-gsc">
         <SearchConsoleConnectionCard projectId={projectId} />
       </div>
     );
   }
-
-  const report = reportQuery.data;
 
   return (
     <CardShell
@@ -73,17 +72,17 @@ export function GscCard({
         </Link>
       }
     >
-      {reportQuery.isPending ? (
+      {reportQuery.isError ? (
+        <p className="text-sm text-base-content/60">
+          Couldn&rsquo;t load Search Console data. Try again shortly.
+        </p>
+      ) : !report ? (
         <div className="grid grid-cols-2 gap-3" aria-busy>
           {Array.from({ length: 4 }, (_, i) => (
             <Skeleton key={i} className="h-20" />
           ))}
         </div>
-      ) : reportQuery.isError ? (
-        <p className="text-sm text-base-content/60">
-          Couldn&rsquo;t load Search Console data. Try again shortly.
-        </p>
-      ) : report?.connected ? (
+      ) : (
         <div className="grid grid-cols-2 gap-3">
           <Stat
             label="Clicks"
@@ -111,7 +110,7 @@ export function GscCard({
             value={formatPosition(report.totals.position)}
           />
         </div>
-      ) : null}
+      )}
     </CardShell>
   );
 }

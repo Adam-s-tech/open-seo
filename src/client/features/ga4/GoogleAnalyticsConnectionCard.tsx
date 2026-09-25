@@ -27,12 +27,10 @@ export function GoogleAnalyticsConnectionCard({
   projectId,
   onDismiss,
   dismissing = false,
-  heading,
 }: {
   projectId: string;
   onDismiss?: () => void;
   dismissing?: boolean;
-  heading?: React.ReactNode;
 }) {
   const hosted = isHostedClientAuthMode();
   const queryClient = useQueryClient();
@@ -125,132 +123,129 @@ export function GoogleAnalyticsConnectionCard({
   const handleConnect = () => void linkAccount(window.location.href);
 
   return (
-    <>
-      {heading}
-      <IntegrationConnectionCard
-        title="Google Analytics"
-        icon={<GoogleAnalyticsLogo className="size-5" />}
-        status={
-          connectionQuery.isPending || connectionUnavailable
-            ? undefined
-            : selfHostedNeedsSetup
-              ? "setup_required"
-              : connected
-                ? "connected"
-                : "disconnected"
-        }
-      >
-        <GoogleLinkErrorAlert provider="ga4" className="mb-4" />
-        {connectionQuery.isPending ? (
-          <div
-            role="status"
-            aria-label="Loading connection"
-            className="space-y-3 animate-pulse"
+    <IntegrationConnectionCard
+      title="Google Analytics"
+      icon={<GoogleAnalyticsLogo className="size-5" />}
+      status={
+        connectionQuery.isPending || connectionUnavailable
+          ? undefined
+          : selfHostedNeedsSetup
+            ? "setup_required"
+            : connected
+              ? "connected"
+              : "disconnected"
+      }
+    >
+      <GoogleLinkErrorAlert provider="ga4" className="mb-4" />
+      {connectionQuery.isPending ? (
+        <div
+          role="status"
+          aria-label="Loading connection"
+          className="space-y-3 animate-pulse"
+        >
+          <div className="h-4 w-2/3 rounded bg-base-200" />
+          <div className="h-9 w-24 rounded bg-base-200" />
+        </div>
+      ) : connectionUnavailable ? (
+        <div role="alert" className="space-y-3 text-sm">
+          <p className="text-error">
+            Couldn't check this project's connection.
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => void connectionQuery.refetch()}
           >
-            <div className="h-4 w-2/3 rounded bg-base-200" />
-            <div className="h-9 w-24 rounded bg-base-200" />
-          </div>
-        ) : connectionUnavailable ? (
-          <div role="alert" className="space-y-3 text-sm">
-            <p className="text-error">
-              Couldn't check this project's connection.
-            </p>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => void connectionQuery.refetch()}
-            >
-              Try again
-            </button>
-          </div>
-        ) : selfHostedNeedsSetup ? (
-          <div className="space-y-3">
-            <GoogleOAuthSetupWarning
-              integrationName="Google Analytics"
-              docsUrl={GA4_SELF_HOSTED_SETUP_DOCS_URL}
-            />
-            <DismissButton onClick={onDismiss} disabled={dismissDisabled} />
-          </div>
-        ) : connected && !picking ? (
-          <GoogleConnectedState
-            property={connection?.propertyDisplayName ?? ""}
-            detail={connection?.propertyId}
-            canManageAccounts={hasGrant}
-            email={connection?.connectedByEmail}
-            onChange={() => {
-              setPropertyMutation.reset();
-              disconnectMutation.reset();
-              setSelection(null);
-              setPicking(true);
-            }}
-            onDisconnect={() => {
-              setPropertyMutation.reset();
-              disconnectMutation.mutate();
-            }}
-            disconnecting={disconnectMutation.isPending}
-            disabled={linking}
-            canManage={canManage}
+            Try again
+          </button>
+        </div>
+      ) : selfHostedNeedsSetup ? (
+        <div className="space-y-3">
+          <GoogleOAuthSetupWarning
+            integrationName="Google Analytics"
+            docsUrl={GA4_SELF_HOSTED_SETUP_DOCS_URL}
           />
-        ) : showPicker ? (
-          <fieldset disabled={changingConnection}>
-            <Ga4PropertyPicker
-              readOnly={!canManage}
-              linking={linking}
-              loading={propertiesQuery.isLoading}
-              error={propertiesQuery.isError}
-              accounts={accounts}
-              selection={selection}
-              onSelect={setSelection}
-              onSave={() => selection && setPropertyMutation.mutate(selection)}
-              saving={setPropertyMutation.isPending}
-              secondaryAction={{
-                label: "Cancel",
-                disabled: setPropertyMutation.isPending,
-                onClick: () => {
-                  setPicking(false);
-                  setSelection(null);
-                  setPropertyMutation.reset();
-                },
-              }}
-              onRetry={() => void propertiesQuery.refetch()}
-              onReconnect={handleConnect}
-            />
-          </fieldset>
-        ) : (
-          <GoogleProjectEmptyState
-            name="Google Analytics"
-            hasGrant={hasGrant}
-            canManage={canManage}
-            disabled={linking}
-            onLink={handleConnect}
-            onChoose={() => {
-              setPropertyMutation.reset();
-              disconnectMutation.reset();
-              setSelection(null);
-              setPicking(true);
-            }}
-          >
-            <DismissButton onClick={onDismiss} disabled={dismissDisabled} />
-          </GoogleProjectEmptyState>
-        )}
-        {showPicker && onDismiss && !connected ? (
           <DismissButton onClick={onDismiss} disabled={dismissDisabled} />
-        ) : null}
-        {setPropertyMutation.isError || disconnectMutation.isError ? (
-          <p role="alert" className="mt-3 text-sm text-error">
-            {getStandardErrorMessage(
-              setPropertyMutation.error ?? disconnectMutation.error,
-            )}
-          </p>
-        ) : null}
-        {connectionQuery.isSuccess && !selfHostedNeedsSetup && !canManage ? (
-          <p className="mt-3 text-sm text-base-content/60">
-            Ask an organization owner or admin to change this project's
-            connection.
-          </p>
-        ) : null}
-      </IntegrationConnectionCard>
-    </>
+        </div>
+      ) : connected && !picking ? (
+        <GoogleConnectedState
+          property={connection?.propertyDisplayName ?? ""}
+          detail={connection?.propertyId}
+          canManageAccounts={hasGrant}
+          email={connection?.connectedByEmail}
+          onChange={() => {
+            setPropertyMutation.reset();
+            disconnectMutation.reset();
+            setSelection(null);
+            setPicking(true);
+          }}
+          onDisconnect={() => {
+            setPropertyMutation.reset();
+            disconnectMutation.mutate();
+          }}
+          disconnecting={disconnectMutation.isPending}
+          disabled={linking}
+          canManage={canManage}
+        />
+      ) : showPicker ? (
+        <fieldset disabled={changingConnection}>
+          <Ga4PropertyPicker
+            readOnly={!canManage}
+            linking={linking}
+            loading={propertiesQuery.isLoading}
+            error={propertiesQuery.isError}
+            accounts={accounts}
+            selection={selection}
+            onSelect={setSelection}
+            onSave={() => selection && setPropertyMutation.mutate(selection)}
+            saving={setPropertyMutation.isPending}
+            secondaryAction={{
+              label: "Cancel",
+              disabled: setPropertyMutation.isPending,
+              onClick: () => {
+                setPicking(false);
+                setSelection(null);
+                setPropertyMutation.reset();
+              },
+            }}
+            onRetry={() => void propertiesQuery.refetch()}
+            onReconnect={handleConnect}
+          />
+        </fieldset>
+      ) : (
+        <GoogleProjectEmptyState
+          name="Google Analytics"
+          hasGrant={hasGrant}
+          canManage={canManage}
+          disabled={linking}
+          onLink={handleConnect}
+          onChoose={() => {
+            setPropertyMutation.reset();
+            disconnectMutation.reset();
+            setSelection(null);
+            setPicking(true);
+          }}
+        >
+          <DismissButton onClick={onDismiss} disabled={dismissDisabled} />
+        </GoogleProjectEmptyState>
+      )}
+      {showPicker && onDismiss && !connected ? (
+        <DismissButton onClick={onDismiss} disabled={dismissDisabled} />
+      ) : null}
+      {setPropertyMutation.isError || disconnectMutation.isError ? (
+        <p role="alert" className="mt-3 text-sm text-error">
+          {getStandardErrorMessage(
+            setPropertyMutation.error ?? disconnectMutation.error,
+          )}
+        </p>
+      ) : null}
+      {connectionQuery.isSuccess && !selfHostedNeedsSetup && !canManage ? (
+        <p className="mt-3 text-sm text-base-content/60">
+          Ask an organization owner or admin to change this project's
+          connection.
+        </p>
+      ) : null}
+    </IntegrationConnectionCard>
   );
 }
 

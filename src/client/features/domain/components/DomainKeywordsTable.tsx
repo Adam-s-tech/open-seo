@@ -13,7 +13,6 @@ import {
 import { ExternalUrlCell } from "@/client/components/table/url";
 import { DifficultyBadge } from "@/client/features/domain/components/DifficultyBadge";
 import { SortableHeader } from "@/client/features/domain/components/SortableHeader";
-import { useDomainRenderDebug } from "@/client/features/domain/domainDebug";
 import { formatNumber, formatRounded } from "@/client/features/domain/utils";
 import type {
   DomainSortMode,
@@ -44,7 +43,6 @@ function DomainKeywordsTableComponent({
   onSortClick,
   onToggleKeyword,
 }: Props) {
-  const renderStarted = performance.now();
   const selectAnchorRef = useSelectionAnchor();
   const rowSelection = useMemo<RowSelectionState>(
     () =>
@@ -159,14 +157,6 @@ function DomainKeywordsTableComponent({
     getRowId: (row) => row.keyword,
     enableRowSelection: true,
   });
-  useDomainRenderDebug("DomainKeywordsTable", {
-    rows: rows.length,
-    selectedCount: selectedKeywords.size,
-    durationMs: Math.round(performance.now() - renderStarted),
-    sortMode,
-    currentSortOrder,
-  });
-
   return (
     <div className="overflow-x-auto">
       <div className="mb-2 text-xs text-base-content/60">

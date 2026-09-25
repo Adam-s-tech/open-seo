@@ -103,7 +103,7 @@ function ResetPasswordPage() {
   const redirectTo = normalizeAuthRedirect(search.redirect);
   const isHostedMode = isHostedClientAuthMode();
   const routeError = getResetPasswordErrorMessage(search.error);
-  const token = typeof search.token === "string" ? search.token : null;
+  const token = search.token;
   const form = useForm({
     defaultValues: {
       password: "",
@@ -112,17 +112,8 @@ function ResetPasswordPage() {
     validators: {
       onSubmit: resetPasswordSchema,
     },
+    // The form only renders when the URL carries a token.
     onSubmit: async ({ formApi, value }) => {
-      if (!token) {
-        formApi.setErrorMap({
-          onSubmit: {
-            form: "This reset link is no longer valid. Request a new one and try again.",
-            fields: {},
-          },
-        });
-        return;
-      }
-
       try {
         const result = await authClient.resetPassword({
           newPassword: value.password,

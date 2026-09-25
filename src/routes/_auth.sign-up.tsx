@@ -76,15 +76,6 @@ function SignUpPage() {
     },
     onSubmit: async ({ formApi, value }) => {
       const captchaToken = captcha.tokenRef.current;
-      if (isTurnstileEnabled && !captchaToken) {
-        formApi.setErrorMap({
-          onSubmit: {
-            form: "Please complete the captcha to continue.",
-            fields: {},
-          },
-        });
-        return;
-      }
       try {
         const email = value.email.trim();
         captureClientEvent("auth:sign_up_submit", {
@@ -246,7 +237,6 @@ function SignUpPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="name"
-                    disabled={!isHostedMode}
                   />
                   {error ? (
                     <p className="mt-1 text-sm text-error">{error}</p>
@@ -269,7 +259,6 @@ function SignUpPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="email"
-                    disabled={!isHostedMode}
                     required
                   />
                   {error ? (
@@ -293,7 +282,6 @@ function SignUpPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="new-password"
-                    disabled={!isHostedMode}
                     required
                     minLength={HOSTED_PASSWORD_MIN_LENGTH}
                     maxLength={HOSTED_PASSWORD_MAX_LENGTH}
@@ -319,7 +307,6 @@ function SignUpPage() {
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     autoComplete="new-password"
-                    disabled={!isHostedMode}
                     required
                     minLength={HOSTED_PASSWORD_MIN_LENGTH}
                     maxLength={HOSTED_PASSWORD_MAX_LENGTH}
@@ -355,9 +342,7 @@ function SignUpPage() {
                   <button
                     className="btn btn-soft w-full"
                     disabled={
-                      !isHostedMode ||
-                      isSubmitting ||
-                      (isTurnstileEnabled && !captcha.hasToken)
+                      isSubmitting || (isTurnstileEnabled && !captcha.hasToken)
                     }
                   >
                     {isSubmitting ? "Creating account..." : "Create account"}

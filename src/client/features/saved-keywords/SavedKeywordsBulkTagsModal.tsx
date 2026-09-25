@@ -228,28 +228,22 @@ export function SavedKeywordsBulkTagsModal({
           </div>
         ) : (
           <div className="space-y-2">
-            {selectedRowTags.length === 0 ? (
-              <div className="rounded-md border border-base-300 bg-base-200/40 px-3 py-6 text-center text-xs text-base-content/55">
-                The selected keywords don&apos;t have any tags to remove.
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 rounded-md border border-base-300 p-3">
-                {selectedRowTags.map((tag) => {
-                  const checked = removeIds.includes(tag.id);
-                  return (
-                    <TagChip
-                      key={tag.id}
-                      tag={tag}
-                      size="sm"
-                      onClick={() => handleToggleRemove(tag)}
-                      selected={checked}
-                      trailing={checked ? <Check className="size-3" /> : null}
-                      title={checked ? "Will be removed" : "Click to remove"}
-                    />
-                  );
-                })}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-1.5 rounded-md border border-base-300 p-3">
+              {selectedRowTags.map((tag) => {
+                const checked = removeIds.includes(tag.id);
+                return (
+                  <TagChip
+                    key={tag.id}
+                    tag={tag}
+                    size="sm"
+                    onClick={() => handleToggleRemove(tag)}
+                    selected={checked}
+                    trailing={checked ? <Check className="size-3" /> : null}
+                    title={checked ? "Will be removed" : "Click to remove"}
+                  />
+                );
+              })}
+            </div>
             {removeIds.length > 0 ? (
               <p className="text-xs text-base-content/55">
                 {removeIds.length} tag{removeIds.length !== 1 ? "s" : ""} will

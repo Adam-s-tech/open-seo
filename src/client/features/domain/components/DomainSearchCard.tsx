@@ -109,17 +109,13 @@ export function DomainSearchCard({
             )}
           </controlsForm.Field>
 
-          <controlsForm.Subscribe selector={(state) => state.isSubmitting}>
-            {(isSubmitting) => (
-              <button
-                type="submit"
-                className="btn btn-primary shrink-0 px-6"
-                disabled={isLoading || isSubmitting}
-              >
-                {isLoading || isSubmitting ? "Loading..." : "Search"}
-              </button>
-            )}
-          </controlsForm.Subscribe>
+          <button
+            type="submit"
+            className="btn btn-primary shrink-0 px-6"
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Search"}
+          </button>
         </form>
 
         <controlsForm.Field name="domain">

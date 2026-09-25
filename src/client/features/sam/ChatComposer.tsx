@@ -5,19 +5,17 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
-import { ArrowUp, Loader2, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 
 export function ChatComposer({
   busy,
   onSend,
   onStop,
-  placeholder = "Ask Sam about your strategy or OpenSEO…",
 }: {
   busy: boolean;
   onSend: (text: string) => void;
   /** Cancels the running turn; while busy the send button becomes Stop. */
-  onStop?: () => void;
-  placeholder?: string;
+  onStop: () => void;
 }) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -61,10 +59,10 @@ export function ChatComposer({
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKey}
         rows={1}
-        placeholder={placeholder}
+        placeholder="Ask SAM to research, analyze, or track anything…"
         className="max-h-40 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-sm leading-relaxed outline-none placeholder:text-base-content/50 focus:outline-none"
       />
-      {busy && onStop ? (
+      {busy ? (
         <button
           type="button"
           aria-label="Stop"
@@ -77,14 +75,10 @@ export function ChatComposer({
         <button
           type="submit"
           aria-label="Send message"
-          disabled={busy || !value.trim()}
+          disabled={!value.trim()}
           className="btn btn-primary btn-circle btn-sm"
         >
-          {busy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <ArrowUp className="size-4" />
-          )}
+          <ArrowUp className="size-4" />
         </button>
       )}
     </form>

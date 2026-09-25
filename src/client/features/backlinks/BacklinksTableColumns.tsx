@@ -2,13 +2,15 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronRight } from "lucide-react";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HeaderHelpLabel } from "@/client/features/keywords/components";
-import { BacklinksSourceLink } from "./BacklinksPageLinks";
+import { SafeExternalLink } from "@/client/components/SafeExternalLink";
 import type { BacklinksRow } from "./backlinksPageTypes";
 import type { BacklinksRowsSortField } from "@/types/schemas/backlinks";
 import {
+  extractUrlPath,
   formatCompactDate,
   formatDecimal,
   formatNumber,
+  truncateMiddle,
 } from "./backlinksPageUtils";
 import type { DomainRatings } from "./useAhrefsDomainRatings";
 
@@ -26,6 +28,24 @@ export type BacklinksDisplayRow =
       expanded: boolean;
     }
   | { kind: "status"; domain: string; status: "loading" | "error" | "empty" };
+
+function BacklinksSourceLink({
+  url,
+  maxLength,
+  muted = false,
+}: {
+  url: string;
+  maxLength: number;
+  muted?: boolean;
+}) {
+  return (
+    <SafeExternalLink
+      url={url}
+      label={truncateMiddle(extractUrlPath(url), maxLength)}
+      className={`link link-hover break-all inline-flex items-center gap-1 ${muted ? "text-xs text-base-content/55" : "text-sm"}`}
+    />
+  );
+}
 
 function BacklinkFlags({ row }: { row: BacklinksRow }) {
   return (

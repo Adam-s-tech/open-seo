@@ -34,43 +34,23 @@ export function ExternalUrlCell({
   label,
   baseDomain,
   className = "link link-primary inline-flex items-center gap-1",
-  display = "formatted",
-  empty = "-",
 }: {
   value: string | null | undefined;
-  label?: string | null;
+  label: string;
   baseDomain?: string;
   className?: string;
-  display?: "formatted" | "path" | "raw";
-  empty?: string;
 }) {
   const href = resolveUrlHref(value, baseDomain);
   if (!value || !href) {
-    return <span className="text-base-content/40">{empty}</span>;
+    return <span className="text-base-content/40">-</span>;
   }
 
-  const visibleLabel = label ?? getUrlDisplayLabel(value, display);
   return (
     <a className={className} href={href} target="_blank" rel="noreferrer">
-      <span className="truncate">{visibleLabel}</span>
+      <span className="truncate">{label}</span>
       <ExternalLink className="size-3 shrink-0" />
     </a>
   );
-}
-
-function getUrlDisplayLabel(
-  value: string,
-  display: "formatted" | "path" | "raw",
-) {
-  if (display === "raw") return value;
-  if (display === "path") {
-    try {
-      return new URL(value).pathname;
-    } catch {
-      return value;
-    }
-  }
-  return formatUrlForDisplay(value);
 }
 
 export function getSafeExternalUrl(value: string) {

@@ -172,10 +172,6 @@ function RankTrackingConfigModalContent({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPending) return;
-    if (!domain.trim()) {
-      toast.error("Please enter a domain");
-      return;
-    }
     if (targetingMode === "local" && !locationName) {
       toast.error("Please select a city or region for local targeting");
       return;

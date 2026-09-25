@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { OnboardingAccountMenu } from "@/client/features/onboarding/OnboardingAccountMenu";
@@ -44,15 +44,12 @@ export const Route = createFileRoute("/_authenticated/onboarding/")({
 
 function OnboardingPage() {
   const { data: session } = useSession();
-  const onboardingQuery = useQuery(onboardingAnswersQueryOptions());
-
-  if (!onboardingQuery.data) {
-    return null;
-  }
+  // beforeLoad seeded this query with ensureQueryData, so data is ready.
+  const { data } = useSuspenseQuery(onboardingAnswersQueryOptions());
 
   return (
     <OnboardingFlow
-      initialAnswers={restoreOnboardingAnswers(onboardingQuery.data.answers)}
+      initialAnswers={restoreOnboardingAnswers(data.answers)}
       email={session?.user?.email}
     />
   );
@@ -70,10 +67,7 @@ function OnboardingFlow({
   const [answers, setAnswers] = useState<OnboardingAnswers>(initialAnswers);
 
   const saveMutation = useMutation({
-    mutationFn: (extra: {
-      completed?: boolean;
-      mcpSetupIntent?: "yes" | "no";
-    }) =>
+    mutationFn: (extra: { completed?: boolean }) =>
       saveOnboardingAnswers({
         data: buildOnboardingPayload(answers, step, extra),
       }),
@@ -99,12 +93,9 @@ function OnboardingFlow({
     goToStep(step + 1);
   };
 
-  const handleFinish = async (mcpSetupIntent?: "yes" | "no") => {
+  const handleFinish = async () => {
     try {
-      await saveMutation.mutateAsync({
-        completed: true,
-        ...(mcpSetupIntent ? { mcpSetupIntent } : {}),
-      });
+      await saveMutation.mutateAsync({ completed: true });
       // Refresh the shared cache so the destination's onboarding-redirect guard
       // sees the completed state and doesn't bounce the user back here.
       await queryClient.invalidateQueries({ queryKey: ["onboardingAnswers"] });

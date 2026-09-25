@@ -4,7 +4,7 @@ import {
   AppDataTable,
   useAppTable,
 } from "@/client/components/table/AppDataTable";
-import { EmptyTableState } from "./BacklinksPageEmptyTableState";
+import { EmptyTableState } from "./BacklinksPageStates";
 import {
   buildBacklinksColumns,
   type BacklinksDisplayRow,

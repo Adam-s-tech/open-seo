@@ -109,10 +109,6 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   } = params;
 
   const handleSaveKeywords = () => {
-    if (selectedRows.size === 0) {
-      toast.error("Select at least one keyword first");
-      return;
-    }
     setShowSaveDialog(true);
   };
 
@@ -159,10 +155,6 @@ export function useSaveAndExportActions(params: SaveExportActionParams) {
   );
 
   const exportCsv = () => {
-    if (sheetsExportRows.length === 0) {
-      toast.error("No data to export");
-      return;
-    }
     downloadKeywordResearchCsv(
       sheetsExportRows,
       keywordResearchHeaders(input.locationName),

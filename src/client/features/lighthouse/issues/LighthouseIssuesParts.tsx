@@ -21,7 +21,6 @@ import { categoryLabel } from "./utils";
 import { categoryTabs } from "./types";
 
 export function LighthouseIssuesHeader({
-  backLabel,
   onBack,
   isLoading,
   scannedAt,
@@ -30,7 +29,6 @@ export function LighthouseIssuesHeader({
   metrics,
   severityCounts,
 }: {
-  backLabel: string;
   onBack: () => void;
   isLoading: boolean;
   scannedAt?: string;
@@ -43,7 +41,7 @@ export function LighthouseIssuesHeader({
     <>
       <div className="flex items-center justify-between gap-3">
         <button className="btn btn-ghost btn-sm px-2" onClick={onBack}>
-          &larr; Back to {backLabel}
+          &larr; Back to Site Audit
         </button>
         <span className="text-xs text-base-content/60">
           {scannedAt

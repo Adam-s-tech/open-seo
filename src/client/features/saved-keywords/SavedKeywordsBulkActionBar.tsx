@@ -22,10 +22,9 @@ export function SavedKeywordsBulkActionBar({
   onExportSheets: () => void;
   onDelete: () => void;
   onClear: () => void;
-  exportingSelection: "csv" | "sheets" | null;
+  exportingSelection: boolean;
 }) {
   if (selectedCount === 0) return null;
-  const exportBusy = exportingSelection != null;
 
   return (
     <TableBulkActionBar
@@ -42,7 +41,7 @@ export function SavedKeywordsBulkActionBar({
             </TableBulkActionButton>
 
             <TableBulkExportMenu
-              busy={exportBusy}
+              busy={exportingSelection}
               actions={[
                 {
                   label: "Copy keywords",

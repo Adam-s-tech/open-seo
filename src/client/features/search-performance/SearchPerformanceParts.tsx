@@ -264,7 +264,8 @@ export function StrikingDistanceTable({
     enableRowSelection: true,
     state: { rowSelection },
     onRowSelectionChange: setRowSelection,
-    getRowId: (row) => `${row.query}::${row.page}`,
+    // The server collapses each query to its top page, so queries are unique.
+    getRowId: (row) => row.query,
     initialState: {
       sorting: [{ id: "impressions", desc: true }],
       // All rows are already loaded; paginate client-side to keep the table
@@ -274,10 +275,9 @@ export function StrikingDistanceTable({
   });
   const pagination = table.getState().pagination;
 
-  // Rows are query x page; saving/copying dedupes to the query strings.
-  const selectedQueries = Array.from(
-    new Set(table.getSelectedRowModel().rows.map((row) => row.original.query)),
-  );
+  const selectedQueries = table
+    .getSelectedRowModel()
+    .rows.map((row) => row.original.query);
 
   const copyKeywords = async () => {
     try {

@@ -21,9 +21,8 @@ export function useSavedKeywordsExport(params: {
   order: ExportSavedKeywordsInput["order"];
 }) {
   const [exporting, setExporting] = useState<"csv" | "sheets" | null>(null);
-  const [exportingSelection, setExportingSelection] = useState<
-    "csv" | "sheets" | null
-  >(null);
+  // Only the Sheets selection export is async; the CSV download is synchronous.
+  const [exportingSelection, setExportingSelection] = useState(false);
 
   const exportInput = useMemo<ExportSavedKeywordsInput>(
     () => ({
@@ -84,24 +83,18 @@ export function useSavedKeywordsExport(params: {
     }
   };
 
+  // The selection bar only renders with at least one row selected.
   const exportSelectionCsv = (selectedRows: SavedKeywordRow[]) => {
-    if (selectedRows.length === 0) return;
-    setExportingSelection("csv");
-    try {
-      downloadKeywordCsv(selectedRows);
-      captureClientEvent("data:export", {
-        source_feature: "saved_keywords",
-        result_count: selectedRows.length,
-        scope: "selection",
-      });
-    } finally {
-      setExportingSelection(null);
-    }
+    downloadKeywordCsv(selectedRows);
+    captureClientEvent("data:export", {
+      source_feature: "saved_keywords",
+      result_count: selectedRows.length,
+      scope: "selection",
+    });
   };
 
   const exportSelectionSheets = async (selectedRows: SavedKeywordRow[]) => {
-    if (selectedRows.length === 0) return;
-    setExportingSelection("sheets");
+    setExportingSelection(true);
     try {
       await exportTableToSheets({
         headers: SAVED_KEYWORD_EXPORT_HEADERS,
@@ -111,7 +104,7 @@ export function useSavedKeywordsExport(params: {
     } catch (error) {
       toast.error(getStandardErrorMessage(error, "Could not export to Sheets"));
     } finally {
-      setExportingSelection(null);
+      setExportingSelection(false);
     }
   };
 

@@ -223,7 +223,6 @@ function BillingPage() {
               </ul>
               <button
                 className="btn btn-soft btn-sm w-full"
-                disabled={isPending}
                 onClick={() =>
                   void runAction(
                     startUpgradeCheckout,
@@ -237,7 +236,6 @@ function BillingPage() {
           ) : (
             <button
               className="btn btn-soft btn-sm w-full"
-              disabled={isPending}
               onClick={() =>
                 void runAction(
                   () =>
@@ -287,7 +285,7 @@ function BillingPage() {
 
             <button
               className="btn btn-soft btn-sm w-full"
-              disabled={isPending || !isValidTopUp}
+              disabled={!isValidTopUp}
               onClick={() =>
                 void runAction(
                   () =>

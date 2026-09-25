@@ -5,7 +5,6 @@ import { GoogleGlyph } from "@/client/features/gsc/GoogleGlyph";
 import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
 import { GoogleLinkErrorAlert } from "@/client/features/integrations/GoogleLinkErrorAlert";
-import { SelfHostedSetupWarning } from "@/client/features/gsc/SelfHostedSetupWarning";
 import {
   SitePicker,
   type GscSiteSelection,
@@ -97,12 +96,11 @@ function GscConnect({
   const connection = connectionQuery.data;
   const connected = Boolean(connection?.connected);
   const hasGrant = Boolean(connection?.currentUserHasGrant);
-  const needsSetup = Boolean(connection && !connection.googleOAuthConfigured);
 
   const sitesQuery = useQuery({
     queryKey: ["gscSites", projectId],
     queryFn: () => listGscSites({ data: { projectId } }),
-    enabled: hasGrant && !connected && !needsSetup,
+    enabled: hasGrant && !connected,
   });
   const accounts = React.useMemo(
     () => sitesQuery.data?.accounts ?? [],
@@ -141,7 +139,7 @@ function GscConnect({
   };
 
   const busy = linking || setSiteMutation.isPending;
-  const showPicker = hasGrant && !connected && !needsSetup;
+  const showPicker = hasGrant && !connected;
 
   return (
     <fieldset disabled={busy}>
@@ -153,8 +151,6 @@ function GscConnect({
           onRetry={() => void connectionQuery.refetch()}
           isRetrying={connectionQuery.isFetching}
         />
-      ) : needsSetup ? (
-        <SelfHostedSetupWarning />
       ) : connected ? (
         <div className="flex items-center gap-3 rounded-lg border border-success/30 bg-success/10 p-3.5 text-sm">
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">

@@ -6,7 +6,7 @@ const CLOUDFLARE_SETUP_GUIDE_URL =
 
 type AuthConfigErrorCardProps = {
   message: string;
-  onRetry?: () => void;
+  onRetry: () => void;
 };
 
 export function AuthConfigErrorCard({
@@ -44,11 +44,9 @@ export function AuthConfigErrorCard({
         )}
 
         <div className="card-actions justify-end">
-          {onRetry ? (
-            <button className="btn btn-ghost btn-sm" onClick={onRetry}>
-              Try Again
-            </button>
-          ) : null}
+          <button className="btn btn-ghost btn-sm" onClick={onRetry}>
+            Try Again
+          </button>
           <a
             className="btn btn-primary btn-sm"
             href={CLOUDFLARE_SETUP_GUIDE_URL}

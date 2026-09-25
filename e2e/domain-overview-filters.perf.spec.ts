@@ -38,12 +38,6 @@ type PerfCheckpoint =
       error: string;
     };
 
-type DomainDebugEntry = {
-  type: string;
-  text: string;
-  parsed: unknown;
-};
-
 test.describe("Domain Overview filter performance", () => {
   test("captures main-thread stalls in the applied-filter edit flow", async ({
     page,
@@ -53,20 +47,6 @@ test.describe("Domain Overview filter performance", () => {
     test.setTimeout(120_000);
 
     await installDomainPerfProbe(page);
-    await page.addInitScript(() => {
-      window.localStorage.setItem("debug:domain-overview", "1");
-    });
-    const domainDebugLog: DomainDebugEntry[] = [];
-    page.on("console", (message) => {
-      const text = message.text();
-      if (!text.startsWith("[domain-debug]")) return;
-      const raw = text.slice("[domain-debug]".length).trim();
-      domainDebugLog.push({
-        type: message.type(),
-        text,
-        parsed: parseDomainDebugMessage(raw),
-      });
-    });
     const client = await page.context().newCDPSession(page);
     await client.send("Emulation.setCPUThrottlingRate", {
       rate: CPU_THROTTLE_RATE,
@@ -179,11 +159,6 @@ test.describe("Domain Overview filter performance", () => {
         "domain-filter-perf-checkpoints.json",
         checkpoints,
       );
-      await attachJsonArtifact(
-        testInfo,
-        "domain-filter-debug-log.json",
-        domainDebugLog,
-      );
       if (finalMetrics) {
         await attachDomainPerfMetrics(testInfo, finalMetrics);
       }
@@ -237,14 +212,6 @@ function summarizeMetrics(metrics: DomainPerfMetrics) {
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
-}
-
-function parseDomainDebugMessage(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return raw;
-  }
 }
 
 async function withDeadline<T>(

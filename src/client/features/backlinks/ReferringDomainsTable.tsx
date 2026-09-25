@@ -8,7 +8,7 @@ import {
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HeaderHelpLabel } from "@/client/features/keywords/components";
-import { EmptyTableState } from "./BacklinksPageEmptyTableState";
+import { EmptyTableState } from "./BacklinksPageStates";
 import type { ReferringDomainRow } from "./backlinksPageTypes";
 import type { ReferringDomainsSortField } from "@/types/schemas/backlinks";
 import {

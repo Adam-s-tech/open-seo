@@ -110,8 +110,7 @@ function PromptExplorerPageInner({
     // Client-side gate is a UX optimization only; the paywall is enforced
     // server-side (explorePrompt → assertPaidPlan) before any DataForSEO spend,
     // so a stale free-plan window here just yields a rejected request, not cost.
-    enabled:
-      hasActivePrompt && urlState.models.length > 0 && !planGate.isFreePlan,
+    enabled: hasActivePrompt && !planGate.isFreePlan,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
@@ -168,10 +167,6 @@ function PromptExplorerPageInner({
       setValidationError(
         `Keep prompts under ${PROMPT_EXPLORER_MAX_PROMPT_LENGTH} characters`,
       );
-      return;
-    }
-    if (form.models.length === 0) {
-      setValidationError("Select at least one model");
       return;
     }
     setValidationError(null);

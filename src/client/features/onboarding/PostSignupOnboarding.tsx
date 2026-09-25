@@ -22,7 +22,7 @@ type PostSignupOnboardingProps = {
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
-  onFinish: (mcpSetupIntent?: "yes" | "no") => void;
+  onFinish: () => void;
   isSaving: boolean;
   accountMenu: ReactNode;
 };
@@ -83,14 +83,14 @@ export function PostSignupOnboarding({
               onToggle={(workFor) => updateAnswers({ workFor })}
               otherValue={answers.workForOther}
               onOtherChange={(workForOther) => updateAnswers({ workForOther })}
-              followUp={{
-                showForValue: CLIENT_WORK_FOR,
-                label: "About how many client sites do you work on?",
-                options: [...CLIENT_WEBSITE_COUNT_OPTIONS],
-                value: answers.clientWebsiteCount,
-                onChange: (clientWebsiteCount) =>
-                  updateAnswers({ clientWebsiteCount }),
-              }}
+              followUp={
+                <ClientWebsiteCountPicker
+                  value={answers.clientWebsiteCount}
+                  onChange={(clientWebsiteCount) =>
+                    updateAnswers({ clientWebsiteCount })
+                  }
+                />
+              }
             />
           ) : step === 2 ? (
             <OnboardingChoiceGroup
@@ -182,17 +182,10 @@ function OnboardingChoiceGroup({
   onOtherChange: (value: string) => void;
   multiple?: boolean;
   maxSelections?: number;
-  followUp?: {
-    showForValue: string;
-    label: string;
-    options: string[];
-    value: string;
-    onChange: (value: string) => void;
-  };
+  /** Shown under the "My clients" option while it is selected. */
+  followUp?: ReactNode;
 }) {
   const isOtherSelected = selectedValues.includes("Other");
-  const showFollowUp =
-    followUp !== undefined && selectedValues.includes(followUp.showForValue);
   const atLimit =
     maxSelections !== undefined && selectedValues.length >= maxSelections;
 
@@ -211,8 +204,6 @@ function OnboardingChoiceGroup({
         {options.map((option) => {
           const selected = selectedValues.includes(option);
           const disabled = atLimit && !selected;
-          const showFollowUpHere =
-            showFollowUp && followUp?.showForValue === option;
 
           return (
             <Fragment key={option}>
@@ -233,39 +224,7 @@ function OnboardingChoiceGroup({
                 </span>
               </button>
 
-              {showFollowUpHere && followUp ? (
-                <div className="w-full rounded-lg border border-base-300 bg-base-200/40 p-4">
-                  <p className="text-sm text-base-content/70">
-                    {followUp.label}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {followUp.options.map((followUpOption) => {
-                      const followUpSelected =
-                        followUp.value === followUpOption;
-
-                      return (
-                        <button
-                          key={followUpOption}
-                          type="button"
-                          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                            followUpSelected
-                              ? "border-base-content bg-base-200 text-base-content"
-                              : "border-base-300 text-base-content/75 hover:border-base-content/40 hover:bg-base-200/60"
-                          }`}
-                          aria-pressed={followUpSelected}
-                          onClick={() =>
-                            followUp.onChange(
-                              followUpSelected ? "" : followUpOption,
-                            )
-                          }
-                        >
-                          {followUpOption}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
+              {selected && option === CLIENT_WORK_FOR ? followUp : null}
             </Fragment>
           );
         })}
@@ -281,6 +240,43 @@ function OnboardingChoiceGroup({
           onChange={(event) => onOtherChange(event.target.value)}
         />
       ) : null}
+    </div>
+  );
+}
+
+function ClientWebsiteCountPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="w-full rounded-lg border border-base-300 bg-base-200/40 p-4">
+      <p className="text-sm text-base-content/70">
+        About how many client sites do you work on?
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {CLIENT_WEBSITE_COUNT_OPTIONS.map((option) => {
+          const selected = value === option;
+
+          return (
+            <button
+              key={option}
+              type="button"
+              className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                selected
+                  ? "border-base-content bg-base-200 text-base-content"
+                  : "border-base-300 text-base-content/75 hover:border-base-content/40 hover:bg-base-200/60"
+              }`}
+              aria-pressed={selected}
+              onClick={() => onChange(selected ? "" : option)}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

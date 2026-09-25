@@ -25,14 +25,6 @@ export function BrandLookupMentionTrendCard({ result }: Props) {
     [result.monthlyVolume],
   );
 
-  if (chartData.length === 0) {
-    return (
-      <div className="flex h-56 items-center justify-center text-sm text-base-content/60">
-        Not enough historical data yet.
-      </div>
-    );
-  }
-
   return (
     <div className="h-56">
       <ResponsiveContainer width="100%" height="100%">

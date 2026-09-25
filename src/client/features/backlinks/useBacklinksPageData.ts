@@ -230,6 +230,8 @@ export function useBacklinksPageData({
   };
 }
 
+export type BacklinksPageData = ReturnType<typeof useBacklinksPageData>;
+
 export function navigateToBacklinksSearch(
   navigate: BacklinksPageProps["navigate"],
   values: Pick<BacklinksSearchState, "target" | "scope">,

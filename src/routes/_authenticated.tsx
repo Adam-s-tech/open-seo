@@ -1,5 +1,5 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
-import { AuthPageShell } from "@/client/features/auth/AuthPage";
+import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { AuthPageCard, AuthPageShell } from "@/client/features/auth/AuthPage";
 import { useHostedAuthRouteGuard } from "@/client/features/auth/useHostedAuthRouteGuard";
 import { PageLoading } from "@/client/components/Spinner";
 
@@ -12,7 +12,18 @@ function AuthenticatedShellLayout() {
 
   // Every page under this layout is hosted-only.
   if (!authGate.isHostedMode) {
-    return null;
+    return (
+      <AuthPageShell>
+        <AuthPageCard
+          title="Not available"
+          helperText="This page isn't available right now."
+        >
+          <Link to="/" className="btn btn-soft w-full">
+            Back to OpenSEO
+          </Link>
+        </AuthPageCard>
+      </AuthPageShell>
+    );
   }
 
   if (!authGate.canRenderAuthenticatedContent) {

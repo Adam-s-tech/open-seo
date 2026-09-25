@@ -1,5 +1,4 @@
 import { Sparkles } from "lucide-react";
-import { toast } from "sonner";
 import { buildCsv, downloadCsv } from "@/client/lib/csv";
 import { exportTableToSheets } from "@/client/lib/exportToSheets";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -250,10 +249,6 @@ export function exportRankTrackingCsv(
   domain: string,
   locationName?: string | null,
 ) {
-  if (sorted.length === 0) {
-    toast.error("No data to export");
-    return;
-  }
   const { headers, rows } = buildRankTrackingExport(
     sorted,
     showDesktop,

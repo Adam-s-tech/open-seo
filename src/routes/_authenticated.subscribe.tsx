@@ -12,7 +12,6 @@ import {
 } from "@/client/features/billing/plan-offers";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { useSession } from "@/lib/auth-client";
-import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { getSubscribeRouteState } from "@/client/features/billing/route-state";
 import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
@@ -69,12 +68,10 @@ function SubscribePage() {
   const canManageBilling = useCanManageBilling();
 
   // Read managed access from the already-loaded Autumn customer (local, no API
-  // call) instead of a separate server round-trip. Self-hosted has no Autumn
-  // customer, so mirror the server's "always granted" behavior there.
-  const hasManagedAccess = isHostedClientAuthMode()
-    ? customerQuery.check({ featureId: AUTUMN_MANAGED_ACCESS_FEATURE_ID })
-        .allowed
-    : true;
+  // call) instead of a separate server round-trip.
+  const hasManagedAccess = customerQuery.check({
+    featureId: AUTUMN_MANAGED_ACCESS_FEATURE_ID,
+  }).allowed;
 
   const planStatus = getCustomerPlanStatus(customerQuery.data);
   const subscribeRouteState = getSubscribeRouteState({

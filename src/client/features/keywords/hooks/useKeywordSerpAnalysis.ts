@@ -134,7 +134,6 @@ export function useKeywordSerpAnalysis(
     serpPage: visiblePage,
     setSerpPage,
     SERP_PAGE_SIZE,
-    serpQuery,
     serpResults,
     activeSerpKeyword,
     serpLoading,

@@ -11,10 +11,6 @@ import {
   buildPagesSearchUpdate,
   countPageFilterConditions,
 } from "@/client/features/domain/domainFilterUtils";
-import {
-  debugDomain,
-  useDomainRenderDebug,
-} from "@/client/features/domain/domainDebug";
 import { useDomainPagesQuery } from "@/client/features/domain/hooks/useDomainPagesQuery";
 import { useDomainPageFilterPreferences } from "@/client/features/domain/useDomainFilterPreferences";
 import {
@@ -132,34 +128,19 @@ export function PagesTab({
   const hasNextPage = query.data?.hasMore ?? false;
   const isLoading = query.isFetching;
   const showTableLoading = isLoading && (showFilters || rows.length === 0);
-  useDomainRenderDebug("PagesTab", {
-    showFilters,
-    isLoading,
-    isPending: query.isPending,
-    rows: rows.length,
-    totalCount,
-    activeTab: routeState.tab,
-    page: routeState.page,
-    sort: routeState.sort,
-    order: routeState.order,
-  });
 
   const applyFilters = useCallback(
     (values: PagesFilterValues) => {
       if (countPageFilterConditions(values) > maxConditions) return;
-      const update = buildPagesSearchUpdate(values);
-      debugDomain("PagesTab:apply-filters", { values, update });
       savePreferredFilters(values);
-      setSearchParams(update);
+      setSearchParams(buildPagesSearchUpdate(values));
     },
     [maxConditions, savePreferredFilters, setSearchParams],
   );
 
   const resetFilters = useCallback(() => {
-    const update = buildPagesClearSearchUpdate();
-    debugDomain("PagesTab:reset-filters", { update });
     clearPreferredFilters();
-    setSearchParams(update);
+    setSearchParams(buildPagesClearSearchUpdate());
   }, [clearPreferredFilters, setSearchParams]);
 
   const activeFilterCount = useMemo(
@@ -240,7 +221,6 @@ export function PagesTab({
         filterPanel={
           showFilters ? (
             <DomainFilterPanel
-              debugName="PagesFilterPanel"
               activeFilterCount={activeFilterCount}
               appliedFilters={restoredFilters}
               fields={PAGE_FILTER_FIELDS}

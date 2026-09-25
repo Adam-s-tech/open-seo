@@ -145,7 +145,6 @@ export function RankTrackingDomainList({
               <button
                 className="btn btn-ghost btn-xs"
                 onClick={() => setFilters(EMPTY_DOMAIN_LIST_FILTERS)}
-                disabled={activeFilterCount === 0}
               >
                 Clear filters
               </button>

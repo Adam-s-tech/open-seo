@@ -31,11 +31,6 @@ export function saveSelectedKeywords({
   projectId: string;
   locationCode?: number;
 }) {
-  if (selectedKeywords.size === 0) {
-    toast.error("Select at least one keyword first");
-    return;
-  }
-
   const selectedRows = filteredKeywords.filter((row) =>
     selectedKeywords.has(row.keyword),
   );

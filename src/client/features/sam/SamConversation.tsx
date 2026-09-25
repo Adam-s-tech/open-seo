@@ -11,7 +11,6 @@ import { invalidateSamSessions } from "@/client/features/sam/samQueries";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
   ChatMessage,
-  humanizeToolLabel,
   messageHasVisibleContent,
 } from "@/client/components/chat/ChatMessage";
 import { useStickToBottom } from "@/client/components/chat/useStickToBottom";
@@ -186,10 +185,6 @@ export function SamConversation({
             <ChatMessage
               key={message.id}
               message={message}
-              // SAM exposes the full MCP tool surface (~19 tools), too many to
-              // hand-label, so tool names are humanized generically rather
-              // than kept in a curated label map.
-              resolveToolLabel={humanizeToolLabel}
               streaming={
                 isBusy &&
                 index === messages.length - 1 &&
@@ -264,7 +259,6 @@ export function SamConversation({
             busy={isBusy}
             onSend={sendText}
             onStop={() => void stop()}
-            placeholder="Ask SAM to research, analyze, or track anything…"
           />
         </div>
       </div>

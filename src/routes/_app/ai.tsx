@@ -39,10 +39,7 @@ export const Route = createFileRoute("/_app/ai")({
 });
 
 function AiPage() {
-  const origin =
-    typeof window === "undefined"
-      ? "https://app.openseo.so"
-      : window.location.origin;
+  const origin = window.location.origin;
   const mcpUrl = `${origin}/mcp`;
   const prompt = getAgentSetupPrompt(origin);
   const [tab, setTab] = useState<"setup" | "skills">("setup");

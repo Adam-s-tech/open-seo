@@ -9,82 +9,57 @@ import {
 import { BacklinksHistorySection } from "./BacklinksHistorySection";
 import type { BacklinksSearchHistoryItem } from "@/client/hooks/useBacklinksSearchHistory";
 import type {
-  BacklinksOverviewData,
-  BacklinksReferringDomainsData,
-  BacklinksRowsPageData,
   BacklinksSearchState,
   BacklinksTabRows,
-  BacklinksTopPagesData,
 } from "./backlinksPageTypes";
 import { buildSummaryStats } from "./backlinksPageUtils";
 import type { BacklinksDomainExpansion } from "./useBacklinksDomainExpansion";
 import type { BacklinksFiltersState } from "./useBacklinksFilters";
-import {
-  SearchTabStrip,
-  type SearchTab,
-} from "@/client/features/search-tabs/SearchTabStrip";
+import type { BacklinksPageData } from "./useBacklinksPageData";
+import { SearchTabStrip } from "@/client/features/search-tabs/SearchTabStrip";
+import type { useSearchTabNavigation } from "@/client/features/search-tabs/useSearchTabNavigation";
 
 type BacklinksBodyProps = {
   projectId: string;
   history: BacklinksSearchHistoryItem[];
   historyLoaded: boolean;
-  overviewData: BacklinksOverviewData | undefined;
-  overviewError: string | null;
-  overviewLoading: boolean;
-  backlinksRowsPage: BacklinksRowsPageData | undefined;
-  referringDomainsPage: BacklinksReferringDomainsData | undefined;
-  topPagesPage: BacklinksTopPagesData | undefined;
+  data: BacklinksPageData;
   searchState: BacklinksSearchState;
   filters: BacklinksFiltersState;
   sorting: SortingState;
   domainExpansion: BacklinksDomainExpansion;
-  tabErrorMessage: string | null;
-  tabLoading: boolean;
-  tabFetching: boolean;
+  searchTabs: ReturnType<typeof useSearchTabNavigation>;
   onPageChange: (nextPage: number) => void;
   onPageSizeChange: (nextPageSize: number) => void;
   onRemoveHistoryItem: (timestamp: number) => void;
-  onRetryOverview: () => void;
   onSortingChange: OnChangeFn<SortingState>;
   onTabChange: (tab: BacklinksSearchState["tab"]) => void;
   onViewChange: (view: "all" | undefined) => void;
   onHideSpamChange: (hideSpam: boolean) => void;
-  searchTabs: {
-    activeTabId: string | null;
-    tabs: SearchTab[];
-    onSelect: (tab: SearchTab) => void;
-    onClose: (tabId: string) => void;
-    onViewed: (tabId: string, when?: number) => void;
-  } | null;
 };
 
 export function BacklinksBody({
   projectId,
   history,
   historyLoaded,
-  overviewData,
-  overviewError,
-  overviewLoading,
-  backlinksRowsPage,
-  referringDomainsPage,
-  topPagesPage,
+  data,
   searchState,
   filters,
   sorting,
   domainExpansion,
-  tabErrorMessage,
-  tabLoading,
-  tabFetching,
+  searchTabs,
   onPageChange,
   onPageSizeChange,
   onRemoveHistoryItem,
-  onRetryOverview,
   onSortingChange,
   onTabChange,
   onViewChange,
   onHideSpamChange,
-  searchTabs,
 }: BacklinksBodyProps) {
+  const overviewData = data.overviewQuery.data;
+  const backlinksRowsPage = data.rowsQuery.data;
+  const referringDomainsPage = data.referringDomainsQuery.data;
+  const topPagesPage = data.topPagesQuery.data;
   const tabRows = useMemo<BacklinksTabRows>(
     () => ({
       backlinks: backlinksRowsPage?.rows ?? [],
@@ -93,26 +68,21 @@ export function BacklinksBody({
     }),
     [backlinksRowsPage, referringDomainsPage, topPagesPage],
   );
-  const activeTabPage =
-    searchState.tab === "backlinks"
-      ? backlinksRowsPage
-      : searchState.tab === "domains"
-        ? referringDomainsPage
-        : topPagesPage;
+  const activeTabPage = data.activeTabQuery.data;
   const summaryStats = useMemo(
     () => buildSummaryStats(overviewData),
     [overviewData],
   );
-  const tabStrip = searchTabs ? (
+  const tabStrip = (
     <SearchTabStrip
       projectId={projectId}
       activeTabId={searchTabs.activeTabId}
       tabs={searchTabs.tabs}
-      onSelect={searchTabs.onSelect}
-      onClose={searchTabs.onClose}
-      onViewed={searchTabs.onViewed}
+      onSelect={searchTabs.selectTab}
+      onClose={searchTabs.closeTab}
+      onViewed={searchTabs.markTabViewed}
     />
-  ) : null;
+  );
 
   if (!searchState.target) {
     return (
@@ -125,7 +95,7 @@ export function BacklinksBody({
     );
   }
 
-  if (overviewLoading) {
+  if (data.overviewQuery.isLoading) {
     return (
       <>
         {tabStrip}
@@ -139,8 +109,8 @@ export function BacklinksBody({
       <>
         {tabStrip}
         <BacklinksErrorState
-          errorMessage={overviewError}
-          onRetry={onRetryOverview}
+          errorMessage={data.overviewErrorMessage}
+          onRetry={() => void data.overviewQuery.refetch()}
         />
       </>
     );
@@ -168,15 +138,15 @@ export function BacklinksBody({
         hideSpam={!searchState.includeSpam}
         onHideSpamChange={onHideSpamChange}
         domainExpansion={domainExpansion}
-        isTabLoading={tabLoading}
-        tabErrorMessage={tabErrorMessage}
+        isTabLoading={data.activeTabQuery.isLoading}
+        tabErrorMessage={data.activeTabErrorMessage}
         exportTarget={overviewData.displayTarget || searchState.target}
         pagination={{
           page: searchState.page,
           pageSize: searchState.pageSize,
           totalCount: activeTabPage?.totalCount ?? null,
           hasNextPage: activeTabPage?.hasMore ?? false,
-          isFetching: tabFetching,
+          isFetching: data.activeTabQuery.isFetching,
         }}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}

@@ -121,21 +121,6 @@ select {
   .pb-safe {
     padding-bottom: calc(env(safe-area-inset-bottom, 0.5rem) + 0.5rem);
   }
-  .pt-safe {
-    padding-top: max(env(safe-area-inset-top, 0), 12px);
-  }
-}
-
-/* Override DaisyUI dock's fixed positioning to use flex layout instead */
-/* This allows the TabBar to work correctly with Safari's browser toolbar */
-.dock {
-  position: relative;
-  bottom: auto;
-  left: auto;
-  right: auto;
-  border-top: none;
-  height: 4rem;
-  padding-bottom: 0;
 }
 
 /* Touch device optimizations */

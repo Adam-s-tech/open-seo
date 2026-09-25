@@ -404,17 +404,15 @@ function useDomainOverviewState({
     lastTrackedKey.current = "";
   }, [routeState.domain]);
 
+  // Changing location updates the form before the route navigation commits,
+  // so block saves until the rendered results match the selected market.
   const controlsLocationCode = useStore(
     controlsForm.store,
     (s) => s.values.locationCode,
   );
-  const canSaveKeywords = useMemo(
-    () =>
-      controlsLocationCode === routeState.locationCode &&
-      overview !== null &&
-      overview.hasData,
-    [controlsLocationCode, overview, routeState.locationCode],
-  );
+  const canSaveKeywords =
+    controlsLocationCode === routeState.locationCode &&
+    overview?.hasData === true;
 
   const handleSearchSubmit = useCallback(
     (event: FormEvent) => {

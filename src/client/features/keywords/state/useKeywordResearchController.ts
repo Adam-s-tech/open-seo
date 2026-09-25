@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import {
   useKeywordControlsForm,
   type KeywordControlsValues,
@@ -7,7 +13,6 @@ import { useKeywordFiltering } from "@/client/features/keywords/hooks/useKeyword
 import { usePreferredKeywordGrouping } from "@/client/features/keywords/hooks/usePreferredKeywordGrouping";
 import { useLocalKeywordFilters } from "@/client/features/keywords/hooks/useLocalKeywordFilters";
 import { useKeywordResearchData } from "@/client/features/keywords/hooks/useKeywordResearchData";
-import { useKeywordSelection } from "@/client/features/keywords/hooks/useKeywordSelection";
 import { useKeywordSerpAnalysis } from "@/client/features/keywords/hooks/useKeywordSerpAnalysis";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { useSearchHistory } from "@/client/hooks/useSearchHistory";
@@ -77,19 +82,12 @@ export function useKeywordResearchController(
   const uiState = useKeywordUiState(
     Object.values(filterValues).some((v) => v.trim() !== ""),
   );
-  const {
-    selectedRows,
-    setSelectedRows,
-    clearSelection,
-    toggleRowSelection,
-    toggleAllRows,
-  } = useKeywordSelection();
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const {
     setSerpKeyword,
     serpPage,
     setSerpPage,
     SERP_PAGE_SIZE,
-    serpQuery,
     serpResults,
     activeSerpKeyword,
     serpLoading,
@@ -152,11 +150,11 @@ export function useKeywordResearchController(
   const handledSerpSearchKeyRef = useRef<string | null>(null);
 
   const clearActiveKeywordResult = useCallback(() => {
-    clearSelection();
+    setSelectedRows(new Set());
     uiState.setSelectedKeyword(null);
     setSerpKeyword(null);
     setSerpPage(0);
-  }, [clearSelection, setSerpKeyword, setSerpPage, uiState]);
+  }, [setSerpKeyword, setSerpPage, uiState]);
 
   const onFormSubmit = input.onFormSubmit;
   const controlsForm = useKeywordControlsForm(
@@ -246,10 +244,6 @@ export function useKeywordResearchController(
       setShowSaveDialog: uiState.setShowSaveDialog,
     });
 
-  const handleToggleAllRows = () => {
-    toggleAllRows(filteredRows.map((row) => row.keyword));
-  };
-
   const handleRowClick = (row: KeywordResearchRow) => {
     captureClientEvent("keyword_research:serp_open");
     uiState.setSelectedKeyword(row);
@@ -275,7 +269,6 @@ export function useKeywordResearchController(
     history,
     historyLoaded,
     isLoading,
-    lastSearchError,
     lastSearchKeyword,
     lastSearchLocationCode,
     locationName: input.locationName,
@@ -296,7 +289,6 @@ export function useKeywordResearchController(
     serpLoading,
     serpLoadingMore,
     serpPage,
-    serpQuery,
     serpResults,
     setMobileTab: uiState.setMobileTab,
     setSelectedRows,
@@ -308,8 +300,6 @@ export function useKeywordResearchController(
     showSaveDialog: uiState.showSaveDialog,
     sortDir: input.sortDir,
     sortField: input.sortField,
-    toggleAllRows: handleToggleAllRows,
-    toggleRowSelection,
     toggleSort,
     SERP_PAGE_SIZE,
   };

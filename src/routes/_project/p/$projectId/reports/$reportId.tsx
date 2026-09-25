@@ -49,8 +49,6 @@ function ReportDetailPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const openedRef = useRef<string | null>(null);
-  const exitRef = useRef<HTMLButtonElement>(null);
-
   const reportQuery = useQuery({
     queryKey: reportQueryKey(projectId, reportId),
     queryFn: () => getReport({ data: { projectId, reportId } }),
@@ -61,8 +59,6 @@ function ReportDetailPage() {
     // not-found copy by several seconds.
     retry: false,
   });
-  const report = reportQuery.data;
-
   const deleteMutation = useDeleteReport(projectId, () => {
     setShowDelete(false);
     // `replace`, so Back does not return to the deleted report's URL.
@@ -73,51 +69,29 @@ function ReportDetailPage() {
     });
   });
 
-  // useCallback so the Esc listener below is not re-registered every render.
-  const setExpanded = useCallback(
-    (expanded: boolean) => {
-      void navigate({
-        search: () => (expanded ? { full: true } : {}),
-        replace: true,
-      });
-    },
-    [navigate],
-  );
+  // useCallback so the full-screen Esc listener is not re-registered (and
+  // Exit re-focused) every render.
+  const exitFullScreen = useCallback(() => {
+    void navigate({ search: () => ({}), replace: true });
+  }, [navigate]);
 
   // One open event per report, once its metadata (and so its skill) is known.
+  const loadedReport = reportQuery.data;
   useEffect(() => {
-    if (!report || openedRef.current === report.id) return;
-    openedRef.current = report.id;
+    if (!loadedReport || openedRef.current === loadedReport.id) return;
+    openedRef.current = loadedReport.id;
     captureClientEvent("report:opened", {
       project_id: projectId,
-      report_id: report.id,
-      skill: report.skill,
+      report_id: loadedReport.id,
+      skill: loadedReport.skill,
     });
-  }, [projectId, report]);
-
-  // Esc leaves the expanded view, the same key Modal.tsx uses to close. The
-  // listener is on the parent window, and the expanded body is almost entirely
-  // the sandboxed iframe: one click inside moves focus into the frame, which
-  // has no scripts and so cannot forward the key. Focusing Exit on entry keeps
-  // Esc working until the reader clicks into the report; Exit is the
-  // guaranteed path.
-  useEffect(() => {
-    if (!full) return;
-    exitRef.current?.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
-      event.preventDefault();
-      setExpanded(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [full, setExpanded]);
+  }, [projectId, loadedReport]);
 
   if (reportQuery.isPending) {
     return <PageLoading />;
   }
 
-  if (reportQuery.isError || !report) {
+  if (reportQuery.isError) {
     const notFound = getErrorCode(reportQuery.error) === "NOT_FOUND";
     return (
       <div className="px-4 py-6 md:px-6">
@@ -147,6 +121,8 @@ function ReportDetailPage() {
     );
   }
 
+  const report = reportQuery.data;
+
   // `?print=1` serves the same document with a print() script appended, so the
   // new tab opens the print dialog itself.
   const exportPdf = () => {
@@ -159,27 +135,11 @@ function ReportDetailPage() {
 
   if (full) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col bg-base-100">
-        <div className="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-2">
-          <span className="truncate text-sm font-medium">{report.title}</span>
-          <button
-            type="button"
-            ref={exitRef}
-            className="btn btn-ghost btn-sm gap-1.5"
-            onClick={() => setExpanded(false)}
-          >
-            <Minimize2 className="size-4" />
-            Exit
-          </button>
-        </div>
-        <div className="min-h-0 flex-1 p-2">
-          <ReportViewer
-            src={`/r/${report.id}`}
-            title={report.title}
-            className="h-full w-full bg-base-100"
-          />
-        </div>
-      </div>
+      <FullScreenReport
+        reportId={report.id}
+        title={report.title}
+        onExit={exitFullScreen}
+      />
     );
   }
 
@@ -303,7 +263,9 @@ function ReportDetailPage() {
             className="btn btn-ghost btn-sm btn-square"
             aria-label="Full screen"
             title="Full screen"
-            onClick={() => setExpanded(true)}
+            onClick={() =>
+              void navigate({ search: () => ({ full: true }), replace: true })
+            }
           >
             <Maximize2 className="size-4" />
           </button>
@@ -321,7 +283,7 @@ function ReportDetailPage() {
         <ReportViewer src={`/r/${report.id}`} title={report.title} />
       </div>
 
-      {hosted && showShare ? (
+      {showShare ? (
         <ShareReportModal report={report} onClose={() => setShowShare(false)} />
       ) : null}
 
@@ -333,6 +295,59 @@ function ReportDetailPage() {
           onConfirm={() => deleteMutation.mutate(report.id)}
         />
       ) : null}
+    </div>
+  );
+}
+
+// Esc leaves the expanded view, the same key Modal.tsx uses to close. The
+// listener is on the parent window, and the expanded body is almost entirely
+// the sandboxed iframe: one click inside moves focus into the frame, which has
+// no scripts and so cannot forward the key. Focusing Exit on entry keeps Esc
+// working until the reader clicks into the report; Exit is the guaranteed
+// path.
+function FullScreenReport({
+  reportId,
+  title,
+  onExit,
+}: {
+  reportId: string;
+  title: string;
+  onExit: () => void;
+}) {
+  const exitRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    exitRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      onExit();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onExit]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-base-100">
+      <div className="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-2">
+        <span className="truncate text-sm font-medium">{title}</span>
+        <button
+          type="button"
+          ref={exitRef}
+          className="btn btn-ghost btn-sm gap-1.5"
+          onClick={onExit}
+        >
+          <Minimize2 className="size-4" />
+          Exit
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 p-2">
+        <ReportViewer
+          src={`/r/${reportId}`}
+          title={title}
+          className="h-full w-full bg-base-100"
+        />
+      </div>
     </div>
   );
 }

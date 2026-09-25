@@ -7,7 +7,7 @@ import {
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HeaderHelpLabel } from "@/client/features/keywords/components";
-import { EmptyTableState } from "./BacklinksPageEmptyTableState";
+import { EmptyTableState } from "./BacklinksPageStates";
 import type { TopPageRow } from "./backlinksPageTypes";
 import type { TopPagesSortField } from "@/types/schemas/backlinks";
 import { formatNumber } from "./backlinksPageUtils";

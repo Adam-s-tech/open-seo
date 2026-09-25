@@ -34,14 +34,8 @@ function ProjectIntegrationsRoute() {
       </section>
 
       <section id="google-analytics" className="scroll-mt-6 space-y-3">
-        <GoogleAnalyticsConnectionCard
-          projectId={projectId}
-          heading={
-            <h2 className="text-sm font-medium text-base-content/50">
-              Analytics
-            </h2>
-          }
-        />
+        <h2 className="text-sm font-medium text-base-content/50">Analytics</h2>
+        <GoogleAnalyticsConnectionCard projectId={projectId} />
       </section>
 
       <CrawlerAccessSettings projectId={projectId} />

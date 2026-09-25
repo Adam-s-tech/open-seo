@@ -30,7 +30,8 @@ function IndexRedirect() {
   });
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    // getProjects always returns at least one project.
+    if (!data) return;
 
     // localStorage is untrusted — only honor the remembered project if it's
     // actually in the org's list; otherwise fall back to the most recent and

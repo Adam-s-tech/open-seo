@@ -229,20 +229,14 @@ function AffectedUrlList({ issues }: { issues: AuditIssueRow[] }) {
   );
 }
 
+// AuditRepository is the only writer and always stores JSON.stringify of a
+// details object, so the parse cannot throw.
 function parseDetails(detailsJson: string): Array<[string, unknown]> | null {
-  try {
-    const parsed: unknown = JSON.parse(detailsJson);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
-      return Object.entries(parsed);
-    }
-    return null;
-  } catch {
-    return null;
+  const parsed: unknown = JSON.parse(detailsJson);
+  if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+    return Object.entries(parsed);
   }
+  return null;
 }
 
 function IssueDetails({ detailsJson }: { detailsJson: string | null }) {

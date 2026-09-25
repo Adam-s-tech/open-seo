@@ -27,7 +27,6 @@ import { ThemePreferenceMenuItems } from "@/client/components/ThemePreferenceMen
 import { closeDropdown } from "@/client/lib/dropdown";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { signOutAndRedirect, useSession } from "@/lib/auth-client";
-import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { BILLING_ROUTE } from "@/shared/billing";
 
 interface SidebarProps {
@@ -102,13 +101,13 @@ export function Sidebar({ projectId, onNavigate, onClose }: SidebarProps) {
     setView(onSamRoute ? "chat" : "browse");
   }, [onSamRoute]);
 
-  const openChat = () => {
+  // Both tabs only render with a project selected, so they receive its id.
+  const openChat = (activeProjectId: string) => {
     setView("chat");
-    if (!projectId) return;
     if (!onSamRoute) {
       void navigate({
         to: "/p/$projectId/sam",
-        params: { projectId },
+        params: { projectId: activeProjectId },
         search: {},
       });
       onNavigate?.();
@@ -117,10 +116,13 @@ export function Sidebar({ projectId, onNavigate, onClose }: SidebarProps) {
 
   // Coming back from Chat, land on the dashboard rather than leaving the
   // conversation filling the content panel next to a Browse nav.
-  const openBrowse = () => {
+  const openBrowse = (activeProjectId: string) => {
     setView("browse");
-    if (!projectId || !onSamRoute) return;
-    void navigate({ to: "/p/$projectId", params: { projectId } });
+    if (!onSamRoute) return;
+    void navigate({
+      to: "/p/$projectId",
+      params: { projectId: activeProjectId },
+    });
     onNavigate?.();
   };
 
@@ -162,13 +164,13 @@ export function Sidebar({ projectId, onNavigate, onClose }: SidebarProps) {
               icon={LayoutGrid}
               label="Browse"
               active={view === "browse"}
-              onClick={openBrowse}
+              onClick={() => openBrowse(projectId)}
             />
             <SidebarViewTab
               icon={MessageCircle}
               label="Chat"
               active={view === "chat"}
-              onClick={openChat}
+              onClick={() => openChat(projectId)}
             />
           </div>
         </div>
@@ -232,13 +234,13 @@ function SidebarViewTab({
 
 function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
   const { data: session } = useSession();
-  const isHostedMode = isHostedClientAuthMode();
+  // Only hosted mode has a session, so the account menu below is hosted-only.
   const email = session?.user?.email;
   const [isSwitching, setIsSwitching] = useState(false);
 
   const orgContextQuery = useQuery({
     ...organizationContextQueryOptions(),
-    enabled: isHostedMode && Boolean(email),
+    enabled: Boolean(email),
   });
   const organizations = orgContextQuery.data?.organizations ?? [];
   const activeOrganizationId = orgContextQuery.data?.organizationId;
@@ -326,33 +328,27 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
                 Settings
               </Link>
             </li>
-            {isHostedMode ? (
-              <li>
-                <Link to={BILLING_ROUTE} onClick={closeMenu}>
-                  <CreditCard className="h-4 w-4" />
-                  Billing
-                </Link>
-              </li>
-            ) : null}
+            <li>
+              <Link to={BILLING_ROUTE} onClick={closeMenu}>
+                <CreditCard className="h-4 w-4" />
+                Billing
+              </Link>
+            </li>
             <ThemePreferenceMenuItems />
-            {isHostedMode ? (
-              <>
-                <li
-                  aria-hidden
-                  className="pointer-events-none my-1 h-px bg-base-300 p-0"
-                />
-                <li>
-                  <button
-                    type="button"
-                    className="text-error"
-                    onClick={() => signOutAndRedirect()}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </button>
-                </li>
-              </>
-            ) : null}
+            <li
+              aria-hidden
+              className="pointer-events-none my-1 h-px bg-base-300 p-0"
+            />
+            <li>
+              <button
+                type="button"
+                className="text-error"
+                onClick={() => signOutAndRedirect()}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </li>
           </ul>
         </div>
       ) : (

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Loader2 } from "lucide-react";
 import { sort } from "remeda";
 import type { RankPositionMatrixCell } from "@/serverFunctions/rank-tracking";
 
@@ -10,27 +9,19 @@ import type { RankPositionMatrixCell } from "@/serverFunctions/rank-tracking";
  */
 export function RankTrackingHistoryMatrix({
   cells,
-  isLoading,
   keywords,
 }: {
   cells: RankPositionMatrixCell[];
-  isLoading: boolean;
   keywords: { trackingKeywordId: string; keyword: string }[];
 }) {
   const { runs, cellByKeyword } = useMemo(() => buildMatrix(cells), [cells]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="size-5 animate-spin text-base-content/50" />
-      </div>
-    );
-  }
-
-  if (runs.length === 0 || keywords.length === 0) {
+  // The History view is only offered once the matrix has loaded at least two
+  // runs, so only filters can leave this empty.
+  if (keywords.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-base-300 p-10 text-center text-sm text-base-content/55">
-        No history yet. Run a check to start building the timeline.
+        No keywords match your search.
       </div>
     );
   }

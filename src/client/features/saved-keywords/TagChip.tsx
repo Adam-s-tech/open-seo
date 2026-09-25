@@ -6,12 +6,11 @@ import {
 } from "@/shared/tag-colors";
 import type { SavedKeywordTag } from "@/types/keywords";
 
-type Size = "xs" | "sm" | "md";
+type Size = "xs" | "sm";
 
 const SIZE_CLASS: Record<Size, string> = {
   xs: "h-5 px-1.5 text-[11px]",
   sm: "h-6 px-2 text-xs",
-  md: "h-7 px-2.5 text-sm",
 };
 
 export function TagChip({
