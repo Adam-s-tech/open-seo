@@ -12,7 +12,10 @@ import {
 } from "recharts";
 import type { MonthlySearch } from "@/types/keywords";
 import { formatCompactNumber } from "../utils";
-import { FloatingTooltip, useFloatingTooltip } from "./FloatingTooltip";
+import {
+  FloatingTooltip,
+  useFloatingTooltip,
+} from "@/client/components/FloatingTooltip";
 
 export type SortField =
   | "keyword"
@@ -21,43 +24,6 @@ export type SortField =
   | "competition"
   | "keywordDifficulty";
 export type SortDir = "asc" | "desc";
-
-export function HeaderHelpLabel({
-  label,
-  helpText,
-  delayMs = 150,
-}: {
-  label: string;
-  helpText: string;
-  delayMs?: number;
-}) {
-  const tooltip = useFloatingTooltip<HTMLSpanElement>({ delayMs });
-
-  return (
-    <span
-      ref={tooltip.triggerRef}
-      className="relative inline-flex items-center"
-      onMouseEnter={tooltip.scheduleOpen}
-      onMouseLeave={tooltip.close}
-      onFocus={tooltip.scheduleOpen}
-      onBlur={tooltip.close}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") tooltip.close();
-      }}
-      aria-describedby={tooltip.isOpen ? tooltip.tooltipId : undefined}
-    >
-      <span>{label}</span>
-      {tooltip.isOpen && typeof document !== "undefined"
-        ? createPortal(
-            <FloatingTooltip id={tooltip.tooltipId} position={tooltip.position}>
-              {helpText}
-            </FloatingTooltip>,
-            document.body,
-          )
-        : null}
-    </span>
-  );
-}
 
 export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
   const sorted = sortBy(trend, (item) => item.year * 100 + item.month);

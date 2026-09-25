@@ -4,7 +4,8 @@ import { reverse, sortBy } from "remeda";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Modal } from "@/client/components/Modal";
-import { buildCsv, downloadCsv } from "@/client/lib/csv";
+import { buildCsv, type CsvValue } from "@/client/lib/csv";
+import { exportRows } from "@/client/lib/exportRows";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { getRankKeywordHistory } from "@/serverFunctions/rank-tracking";
 import type { RankKeywordHistoryPoint } from "@/serverFunctions/rank-tracking";
@@ -113,27 +114,22 @@ export function KeywordTrendModal({
 
   const historyRows = useMemo(() => buildHistoryRows(points), [points]);
 
-  const exportRows = () =>
-    historyRows.map((r) => [
-      new Date(r.checkedAt).toISOString(),
-      DEVICE_STYLE[r.device].label,
-      r.position ?? "",
-      csvChange(r.position, r.previousPosition),
-    ]);
-
   const handleCopy = () => {
-    const headers = ["Date", "Device", "Position", "Change vs previous"];
-    void navigator.clipboard.writeText(buildCsv(headers, exportRows()));
+    void navigator.clipboard.writeText(
+      buildCsv(HISTORY_HEADERS, historyRows.map(historyExportRow)),
+    );
     toast.success("Copied to clipboard");
     captureClientEvent("rank_tracking:keyword_trend_copy");
   };
 
   const handleExport = () => {
-    const headers = ["Date", "Device", "Position", "Change vs previous"];
-    downloadCsv(
-      `rank-history-${slugify(target.keyword)}.csv`,
-      buildCsv(headers, exportRows()),
-    );
+    void exportRows({
+      format: "csv",
+      feature: "rank_tracking_keyword_trend",
+      headers: HISTORY_HEADERS,
+      rows: historyRows.map(historyExportRow),
+      filename: `rank-history-${slugify(target.keyword)}`,
+    });
     captureClientEvent("rank_tracking:keyword_trend_export");
   };
 
@@ -402,4 +398,15 @@ function slugify(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+const HISTORY_HEADERS = ["Date", "Device", "Position", "Change vs previous"];
+
+function historyExportRow(row: HistoryRow): CsvValue[] {
+  return [
+    new Date(row.checkedAt).toISOString(),
+    DEVICE_STYLE[row.device].label,
+    row.position ?? "",
+    csvChange(row.position, row.previousPosition),
+  ];
 }

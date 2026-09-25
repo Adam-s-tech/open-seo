@@ -15,6 +15,7 @@ import type {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { TablePagination } from "@/client/components/table/TablePagination";
 import { SavedKeywordsBulkActionBar } from "@/client/features/saved-keywords/SavedKeywordsBulkActionBar";
 import { SavedKeywordsBulkTagsModal } from "@/client/features/saved-keywords/SavedKeywordsBulkTagsModal";
 import { SavedKeywordsFilters } from "@/client/features/saved-keywords/SavedKeywordsFilters";
@@ -23,13 +24,11 @@ import {
   DeleteSavedKeywordsModal,
   RemoveSavedKeywordsError,
 } from "@/client/features/saved-keywords/SavedKeywordsModals";
-import { SavedKeywordsPagination } from "@/client/features/saved-keywords/SavedKeywordsPagination";
-import { SavedKeywordsStatus } from "@/client/features/saved-keywords/SavedKeywordsStatus";
 import { SavedKeywordsTable } from "@/client/features/saved-keywords/SavedKeywordsTable";
 import { compileSavedKeywordsFilters } from "@/client/features/saved-keywords/savedKeywordsFilterTypes";
 import {
+  SAVED_KEYWORD_PAGE_SIZES,
   toSavedKeywordSort,
-  type SAVED_KEYWORD_PAGE_SIZES,
 } from "@/client/features/saved-keywords/savedKeywordsUtils";
 import { useSavedKeywordsExport } from "@/client/features/saved-keywords/useSavedKeywordsExport";
 import { useSavedKeywordsFilters } from "@/client/features/saved-keywords/useSavedKeywordsFilters";
@@ -83,10 +82,6 @@ function SavedKeywordsPage() {
     () => compileSavedKeywordsFilters(committedFilterValues),
     [committedFilterValues],
   );
-  const exportFilters = useMemo(
-    () => compileSavedKeywordsFilters(filters.values),
-    [filters.values],
-  );
 
   const sortState = sorting[0];
   const sort = toSavedKeywordSort(sortState?.id);
@@ -121,7 +116,6 @@ function SavedKeywordsPage() {
   const savedKeywords = data?.rows ?? [];
   const availableTags = data?.tags ?? [];
   const totalCount = data?.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const selectedRows = savedKeywords.filter((row) => rowSelection[row.id]);
   const selectedIds = selectedRows.map((row) => row.id);
   const selectedCount = selectedIds.length;
@@ -141,10 +135,6 @@ function SavedKeywordsPage() {
   useEffect(() => {
     setRowSelection({});
   }, [page, pageSize, appliedFilters, tagFilterKey, sort, order]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   const invalidateSavedKeywords = () =>
     queryClient.invalidateQueries({ queryKey: ["savedKeywords", projectId] });
@@ -206,7 +196,7 @@ function SavedKeywordsPage() {
   const tagManage = useTagManage(projectId);
   const exporter = useSavedKeywordsExport({
     projectId,
-    appliedFilters: exportFilters,
+    appliedFilters,
     selectedTagIds,
     sort,
     order,
@@ -239,8 +229,8 @@ function SavedKeywordsPage() {
           totalCount={totalCount}
           exporting={exporter.exporting}
           metricsRefreshing={refreshMetricsMutation.isPending}
-          onExportCsv={() => void exporter.exportFilteredCsv()}
-          onExportSheets={() => void exporter.exportFilteredSheets()}
+          onExportCsv={() => void exporter.exportFiltered("csv")}
+          onExportSheets={() => void exporter.exportFiltered("sheets")}
           onRefreshMetrics={() => refreshMetricsMutation.mutate()}
         />
 
@@ -274,10 +264,6 @@ function SavedKeywordsPage() {
             {removeError ? (
               <RemoveSavedKeywordsError message={removeError} />
             ) : null}
-            <SavedKeywordsStatus
-              totalCount={totalCount}
-              isFetching={isFetching && !isLoading}
-            />
             <SavedKeywordsTable
               rows={savedKeywords}
               rowSelection={rowSelection}
@@ -289,9 +275,10 @@ function SavedKeywordsPage() {
             />
           </div>
 
-          <SavedKeywordsPagination
+          <TablePagination
             page={page}
             pageSize={pageSize}
+            pageSizes={SAVED_KEYWORD_PAGE_SIZES}
             totalCount={totalCount}
             isLoading={isFetching}
             onPageChange={setPage}
@@ -317,9 +304,9 @@ function SavedKeywordsPage() {
               );
           }}
           onOpenTags={() => setShowTagModal(true)}
-          onExportCsv={() => exporter.exportSelectionCsv(selectedRows)}
+          onExportCsv={() => void exporter.exportSelection("csv", selectedRows)}
           onExportSheets={() =>
-            void exporter.exportSelectionSheets(selectedRows)
+            void exporter.exportSelection("sheets", selectedRows)
           }
           onDelete={() => setShowConfirm(true)}
           onClear={() => setRowSelection({})}

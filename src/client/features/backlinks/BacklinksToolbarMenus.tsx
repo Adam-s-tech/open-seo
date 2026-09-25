@@ -7,9 +7,9 @@ import {
   Sheet,
 } from "lucide-react";
 import type { CsvValue } from "@/client/lib/csv";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
+import { exportRows } from "@/client/lib/exportRows";
 import type { BacklinksSearchState } from "./backlinksPageTypes";
-import { exportBacklinksTabCsv } from "./export";
+import { buildBacklinksTabFilename } from "./export";
 
 export function BacklinksExportMenu({
   activeTab,
@@ -25,15 +25,20 @@ export function BacklinksExportMenu({
   const [isExportingSheets, setIsExportingSheets] = useState(false);
   const canExport = rows.length > 0 && !isExportingSheets;
 
+  const runExport = (format: "csv" | "sheets") =>
+    exportRows({
+      format,
+      feature: `backlinks_${activeTab}`,
+      headers,
+      rows,
+      filename: buildBacklinksTabFilename(activeTab, exportTarget),
+    });
+
   const handleExportToSheets = async () => {
     if (!canExport) return;
     setIsExportingSheets(true);
     try {
-      await exportTableToSheets({
-        headers,
-        rows,
-        feature: `backlinks_${activeTab}`,
-      });
+      await runExport("sheets");
     } finally {
       setIsExportingSheets(false);
     }
@@ -74,14 +79,7 @@ export function BacklinksExportMenu({
         <li>
           <button
             type="button"
-            onClick={() =>
-              exportBacklinksTabCsv({
-                tab: activeTab,
-                target: exportTarget,
-                headers,
-                rows,
-              })
-            }
+            onClick={() => void runExport("csv")}
             disabled={rows.length === 0}
           >
             <Download className="size-4" />

@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCsv } from "@/client/lib/csv";
 import type { BacklinksRow, ReferringDomainRow } from "./backlinksPageTypes";
-import {
-  buildBacklinksTabCsvFilename,
-  buildBacklinksTabExport,
-} from "./export";
+import { buildBacklinksTabFilename, buildBacklinksTabExport } from "./export";
 
 function makeBacklinkRow(overrides: Partial<BacklinksRow> = {}): BacklinksRow {
   return {
@@ -51,16 +48,16 @@ function buildTabCsv(
   return buildCsv(headers, rows);
 }
 
-describe("buildBacklinksTabCsvFilename", () => {
+describe("buildBacklinksTabFilename", () => {
   it("normalizes the target into the filename per tab", () => {
     expect(
-      buildBacklinksTabCsvFilename("backlinks", "https://Example.com/path?q=1"),
-    ).toBe("backlinks-backlinks-example.com-path-q-1.csv");
-    expect(buildBacklinksTabCsvFilename("domains", "Example.com")).toBe(
-      "backlinks-referring-domains-example.com.csv",
+      buildBacklinksTabFilename("backlinks", "https://Example.com/path?q=1"),
+    ).toBe("backlinks-backlinks-example.com-path-q-1");
+    expect(buildBacklinksTabFilename("domains", "Example.com")).toBe(
+      "backlinks-referring-domains-example.com",
     );
-    expect(buildBacklinksTabCsvFilename("pages", "docs.example.com")).toBe(
-      "backlinks-top-pages-docs.example.com.csv",
+    expect(buildBacklinksTabFilename("pages", "docs.example.com")).toBe(
+      "backlinks-top-pages-docs.example.com",
     );
   });
 });

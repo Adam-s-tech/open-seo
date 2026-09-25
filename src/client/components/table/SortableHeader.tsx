@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { HeaderHelpLabel } from "@/client/features/keywords/components";
+import { HeaderHelpLabel } from "./HeaderHelpLabel";
 
 type SortableColumn = {
   getIsSorted: () => false | "asc" | "desc";
@@ -10,19 +10,25 @@ export function SortableHeader({
   column,
   label,
   helpText,
+  title,
   align,
+  className,
 }: {
   column: SortableColumn;
   label: string;
   helpText?: string;
+  /** Native tooltip, for tables that don't use the floating help label. */
+  title?: string;
   align?: "left" | "right";
+  className?: string;
 }) {
   const sorted = column.getIsSorted();
   const content = (
     <button
       type="button"
-      className="inline-flex items-center gap-1 font-medium transition-colors hover:text-base-content"
+      className={`inline-flex items-center gap-1 font-medium transition-colors hover:text-base-content ${className ?? ""}`}
       onClick={column.getToggleSortingHandler()}
+      title={title}
       aria-label={`Sort by ${label}`}
       aria-pressed={!!sorted}
     >

@@ -11,15 +11,11 @@ import {
   TableBulkActionButton,
   TableBulkExportMenu,
 } from "@/client/components/table/TableBulkActionBar";
-import { buildCsv } from "@/client/lib/csv";
-import { downloadCsv } from "@/client/lib/csv";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
-import { captureClientEvent } from "@/client/lib/posthog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { removeTrackingKeywords } from "@/serverFunctions/rank-tracking";
 import type { RankTrackingRow } from "@/types/schemas/rank-tracking";
 import { useRankTrackingColumns } from "./RankTrackingColumns";
-import { buildRankTrackingExport } from "./RankTrackingTableParts";
+import { exportRankTracking } from "./RankTrackingTableParts";
 import {
   KeywordTrendModal,
   type KeywordTrendTarget,
@@ -94,36 +90,16 @@ export function RankTrackingTable({
   const selectedCount = selectedRows.length;
   const selectedRankRows = selectedRows.map((row) => row.original);
 
-  const exportSelectionToSheets = () => {
-    const { headers, rows: exportRows } = buildRankTrackingExport(
-      selectedRankRows,
+  const exportSelection = (format: "csv" | "sheets") =>
+    exportRankTracking({
+      format,
+      rows: selectedRankRows,
       showDesktop,
       showMobile,
-    );
-    void exportTableToSheets({
-      headers,
-      rows: exportRows,
-      feature: "rank_tracking",
+      domain,
+      locationName,
+      scope: "selection",
     });
-  };
-
-  const exportSelectionCsv = () => {
-    const { headers, rows: exportRows } = buildRankTrackingExport(
-      selectedRankRows,
-      showDesktop,
-      showMobile,
-    );
-    const csvRows = exportRows.map((row) =>
-      row.map((cell, idx) =>
-        idx === 3 && typeof cell === "number" ? cell.toFixed(2) : cell,
-      ),
-    );
-    downloadCsv(
-      `rank-tracking-${domain}-selected.csv`,
-      buildCsv(headers, csvRows),
-    );
-    captureClientEvent("rank_tracking:export_csv", { scope: "selection" });
-  };
 
   const removeMutation = useMutation({
     mutationFn: (keywordIds: string[]) =>
@@ -180,12 +156,12 @@ export function RankTrackingTable({
                 {
                   label: "Export to Sheets",
                   icon: <Sheet className="size-4" />,
-                  onClick: exportSelectionToSheets,
+                  onClick: () => exportSelection("sheets"),
                 },
                 {
                   label: "Export CSV",
                   icon: <FileDown className="size-4" />,
-                  onClick: exportSelectionCsv,
+                  onClick: () => exportSelection("csv"),
                 },
               ]}
             />

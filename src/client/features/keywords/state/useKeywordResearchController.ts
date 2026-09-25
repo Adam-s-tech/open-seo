@@ -234,15 +234,19 @@ export function useKeywordResearchController(
     [input.sortDir, input.sortField, setSearchParams],
   );
 
-  const { handleSaveKeywords, confirmSave, exportCsv, sheetsExportRows } =
-    useSaveAndExportActions({
-      selectedRows,
-      rows,
-      filteredRows,
-      input,
-      saveKeywordsMutate: saveMutation.mutate,
-      setShowSaveDialog: uiState.setShowSaveDialog,
-    });
+  const {
+    handleSaveKeywords,
+    confirmSave,
+    selectedKeywordRows,
+    exportAll,
+    exportSelection,
+  } = useSaveAndExportActions({
+    selectedRows,
+    filteredRows,
+    input,
+    saveKeywordsMutate: saveMutation.mutate,
+    setShowSaveDialog: uiState.setShowSaveDialog,
+  });
 
   const handleRowClick = (row: KeywordResearchRow) => {
     captureClientEvent("keyword_research:serp_open");
@@ -258,8 +262,8 @@ export function useKeywordResearchController(
     activeSerpKeyword,
     confirmSave,
     controlsForm,
-    exportCsv,
-    sheetsExportRows,
+    exportAll,
+    exportSelection,
     filteredRows,
     filtersForm,
     handleRowClick,
@@ -283,6 +287,7 @@ export function useKeywordResearchController(
     rows,
     searchedKeyword,
     selectedRows,
+    selectedKeywordRows,
     canLoadMoreSerp,
     deepFetchFailed,
     serpError,

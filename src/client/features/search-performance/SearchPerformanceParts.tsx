@@ -21,13 +21,8 @@ import {
   type Report,
   type SearchPerformanceTableRow,
 } from "@/client/features/search-performance/SearchPerformanceColumns";
-import {
-  buildCsv,
-  downloadCsv,
-  normalizeExportValue,
-  type CsvValue,
-} from "@/client/lib/csv";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
+import { normalizeExportValue, type CsvValue } from "@/client/lib/csv";
+import { exportRows } from "@/client/lib/exportRows";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
   SEARCH_PERFORMANCE_PAGE_SIZES,
@@ -43,7 +38,7 @@ type ExportTable = { filename: string; headers: string[]; rows: CsvValue[][] };
 function strikingExportTable(report: Report): ExportTable {
   const stamp = `${report.range.startDate}-to-${report.range.endDate}`;
   return {
-    filename: `search-performance-striking-distance-${stamp}.csv`,
+    filename: `search-performance-striking-distance-${stamp}`,
     headers: ["Query", "Page", "Impressions", "Clicks", "Position"],
     rows: report.strikingDistance.map((row) => [
       row.query,
@@ -62,7 +57,7 @@ function dimensionExportTable(
 ): ExportTable {
   const isPage = dimension === "page";
   return {
-    filename: `search-performance-${isPage ? "pages" : "queries"}-${stamp}.csv`,
+    filename: `search-performance-${isPage ? "pages" : "queries"}-${stamp}`,
     headers: [
       isPage ? "Page" : "Query",
       "Clicks",
@@ -81,18 +76,10 @@ function dimensionExportTable(
 }
 
 function runExport(table: ExportTable, target: ExportTarget): void {
-  if (target === "csv") {
-    downloadCsv(table.filename, buildCsv(table.headers, table.rows));
-    captureClientEvent("data:export", {
-      source_feature: "search_performance",
-      result_count: table.rows.length,
-    });
-    return;
-  }
-  void exportTableToSheets({
-    headers: table.headers,
-    rows: table.rows,
+  void exportRows({
+    format: target,
     feature: "search_performance",
+    ...table,
   });
 }
 

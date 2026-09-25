@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { AppDataTable } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/features/keywords/components";
+import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
 import { numericNullsLast } from "@/client/components/table/nullSafeSort";
 import {
   formatCount,

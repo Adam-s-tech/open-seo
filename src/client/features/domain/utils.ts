@@ -102,3 +102,15 @@ export function pagesToTable(rows: PageRow[]): ExportTable {
     rows: rows.map((row) => [row.page, row.organicTraffic, row.keywords]),
   };
 }
+
+/** Adapts the URL-driven domain sort to the shared `SortableHeader`. */
+export function domainSortColumn(
+  isActive: boolean,
+  order: SortOrder,
+  onClick: () => void,
+) {
+  return {
+    getIsSorted: () => (isActive ? order : false),
+    getToggleSortingHandler: () => onClick,
+  };
+}

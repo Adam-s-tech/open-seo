@@ -9,9 +9,9 @@ import {
 import { downloadFile } from "@/client/lib/download";
 import { QueryError } from "@/client/components/QueryState";
 import { getErrorCode } from "@/client/lib/error-messages";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
+import { exportRows } from "@/client/lib/exportRows";
 import type { CategoryTab, ExportPayload, LighthouseIssue } from "./types";
-import { categoryLabel, issuesToCsv, issuesToTable } from "./utils";
+import { categoryLabel, issuesToTable } from "./utils";
 import {
   LighthouseIssueList,
   LighthouseIssuesHeader,
@@ -64,8 +64,7 @@ export function LighthouseIssuesScreen({
     categoryCounts,
     runCopy,
     runExport,
-    runExportCsv,
-    runExportSheets,
+    runExportRows,
     selectedCategoryLabel,
     severityCounts,
     visibleIssues,
@@ -146,8 +145,12 @@ export function LighthouseIssuesScreen({
               onExport={(data) => {
                 void runExport(data);
               }}
-              onExportCsv={runExportCsv}
-              onExportSheets={runExportSheets}
+              onExportCsv={(rows, variant) =>
+                runExportRows("csv", rows, variant)
+              }
+              onExportSheets={(rows, variant) =>
+                runExportRows("sheets", rows, variant)
+              }
             />
             <LighthouseIssueList
               issues={visibleIssues}
@@ -194,24 +197,16 @@ function useLighthouseIssuesActions({
     }
   };
 
-  const runExportCsv = (
+  const runExportRows = (
+    format: "csv" | "sheets",
     rows: LighthouseIssue[],
     variant: "all" | "current",
   ) => {
-    const filename = `lighthouse-${variant}-${category}-issues.csv`;
-    downloadFile(issuesToCsv(rows), filename, "text/csv");
-    toast.success("CSV download started");
-  };
-
-  const runExportSheets = (
-    rows: LighthouseIssue[],
-    variant: "all" | "current",
-  ) => {
-    const table = issuesToTable(rows);
-    void exportTableToSheets({
-      headers: table.headers,
-      rows: table.rows,
+    void exportRows({
+      format,
       feature: `lighthouse_issues_${variant}`,
+      ...issuesToTable(rows),
+      filename: `lighthouse-${variant}-${category}-issues`,
     });
   };
 
@@ -232,8 +227,7 @@ function useLighthouseIssuesActions({
     categoryCounts,
     runCopy,
     runExport,
-    runExportCsv,
-    runExportSheets,
+    runExportRows,
     selectedCategoryLabel,
     severityCounts,
     visibleIssues,

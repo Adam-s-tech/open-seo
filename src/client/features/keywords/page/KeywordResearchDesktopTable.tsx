@@ -16,7 +16,7 @@ import {
   type SortDir,
   type SortField,
 } from "@/client/features/keywords/components";
-import { DifficultyBadge } from "@/client/features/domain/components/DifficultyBadge";
+import { ScoreBadge } from "@/client/components/table/ScoreBadge";
 import { formatNumber } from "@/client/features/keywords/utils";
 import type { KeywordResearchDisplayRow } from "@/client/features/keywords/groupSharedVolumeRows";
 import type { KeywordResearchRow } from "@/types/keywords";
@@ -167,7 +167,7 @@ export function KeywordResearchDesktopTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => <DifficultyBadge value={getValue()} />,
+        cell: ({ getValue }) => <ScoreBadge value={getValue()} />,
         meta: { headerClassName: "text-right", cellClassName: "text-right" },
       }),
       keywordColumnHelper.accessor("intent", {

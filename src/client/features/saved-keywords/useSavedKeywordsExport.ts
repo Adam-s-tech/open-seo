@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { buildCsv, downloadCsv } from "@/client/lib/csv";
+import { formatCentsForCsv } from "@/client/features/keywords/state/keywordControllerActions";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
-import { captureClientEvent } from "@/client/lib/posthog";
+import { exportRows } from "@/client/lib/exportRows";
 import { exportSavedKeywords } from "@/serverFunctions/keywords";
 import type { SavedKeywordRow } from "@/types/keywords";
 import type { ExportSavedKeywordsInput } from "@/types/schemas/keywords";
@@ -21,7 +20,6 @@ export function useSavedKeywordsExport(params: {
   order: ExportSavedKeywordsInput["order"];
 }) {
   const [exporting, setExporting] = useState<"csv" | "sheets" | null>(null);
-  // Only the Sheets selection export is async; the CSV download is synchronous.
   const [exportingSelection, setExportingSelection] = useState(false);
 
   const exportInput = useMemo<ExportSavedKeywordsInput>(
@@ -42,67 +40,41 @@ export function useSavedKeywordsExport(params: {
     ],
   );
 
-  const loadFilteredRows = async () => {
-    const result = await exportSavedKeywords({ data: exportInput });
-    return result.rows;
-  };
-
-  const exportFilteredCsv = async () => {
-    setExporting("csv");
-    try {
-      const rows = await loadFilteredRows();
-      if (rows.length === 0) {
-        toast.error("No keywords to export");
-        return;
-      }
-      downloadKeywordCsv(rows);
-      captureClientEvent("data:export", {
-        source_feature: "saved_keywords",
-        result_count: rows.length,
-      });
-    } catch (error) {
-      toast.error(getStandardErrorMessage(error, "Could not export CSV"));
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  const exportFilteredSheets = async () => {
-    setExporting("sheets");
-    try {
-      const rows = await loadFilteredRows();
-      await exportTableToSheets({
-        headers: SAVED_KEYWORD_EXPORT_HEADERS,
-        rows: rows.map(savedKeywordExportRow),
-        feature: "saved_keywords",
-      });
-    } catch (error) {
-      toast.error(getStandardErrorMessage(error, "Could not export to Sheets"));
-    } finally {
-      setExporting(null);
-    }
-  };
-
-  // The selection bar only renders with at least one row selected.
-  const exportSelectionCsv = (selectedRows: SavedKeywordRow[]) => {
-    downloadKeywordCsv(selectedRows);
-    captureClientEvent("data:export", {
-      source_feature: "saved_keywords",
-      result_count: selectedRows.length,
-      scope: "selection",
+  const runExport = async (
+    format: "csv" | "sheets",
+    rows: SavedKeywordRow[],
+    scope?: "selection",
+  ) => {
+    const tableRows = rows.map(savedKeywordExportRow);
+    await exportRows({
+      format,
+      feature: "saved_keywords",
+      headers: SAVED_KEYWORD_EXPORT_HEADERS,
+      rows: format === "csv" ? formatCentsForCsv(tableRows) : tableRows,
+      filename: "saved-keywords",
+      scope,
     });
   };
 
-  const exportSelectionSheets = async (selectedRows: SavedKeywordRow[]) => {
+  const exportFiltered = async (format: "csv" | "sheets") => {
+    setExporting(format);
+    try {
+      const result = await exportSavedKeywords({ data: exportInput });
+      await runExport(format, result.rows);
+    } catch (error) {
+      toast.error(getStandardErrorMessage(error, "Could not export"));
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const exportSelection = async (
+    format: "csv" | "sheets",
+    selectedRows: SavedKeywordRow[],
+  ) => {
     setExportingSelection(true);
     try {
-      await exportTableToSheets({
-        headers: SAVED_KEYWORD_EXPORT_HEADERS,
-        rows: selectedRows.map(savedKeywordExportRow),
-        feature: "saved_keywords",
-      });
-    } catch (error) {
-      toast.error(getStandardErrorMessage(error, "Could not export to Sheets"));
+      await runExport(format, selectedRows, "selection");
     } finally {
       setExportingSelection(false);
     }
@@ -111,25 +83,7 @@ export function useSavedKeywordsExport(params: {
   return {
     exporting,
     exportingSelection,
-    exportFilteredCsv,
-    exportFilteredSheets,
-    exportSelectionCsv,
-    exportSelectionSheets,
+    exportFiltered,
+    exportSelection,
   };
-}
-
-function downloadKeywordCsv(rows: SavedKeywordRow[]) {
-  const csvRows = rows
-    .map(savedKeywordExportRow)
-    .map((row) =>
-      row.map((cell, index) =>
-        (index === 2 || index === 3) && typeof cell === "number"
-          ? cell.toFixed(2)
-          : cell,
-      ),
-    );
-  downloadCsv(
-    "saved-keywords.csv",
-    buildCsv(SAVED_KEYWORD_EXPORT_HEADERS, csvRows),
-  );
 }

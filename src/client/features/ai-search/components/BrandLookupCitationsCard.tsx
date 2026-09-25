@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import { ChevronDown, Download, Sheet, SlidersHorizontal } from "lucide-react";
 import { useAppTable } from "@/client/components/table/AppDataTable";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
+import { exportRows } from "@/client/lib/exportRows";
 import {
   buildBrandLookupExport,
-  downloadBrandLookupCsv,
+  brandLookupExportFilename,
 } from "@/client/features/ai-search/components/brandLookupExport";
 import { BrandLookupFilterPanel } from "@/client/features/ai-search/components/BrandLookupFilterPanel";
 import {
@@ -128,16 +128,12 @@ export function CitationTabsCard({
     queriesTable.getSortedRowModel().rows.map((row) => row.original),
   );
 
-  const handleExportCsv = () => {
-    downloadBrandLookupCsv(activeTab, result.resolvedTarget, exportTable);
-    closeExportMenu();
-  };
-
-  const handleExportSheets = () => {
-    void exportTableToSheets({
-      headers: exportTable.headers,
-      rows: exportTable.rows,
+  const handleExport = (format: "csv" | "sheets") => {
+    void exportRows({
+      format,
       feature: `brand_lookup_${activeTab}`,
+      ...exportTable,
+      filename: brandLookupExportFilename(activeTab, result.resolvedTarget),
     });
     closeExportMenu();
   };
@@ -195,7 +191,7 @@ export function CitationTabsCard({
             <li>
               <button
                 type="button"
-                onClick={handleExportSheets}
+                onClick={() => handleExport("sheets")}
                 disabled={!canExport}
               >
                 <Sheet className="size-4" />
@@ -205,7 +201,7 @@ export function CitationTabsCard({
             <li>
               <button
                 type="button"
-                onClick={handleExportCsv}
+                onClick={() => handleExport("csv")}
                 disabled={!canExport}
               >
                 <Download className="size-4" />

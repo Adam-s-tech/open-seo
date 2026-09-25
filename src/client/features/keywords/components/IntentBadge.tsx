@@ -1,6 +1,9 @@
 import { createPortal } from "react-dom";
 import type { KeywordIntent } from "@/types/keywords";
-import { FloatingTooltip, useFloatingTooltip } from "./FloatingTooltip";
+import {
+  FloatingTooltip,
+  useFloatingTooltip,
+} from "@/client/components/FloatingTooltip";
 
 const COLORS: Record<KeywordIntent, string> = {
   informational: "border-info/30 bg-info/15 text-info",

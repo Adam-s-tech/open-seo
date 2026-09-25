@@ -293,7 +293,7 @@ function KeywordSaveDialog({
     <div className="modal modal-open">
       <div className="modal-box">
         <h3 className="font-bold text-lg">
-          Save {controller.selectedRows.size} Keywords
+          Save {controller.selectedKeywordRows.length} Keywords
         </h3>
         <div className="py-4">
           <p className="text-base-content/70 text-sm">

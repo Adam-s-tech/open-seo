@@ -20,10 +20,7 @@ import {
   RankTrackingHistoryMatrix,
 } from "./RankTrackingHistoryMatrix";
 import { RankTrackingTableToolbar } from "./RankTrackingTableToolbar";
-import {
-  exportRankTrackingCsv,
-  exportRankTrackingToSheets,
-} from "./RankTrackingTableParts";
+import { exportRankTracking } from "./RankTrackingTableParts";
 import type {
   RankTrackingConfig,
   ComparePeriod,
@@ -278,21 +275,24 @@ export function RankTrackingDomainDetail({
           onViewModeChange={setViewMode}
           historyAvailable={historyAvailable}
           onExport={() =>
-            exportRankTrackingCsv(
-              filtered,
+            exportRankTracking({
+              format: "csv",
+              rows: filtered,
               showDesktop,
               showMobile,
-              config.domain,
-              config.locationName,
-            )
+              domain: config.domain,
+              locationName: config.locationName,
+            })
           }
           onExportToSheets={() =>
-            exportRankTrackingToSheets(
-              filtered,
+            exportRankTracking({
+              format: "sheets",
+              rows: filtered,
               showDesktop,
               showMobile,
-              config.locationName,
-            )
+              domain: config.domain,
+              locationName: config.locationName,
+            })
           }
           onCopyKeywords={() => {
             void navigator.clipboard.writeText(

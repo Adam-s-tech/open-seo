@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { ExportToSheetsButton } from "@/client/components/table/ExportToSheetsButton";
+import { TablePagination } from "@/client/components/table/TablePagination";
 import type { SerpResultItem } from "@/types/keywords";
 
 export function SerpAnalysisCard({
@@ -70,13 +71,18 @@ export function SerpAnalysisCard({
       ) : (
         <SerpAnalysisTable items={pageItems} />
       )}
-      <SerpAnalysisPagination
-        page={page}
-        totalPages={totalPages}
-        loadingMore={loadingMore}
-        canLoadMore={canLoadMore}
-        onPageChange={onPageChange}
-      />
+      {totalPages > 1 || canLoadMore ? (
+        <TablePagination
+          page={page + 1}
+          pageSize={pageSize}
+          totalCount={items.length}
+          isLoading={loadingMore}
+          // Past the loaded results, "Next" buys a deeper crawl. The button
+          // says so rather than spending silently.
+          loadMoreLabel={canLoadMore ? "Load top 100" : undefined}
+          onPageChange={(nextPage) => onPageChange(nextPage - 1)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -121,59 +127,6 @@ function SerpAnalysisTable({ items }: { items: SerpResultItem[] }) {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function SerpAnalysisPagination({
-  page,
-  totalPages,
-  loadingMore,
-  canLoadMore,
-  onPageChange,
-}: {
-  page: number;
-  totalPages: number;
-  loadingMore: boolean;
-  canLoadMore: boolean;
-  onPageChange: (p: number) => void;
-}) {
-  if (totalPages <= 1 && !canLoadMore) return null;
-
-  // Past the loaded results, "Next" stops being free paging and buys a deeper
-  // crawl — say so on the button rather than spending silently.
-  const nextBuysDeeperSnapshot =
-    canLoadMore && !loadingMore && page >= totalPages - 1;
-
-  return (
-    <div className="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
-      <span className="text-xs text-base-content/50">
-        {loadingMore ? (
-          "Loading more results…"
-        ) : (
-          <>
-            Page {page + 1} of {totalPages}
-          </>
-        )}
-      </span>
-      <div className="flex gap-1">
-        <button
-          className="btn btn-ghost btn-xs"
-          disabled={page === 0 || loadingMore}
-          onClick={() => onPageChange(page - 1)}
-        >
-          <ChevronLeft className="size-3.5" />
-          Prev
-        </button>
-        <button
-          className="btn btn-ghost btn-xs"
-          disabled={loadingMore || (page >= totalPages - 1 && !canLoadMore)}
-          onClick={() => onPageChange(page + 1)}
-        >
-          {nextBuysDeeperSnapshot ? "Load top 100" : "Next"}
-          <ChevronRight className="size-3.5" />
-        </button>
-      </div>
     </div>
   );
 }

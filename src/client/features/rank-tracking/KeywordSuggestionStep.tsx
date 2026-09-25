@@ -15,7 +15,8 @@ import {
   makeSelectionColumn,
   useAppTable,
 } from "@/client/components/table/AppDataTable";
-import { SortableHeader } from "./RankTrackingColumns";
+import { SortableHeader } from "@/client/components/table/SortableHeader";
+import { RANK_TRACKING_HEADER_CLASS } from "./RankTrackingColumns";
 import {
   applyShiftRangeSelection,
   type SelectionAnchor,
@@ -38,8 +39,8 @@ const baseColumns: ColumnDef<SuggestedKeyword>[] = [
       <SortableHeader
         column={column}
         label="Keyword"
-        id="keyword"
-        tooltip="The search term this domain ranks for"
+        title="The search term this domain ranks for"
+        className={RANK_TRACKING_HEADER_CLASS}
       />
     ),
     cell: ({ getValue }) => (
@@ -54,8 +55,8 @@ const baseColumns: ColumnDef<SuggestedKeyword>[] = [
       <SortableHeader
         column={column}
         label="Position"
-        id="position"
-        tooltip="Current Google ranking position"
+        title="Current Google ranking position"
+        className={RANK_TRACKING_HEADER_CLASS}
       />
     ),
     cell: ({ getValue }) => {
@@ -79,8 +80,8 @@ const baseColumns: ColumnDef<SuggestedKeyword>[] = [
       <SortableHeader
         column={column}
         label="Volume"
-        id="searchVolume"
-        tooltip="Monthly search volume"
+        title="Monthly search volume"
+        className={RANK_TRACKING_HEADER_CLASS}
       />
     ),
     cell: ({ getValue }) => {
@@ -104,8 +105,8 @@ const baseColumns: ColumnDef<SuggestedKeyword>[] = [
       <SortableHeader
         column={column}
         label="Traffic"
-        id="traffic"
-        tooltip="Estimated monthly organic traffic"
+        title="Estimated monthly organic traffic"
+        className={RANK_TRACKING_HEADER_CLASS}
       />
     ),
     cell: ({ getValue }) => {

@@ -11,9 +11,13 @@ import {
   useSelectionAnchor,
 } from "@/client/components/table/AppDataTable";
 import { ExternalUrlCell } from "@/client/components/table/url";
-import { DifficultyBadge } from "@/client/features/domain/components/DifficultyBadge";
-import { SortableHeader } from "@/client/features/domain/components/SortableHeader";
-import { formatNumber, formatRounded } from "@/client/features/domain/utils";
+import { ScoreBadge } from "@/client/components/table/ScoreBadge";
+import { SortableHeader } from "@/client/components/table/SortableHeader";
+import {
+  domainSortColumn,
+  formatNumber,
+  formatRounded,
+} from "@/client/features/domain/utils";
 import type {
   DomainSortMode,
   KeywordRow,
@@ -64,9 +68,11 @@ function DomainKeywordsTableComponent({
         header: () => (
           <SortableHeader
             label="Rank"
-            isActive={sortMode === "rank"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("rank")}
+            column={domainSortColumn(
+              sortMode === "rank",
+              currentSortOrder,
+              () => onSortClick("rank"),
+            )}
           />
         ),
         cell: ({ getValue }) => getValue() ?? "-",
@@ -75,9 +81,11 @@ function DomainKeywordsTableComponent({
         header: () => (
           <SortableHeader
             label="Volume"
-            isActive={sortMode === "volume"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("volume")}
+            column={domainSortColumn(
+              sortMode === "volume",
+              currentSortOrder,
+              () => onSortClick("volume"),
+            )}
           />
         ),
         cell: ({ getValue }) => formatNumber(getValue()),
@@ -86,9 +94,11 @@ function DomainKeywordsTableComponent({
         header: () => (
           <SortableHeader
             label="Traffic"
-            isActive={sortMode === "traffic"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("traffic")}
+            column={domainSortColumn(
+              sortMode === "traffic",
+              currentSortOrder,
+              () => onSortClick("traffic"),
+            )}
           />
         ),
         cell: ({ getValue }) => formatRounded(getValue()),
@@ -98,9 +108,9 @@ function DomainKeywordsTableComponent({
           <SortableHeader
             label="CPC"
             helpText="Cost per click in USD."
-            isActive={sortMode === "cpc"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("cpc")}
+            column={domainSortColumn(sortMode === "cpc", currentSortOrder, () =>
+              onSortClick("cpc"),
+            )}
           />
         ),
         cell: ({ getValue }) => {
@@ -127,12 +137,14 @@ function DomainKeywordsTableComponent({
           <SortableHeader
             label="Score"
             helpText="Organic ranking difficulty (0-100): higher means harder to reach Google's top 10."
-            isActive={sortMode === "score"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("score")}
+            column={domainSortColumn(
+              sortMode === "score",
+              currentSortOrder,
+              () => onSortClick("score"),
+            )}
           />
         ),
-        cell: ({ getValue }) => <DifficultyBadge value={getValue()} />,
+        cell: ({ getValue }) => <ScoreBadge value={getValue()} />,
       }),
     ],
     [currentSortOrder, domain, onSortClick, selectAnchorRef, sortMode],

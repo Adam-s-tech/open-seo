@@ -14,7 +14,7 @@ import {
   useSelectionAnchor,
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { DifficultyBadge } from "@/client/features/domain/components/DifficultyBadge";
+import { ScoreBadge } from "@/client/components/table/ScoreBadge";
 import { IntentBadge } from "@/client/features/keywords/components";
 import type { KeywordIntent, SavedKeywordRow } from "@/types/keywords";
 import { TagChip } from "./TagChip";
@@ -89,7 +89,7 @@ export function SavedKeywordsTable({
             helpText="Organic ranking difficulty (0-100): higher means harder to reach Google's top 10."
           />
         ),
-        cell: ({ getValue }) => <DifficultyBadge value={getValue()} />,
+        cell: ({ getValue }) => <ScoreBadge value={getValue()} />,
       }),
       columnHelper.accessor("intent", {
         header: () => "Intent",

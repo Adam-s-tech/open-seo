@@ -6,7 +6,7 @@ import {
   useAppTable,
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/features/keywords/components";
+import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
 import { EmptyTableState } from "./BacklinksPageStates";
 import type { TopPageRow } from "./backlinksPageTypes";
 import type { TopPagesSortField } from "@/types/schemas/backlinks";

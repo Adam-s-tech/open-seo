@@ -10,13 +10,6 @@ import {
 } from "lucide-react";
 import { sortBy } from "remeda";
 import {
-  downloadKeywordResearchCsv,
-  keywordResearchExportRow,
-  keywordResearchHeaders,
-} from "@/client/features/keywords/state/keywordControllerActions";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
-import { captureClientEvent } from "@/client/lib/posthog";
-import {
   AreaTrendChart,
   OverviewStats,
   SerpAnalysisCard,
@@ -30,9 +23,10 @@ import {
 } from "./keywordResearchFilters";
 import { KeywordResearchDesktopTable } from "./KeywordResearchDesktopTable";
 import {
-  KeywordResearchPagination,
+  KEYWORD_RESEARCH_PAGE_SIZES,
   useKeywordResearchPagination,
 } from "./KeywordResearchPagination";
+import { TablePagination } from "@/client/components/table/TablePagination";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
@@ -113,57 +107,21 @@ function DesktopTableCard({ controller }: Props) {
     activeFilterCount,
     filteredRows,
     rows,
-    selectedRows,
-    sheetsExportRows,
+    selectedKeywordRows,
     showFilters,
   } = controller;
-  const {
-    page,
-    pageSize,
-    pageRows,
-    setPage,
-    setPageSize,
-    start,
-    end,
-    totalPages,
-  } = useKeywordResearchPagination(filteredRows);
+  const { page, pageSize, pageRange, pageRows, setPage, setPageSize } =
+    useKeywordResearchPagination(filteredRows);
   const keywordCount = filteredRows.length;
 
   const keywordCountLabel =
-    selectedRows.size > 0
-      ? `${selectedRows.size} selected`
+    selectedKeywordRows.length > 0
+      ? `${selectedKeywordRows.length} selected`
       : activeFilterCount > 0
         ? `Showing ${keywordCount} of ${rows.length} keywords`
         : `Showing ${keywordCount} keywords`;
 
   const canExport = filteredRows.length > 0;
-  const selectedExportRows = rows
-    .filter((row) => selectedRows.has(row.keyword))
-    .map(keywordResearchExportRow);
-  const exportHeaders = keywordResearchHeaders(controller.locationName);
-  const handleExportToSheets = () => {
-    void exportTableToSheets({
-      headers: exportHeaders,
-      rows: sheetsExportRows,
-      feature: "keyword_research",
-    });
-  };
-  const handleExportSelectionToSheets = () => {
-    void exportTableToSheets({
-      headers: exportHeaders,
-      rows: selectedExportRows,
-      feature: "keyword_research",
-    });
-  };
-  const handleExportSelectionCsv = () => {
-    downloadKeywordResearchCsv(selectedExportRows, exportHeaders);
-    captureClientEvent("data:export", {
-      source_feature: "keyword_research",
-      result_count: selectedExportRows.length,
-      scope: "selection",
-    });
-  };
-
   return (
     <div className="flex-1 flex flex-col min-w-0 border border-base-300 rounded-xl bg-base-100 overflow-hidden">
       <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-b border-base-300">
@@ -199,13 +157,19 @@ function DesktopTableCard({ controller }: Props) {
             className="dropdown-content z-10 menu p-2 shadow-lg bg-base-100 border border-base-300 rounded-box w-56"
           >
             <li>
-              <button onClick={handleExportToSheets} disabled={!canExport}>
+              <button
+                onClick={() => controller.exportAll("sheets")}
+                disabled={!canExport}
+              >
                 <Sheet className="size-4" />
                 Export to Sheets
               </button>
             </li>
             <li>
-              <button onClick={controller.exportCsv} disabled={!canExport}>
+              <button
+                onClick={() => controller.exportAll("csv")}
+                disabled={!canExport}
+              >
                 <FileDown className="size-4" />
                 Export CSV
               </button>
@@ -215,7 +179,7 @@ function DesktopTableCard({ controller }: Props) {
       </div>
 
       <TableBulkActionBar
-        selectedCount={selectedRows.size}
+        selectedCount={selectedKeywordRows.length}
         onClear={() => controller.setSelectedRows(new Set())}
         actions={
           <div className="flex items-center px-1.5">
@@ -230,12 +194,12 @@ function DesktopTableCard({ controller }: Props) {
                 {
                   label: "Export to Sheets",
                   icon: <Sheet className="size-4" />,
-                  onClick: handleExportSelectionToSheets,
+                  onClick: () => controller.exportSelection("sheets"),
                 },
                 {
                   label: "Export CSV",
                   icon: <FileDown className="size-4" />,
-                  onClick: handleExportSelectionCsv,
+                  onClick: () => controller.exportSelection("csv"),
                 },
               ]}
             />
@@ -256,12 +220,11 @@ function DesktopTableCard({ controller }: Props) {
         handleRowClick={controller.handleRowClick}
       />
       {filteredRows.length > 0 ? (
-        <KeywordResearchPagination
-          start={start}
-          end={end}
-          totalPages={totalPages}
+        <TablePagination
           page={page}
           pageSize={pageSize}
+          pageSizes={KEYWORD_RESEARCH_PAGE_SIZES}
+          pageRange={pageRange}
           totalCount={filteredRows.length}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}

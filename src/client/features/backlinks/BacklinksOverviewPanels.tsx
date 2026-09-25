@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { RESEARCH_SCOPE_LABELS } from "@/shared/researchScope";
-import { HeaderHelpLabel } from "@/client/features/keywords/components";
+import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
 import {
   BacklinksNewLostChart,
   BacklinksTrendChart,

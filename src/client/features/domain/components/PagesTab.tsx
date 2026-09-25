@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Copy, Download, FileSpreadsheet, Sheet } from "lucide-react";
-import { toast } from "sonner";
-import { DomainKeywordsPagination } from "@/client/features/domain/components/DomainKeywordsPagination";
+import { TablePagination } from "@/client/components/table/TablePagination";
+import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainFilterPanel } from "@/client/features/domain/components/DomainFilterPanel";
 import { DomainPagesTable } from "@/client/features/domain/components/DomainPagesTable";
 import { DomainTableTabSurface } from "@/client/features/domain/components/DomainTableTabSurface";
@@ -21,10 +21,9 @@ import {
 } from "@/client/features/domain/types";
 import { pagesToTable } from "@/client/features/domain/utils";
 import type { DomainOverviewRouteState } from "@/client/features/domain/domainRouteState";
-import { buildCsv, downloadCsv } from "@/client/lib/csv";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
-import { captureClientEvent } from "@/client/lib/posthog";
+import { exportRows, type ExportFormat } from "@/client/lib/exportRows";
 import {
+  DOMAIN_KEYWORDS_PAGE_SIZES,
   MAX_DATAFORSEO_FILTER_CONDITIONS,
   type DomainSearchParams,
 } from "@/types/schemas/domain";
@@ -152,29 +151,14 @@ export function PagesTab({
   const exportTable = useMemo(() => pagesToTable(rows), [rows]);
   const fileNamePrefix = target.replaceAll("/", "-");
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(rows, null, 2));
-    toast.success("Copied data");
-  };
-  const handleExportToSheets = () => {
-    void exportTableToSheets({
-      headers: exportTable.headers,
-      rows: exportTable.rows,
+  const exportAll = (format: ExportFormat) =>
+    void exportRows({
+      format,
       feature: "domain_overview",
+      ...exportTable,
+      filename: `${fileNamePrefix}-pages`,
+      records: rows,
     });
-  };
-  const handleDownload = (extension: "csv" | "xls") => {
-    downloadCsv(
-      `${fileNamePrefix}-pages.${extension}`,
-      buildCsv(exportTable.headers, exportTable.rows),
-    );
-    if (extension === "csv") {
-      captureClientEvent("data:export", {
-        source_feature: "domain_overview",
-        result_count: rows.length,
-      });
-    }
-  };
 
   return (
     <>
@@ -200,22 +184,22 @@ export function PagesTab({
           {
             label: "Export to Sheets",
             icon: <Sheet className="size-4" />,
-            onClick: handleExportToSheets,
+            onClick: () => exportAll("sheets"),
           },
           {
             label: "Copy data (JSON)",
             icon: <Copy className="size-4" />,
-            onClick: handleCopy,
+            onClick: () => exportAll("copy-json"),
           },
           {
             label: "Download CSV",
             icon: <Download className="size-4" />,
-            onClick: () => handleDownload("csv"),
+            onClick: () => exportAll("csv"),
           },
           {
             label: "Download Excel",
             icon: <FileSpreadsheet className="size-4" />,
-            onClick: () => handleDownload("xls"),
+            onClick: () => exportAll("excel"),
           },
         ]}
         filterPanel={
@@ -234,14 +218,16 @@ export function PagesTab({
           ) : null
         }
         pagination={
-          <DomainKeywordsPagination
+          <TablePagination
             page={routeState.page}
             pageSize={routeState.pageSize}
+            pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
             totalCount={totalCount}
             hasNextPage={hasNextPage}
             isLoading={isLoading}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
+            renderPageButton={DomainPageLink}
           />
         }
       >

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Download, FileSpreadsheet, Save, Sheet } from "lucide-react";
-import { toast } from "sonner";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
   TableBulkExportMenu,
 } from "@/client/components/table/TableBulkActionBar";
-import { DomainKeywordsPagination } from "@/client/features/domain/components/DomainKeywordsPagination";
+import { TablePagination } from "@/client/components/table/TablePagination";
+import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainKeywordsTable } from "@/client/features/domain/components/DomainKeywordsTable";
 import { DomainFilterPanel } from "@/client/features/domain/components/DomainFilterPanel";
 import { DomainTableTabSurface } from "@/client/features/domain/components/DomainTableTabSurface";
@@ -28,10 +28,9 @@ import {
 } from "@/client/features/domain/types";
 import { keywordsToTable } from "@/client/features/domain/utils";
 import type { DomainOverviewRouteState } from "@/client/features/domain/domainRouteState";
-import { buildCsv, downloadCsv } from "@/client/lib/csv";
-import { exportTableToSheets } from "@/client/lib/exportToSheets";
-import { captureClientEvent } from "@/client/lib/posthog";
+import { exportRows, type ExportFormat } from "@/client/lib/exportRows";
 import {
+  DOMAIN_KEYWORDS_PAGE_SIZES,
   MAX_DATAFORSEO_FILTER_CONDITIONS,
   type DomainSearchParams,
 } from "@/types/schemas/domain";
@@ -203,47 +202,22 @@ export function KeywordsTab({
     [rows, selectedKeywords],
   );
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(rows, null, 2));
-    toast.success("Copied data");
-  };
-  const handleExportToSheets = () => {
-    void exportTableToSheets({
-      headers: exportTable.headers,
-      rows: exportTable.rows,
+  const exportAll = (format: ExportFormat) =>
+    void exportRows({
+      format,
       feature: "domain_overview",
+      ...exportTable,
+      filename: `${fileNamePrefix}-keywords`,
+      records: rows,
     });
-  };
-  const handleDownload = (extension: "csv" | "xls") => {
-    downloadCsv(
-      `${fileNamePrefix}-keywords.${extension}`,
-      buildCsv(exportTable.headers, exportTable.rows),
-    );
-    if (extension === "csv") {
-      captureClientEvent("data:export", {
-        source_feature: "domain_overview",
-        result_count: rows.length,
-      });
-    }
-  };
-  const handleExportSelectionToSheets = () => {
-    void exportTableToSheets({
-      headers: selectedExportTable.headers,
-      rows: selectedExportTable.rows,
+  const exportSelection = (format: ExportFormat) =>
+    void exportRows({
+      format,
       feature: "domain_overview",
-    });
-  };
-  const handleDownloadSelectionCsv = () => {
-    downloadCsv(
-      `${fileNamePrefix}-selected-keywords.csv`,
-      buildCsv(selectedExportTable.headers, selectedExportTable.rows),
-    );
-    captureClientEvent("data:export", {
-      source_feature: "domain_overview",
-      result_count: selectedKeywords.size,
+      ...selectedExportTable,
+      filename: `${fileNamePrefix}-selected-keywords`,
       scope: "selection",
     });
-  };
 
   return (
     <>
@@ -264,12 +238,12 @@ export function KeywordsTab({
                 {
                   label: "Export to Sheets",
                   icon: <Sheet className="size-4" />,
-                  onClick: handleExportSelectionToSheets,
+                  onClick: () => exportSelection("sheets"),
                 },
                 {
                   label: "Download CSV",
                   icon: <Download className="size-4" />,
-                  onClick: handleDownloadSelectionCsv,
+                  onClick: () => exportSelection("csv"),
                 },
               ]}
             />
@@ -299,22 +273,22 @@ export function KeywordsTab({
           {
             label: "Export to Sheets",
             icon: <Sheet className="size-4" />,
-            onClick: handleExportToSheets,
+            onClick: () => exportAll("sheets"),
           },
           {
             label: "Copy data (JSON)",
             icon: <Copy className="size-4" />,
-            onClick: handleCopy,
+            onClick: () => exportAll("copy-json"),
           },
           {
             label: "Download CSV",
             icon: <Download className="size-4" />,
-            onClick: () => handleDownload("csv"),
+            onClick: () => exportAll("csv"),
           },
           {
             label: "Download Excel",
             icon: <FileSpreadsheet className="size-4" />,
-            onClick: () => handleDownload("xls"),
+            onClick: () => exportAll("excel"),
           },
         ]}
         filterPanel={
@@ -333,14 +307,16 @@ export function KeywordsTab({
           ) : null
         }
         pagination={
-          <DomainKeywordsPagination
+          <TablePagination
             page={routeState.page}
             pageSize={routeState.pageSize}
+            pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
             totalCount={totalCount}
             hasNextPage={hasNextPage}
             isLoading={isLoading}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
+            renderPageButton={DomainPageLink}
           />
         }
       >

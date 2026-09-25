@@ -5,11 +5,12 @@ import {
   useAppTable,
 } from "@/client/components/table/AppDataTable";
 import { ExternalUrlCell } from "@/client/components/table/url";
-import { SortableHeader } from "@/client/features/domain/components/SortableHeader";
+import { SortableHeader } from "@/client/components/table/SortableHeader";
 import {
   formatNumber,
   formatRounded,
   toPageSortMode,
+  domainSortColumn,
 } from "@/client/features/domain/utils";
 import type {
   DomainSortMode,
@@ -55,9 +56,11 @@ function DomainPagesTableComponent({
         header: () => (
           <SortableHeader
             label="Organic Traffic"
-            isActive={toPageSortMode(sortMode) === "traffic"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("traffic")}
+            column={domainSortColumn(
+              toPageSortMode(sortMode) === "traffic",
+              currentSortOrder,
+              () => onSortClick("traffic"),
+            )}
           />
         ),
         cell: ({ getValue }) => formatRounded(getValue()),
@@ -66,9 +69,11 @@ function DomainPagesTableComponent({
         header: () => (
           <SortableHeader
             label="Keywords"
-            isActive={toPageSortMode(sortMode) === "keywords"}
-            order={currentSortOrder}
-            onClick={() => onSortClick("volume")}
+            column={domainSortColumn(
+              toPageSortMode(sortMode) === "keywords",
+              currentSortOrder,
+              () => onSortClick("volume"),
+            )}
           />
         ),
         cell: ({ getValue }) => formatNumber(getValue()),
