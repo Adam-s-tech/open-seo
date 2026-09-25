@@ -12,7 +12,9 @@ Users previously got Search Console data into OpenSEO by manually exporting CSVs
 
 Add a native GSC connection plus two read-only MCP tools.
 
-**Auth (incremental OAuth grant).** Connecting requests a read-only Search Console scope through a dedicated Better Auth `genericOAuth` provider (`google-search-console`), separate from logging in with Google. `allowDifferentEmails` lets a user connect a Google account whose email differs from their OpenSEO login (an agency connecting a client). OAuth tokens are encrypted at rest.
+**Auth (incremental OAuth grant).** Connecting requests a read-only Search Console scope through the app's own Google OAuth flow (`/api/gsc/oauth/callback`), separate from logging in with Google. Better Auth still handles login only. The grant is stored in the `account` table under the `google-search-console` provider ID, keyed by OpenSEO user and Google account, and its tokens are encrypted at rest. Any Google account can back the grant, including one whose email differs from the OpenSEO login (an agency connecting a client) and one that another OpenSEO user has also connected. The OAuth state is a single-use nonce stored server-side and deleted by the first callback that presents it, so a captured consent URL cannot be replayed. It binds the flow to the user and the provider, and a PKCE verifier derived from that state binds the code to the flow.
+
+The first version used a Better Auth `genericOAuth` provider. Better Auth treats every linked account as a login identity, so it refused to link one Google account to a second OpenSEO user. That blocked people with two OpenSEO logins and members of one organization who share a client Google account, so the flow moved out of Better Auth.
 
 **Scoping.** A connection maps one verified property to one project (`gsc_connections`, unique per project). The connection belongs to the project/workspace; any member can query it, and requests run under the connecting member's grant. Property selection lives in the Integrations UI (account dropdown), not an MCP tool.
 

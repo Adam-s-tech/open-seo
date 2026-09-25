@@ -57,8 +57,11 @@ subsequently approved tools without rewriting the historical contract.
 
 ### Authentication and grant ownership
 
-Use a dedicated Better Auth `genericOAuth` provider named `google-analytics`.
-It requests these scopes:
+Use a dedicated Google OAuth grant with the provider ID `google-analytics`.
+The app's own Google OAuth flow issues it, the same flow as Search Console
+(see spec 0003). It first shipped as a Better Auth `genericOAuth` provider,
+which could not link one Google account to two OpenSEO users. It requests
+these scopes:
 
 - `openid`, `email`, and `profile` identify the connected Google account.
 - `https://www.googleapis.com/auth/analytics.readonly` discovers properties
@@ -69,13 +72,16 @@ keeps GSC access unchanged, allows an agency to use different Google accounts
 for GSC and GA4, and gives GA4 its own reconnect and disconnect lifecycle. No
 Analytics write scope is allowed.
 
-The connecting OpenSEO user owns the Better Auth grant. Better Auth stores its
-OAuth access and refresh tokens, encrypted at rest, in the `account` table
-under the `google-analytics` provider ID. Feature tables must not copy those
+The connecting OpenSEO user owns the grant. The app stores its OAuth access
+and refresh tokens, encrypted at rest with the Better Auth secret, in the
+`account` table under the `google-analytics` provider ID. The row is keyed by
+OpenSEO user and Google account, so two OpenSEO users can each connect the
+same Google account. Feature tables must not copy those
 tokens. Refresh-token rotation preserves the existing encrypted refresh token
 when Google omits a new one.
 
-Hosted OpenSEO reuses its Google OAuth client. A self-hosted operator reuses
+Hosted OpenSEO reuses its Google OAuth client and registers
+`/api/ga4/oauth/callback` on it. A self-hosted operator reuses
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `BETTER_AUTH_SECRET`, enables
 the Google Analytics Admin API and Google Analytics Data API, and registers
 `/api/ga4/oauth/callback`. GA4 adds no application secret.
@@ -109,7 +115,7 @@ grant and that the exact property appears in a fresh discovery response before
 upserting the mapping. Clients cannot submit `organizationId`,
 `connectedByUserId`, account email, time zone, currency, or display name.
 
-Disconnecting always deletes the project's mapping. It deletes the Better Auth
+Disconnecting always deletes the project's mapping. It deletes the
 grant only when the caller owns that grant and no other GA4 connection refers
 to the same `(connected_by_user_id, ga4_account_id)` pair. A different project
 member may remove the project mapping but cannot unlink another user's grant.

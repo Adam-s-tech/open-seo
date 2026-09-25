@@ -12,8 +12,8 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn<typeof fetch>(),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getAuth: () => ({ api: { getAccessToken: mocks.getAccessToken } }),
+vi.mock("@/server/features/google/googleOAuth", () => ({
+  getGoogleAccessToken: mocks.getAccessToken,
 }));
 
 function jsonResponse(body: unknown, status = 200) {
@@ -27,7 +27,7 @@ function requestUrl(input: RequestInfo | URL): string {
 
 describe("ga4Client admin API", () => {
   beforeEach(() => {
-    mocks.getAccessToken.mockResolvedValue({ accessToken: "ga4_tok" });
+    mocks.getAccessToken.mockResolvedValue("ga4_tok");
     vi.stubGlobal("fetch", mocks.fetch);
   });
 
@@ -81,11 +81,9 @@ describe("ga4Client admin API", () => {
       },
     ]);
     expect(mocks.getAccessToken).toHaveBeenCalledWith({
-      body: {
-        providerId: "google-analytics",
-        userId: "u1",
-        accountId: "google-sub-a",
-      },
+      providerId: "google-analytics",
+      userId: "u1",
+      accountId: "google-sub-a",
     });
     const secondUrl = mocks.fetch.mock.calls[1]?.[0];
     const secondUrlText =
@@ -134,7 +132,7 @@ describe("ga4Client admin API", () => {
     ).rejects.toMatchObject({ status: 401 });
   });
 
-  it("throws a token error when Better Auth cannot mint an access token", async () => {
+  it("throws a token error when no access token can be minted", async () => {
     mocks.getAccessToken.mockRejectedValue(new Error("revoked"));
     await expect(
       createGa4AdminClient({
@@ -257,7 +255,7 @@ const reportRequest = {
 
 describe("ga4Client data API", () => {
   beforeEach(() => {
-    mocks.getAccessToken.mockResolvedValue({ accessToken: "token" });
+    mocks.getAccessToken.mockResolvedValue("token");
     vi.stubGlobal("fetch", mocks.fetch);
   });
 
@@ -285,11 +283,9 @@ describe("ga4Client data API", () => {
 
     expect(result.rowCount).toBe(1);
     expect(mocks.getAccessToken).toHaveBeenCalledWith({
-      body: {
-        providerId: "google-analytics",
-        userId: "user_1",
-        accountId: "account_1",
-      },
+      providerId: "google-analytics",
+      userId: "user_1",
+      accountId: "account_1",
     });
     expect(mocks.fetch).toHaveBeenCalledWith(
       "https://analyticsdata.googleapis.com/v1beta/properties/123:runReport",

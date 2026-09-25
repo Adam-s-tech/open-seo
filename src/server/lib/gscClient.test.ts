@@ -5,8 +5,8 @@ const mocks = vi.hoisted(() => ({
   fetch: vi.fn<typeof fetch>(),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getAuth: () => ({ api: { getAccessToken: mocks.getAccessToken } }),
+vi.mock("@/server/features/google/googleOAuth", () => ({
+  getGoogleAccessToken: mocks.getAccessToken,
 }));
 
 function jsonResponse(body: unknown, status = 200) {
@@ -16,7 +16,7 @@ function jsonResponse(body: unknown, status = 200) {
 describe("gscClient", () => {
   beforeEach(() => {
     mocks.getAccessToken.mockReset();
-    mocks.getAccessToken.mockResolvedValue({ accessToken: "tok_123" });
+    mocks.getAccessToken.mockResolvedValue("tok_123");
     mocks.fetch.mockReset();
     vi.stubGlobal("fetch", mocks.fetch);
   });
@@ -49,11 +49,9 @@ describe("gscClient", () => {
     }).listSites();
 
     expect(mocks.getAccessToken).toHaveBeenCalledWith({
-      body: {
-        providerId: "google-search-console",
-        userId: "u1",
-        accountId: "google-sub-a",
-      },
+      providerId: "google-search-console",
+      userId: "u1",
+      accountId: "google-sub-a",
     });
   });
 
@@ -64,7 +62,9 @@ describe("gscClient", () => {
     await createGscClient({ userId: "u1" }).listSites();
 
     expect(mocks.getAccessToken).toHaveBeenCalledWith({
-      body: { providerId: "google-search-console", userId: "u1" },
+      providerId: "google-search-console",
+      userId: "u1",
+      accountId: undefined,
     });
   });
 

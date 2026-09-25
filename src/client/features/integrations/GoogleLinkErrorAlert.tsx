@@ -5,8 +5,8 @@ import {
   clearGoogleLinkError,
   getGoogleLinkError,
   reportGoogleLinkErrorOnce,
-  type GoogleLinkProvider,
 } from "./googleLinkError";
+import type { GoogleLinkProvider } from "@/shared/google-link";
 
 const PROVIDER_LABELS: Record<GoogleLinkProvider, string> = {
   gsc: "Search Console",
@@ -15,11 +15,11 @@ const PROVIDER_LABELS: Record<GoogleLinkProvider, string> = {
 
 /**
  * Inline error shown on a connect surface after a failed Google link flow.
- * startGoogleLink sends OAuth failures back to the page that started the
- * connect (see its errorCallbackURL); googleLinkError.ts captures the params
- * before the router can redirect them away, and this renders the explanation
- * next to the Connect button that retries it. Persists until dismissed or the
- * user navigates.
+ * The OAuth callback sends failures back to the page that started the connect
+ * (see googleOAuth.ts); googleLinkError.ts captures the params before the
+ * router can redirect them away, and this renders the explanation next to the
+ * Connect button that retries it. Persists until dismissed or the user
+ * navigates.
  */
 export function GoogleLinkErrorAlert({
   provider,

@@ -49,13 +49,13 @@ export function GoogleAnalyticsConnectionCard({
   const connected = Boolean(connection?.connected);
   const hasGrant = Boolean(connection?.currentUserHasGrant);
   const canManage = connection?.canManage === true;
-  const selfHostedNeedsSetup =
+  const needsGoogleOAuthSetup =
     !hosted && connectionQuery.isSuccess && !connection?.googleOAuthConfigured;
   const showPicker = picking ?? (!connected && hasGrant && canManage);
   const propertiesQuery = useQuery({
     queryKey: ["ga4Properties", projectId],
     queryFn: () => listGa4Properties({ data: { projectId } }),
-    enabled: Boolean(showPicker && !selfHostedNeedsSetup),
+    enabled: Boolean(showPicker && !needsGoogleOAuthSetup),
   });
   const accounts = React.useMemo(
     () => propertiesQuery.data?.accounts ?? [],
@@ -129,7 +129,7 @@ export function GoogleAnalyticsConnectionCard({
       status={
         connectionQuery.isPending || connectionUnavailable
           ? undefined
-          : selfHostedNeedsSetup
+          : needsGoogleOAuthSetup
             ? "setup_required"
             : connected
               ? "connected"
@@ -159,7 +159,7 @@ export function GoogleAnalyticsConnectionCard({
             Try again
           </button>
         </div>
-      ) : selfHostedNeedsSetup ? (
+      ) : needsGoogleOAuthSetup ? (
         <div className="space-y-3">
           <GoogleOAuthSetupWarning
             integrationName="Google Analytics"
@@ -239,7 +239,7 @@ export function GoogleAnalyticsConnectionCard({
           )}
         </p>
       ) : null}
-      {connectionQuery.isSuccess && !selfHostedNeedsSetup && !canManage ? (
+      {connectionQuery.isSuccess && !needsGoogleOAuthSetup && !canManage ? (
         <p className="mt-3 text-sm text-base-content/60">
           Ask an organization owner or admin to change this project's
           connection.

@@ -4,7 +4,6 @@ import { GoogleConnectedState } from "@/client/features/integrations/GoogleConne
 import { useGooglePickerResume } from "@/client/features/integrations/useGooglePickerResume";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { GoogleProjectEmptyState } from "@/client/features/integrations/GoogleProjectEmptyState";
@@ -27,7 +26,6 @@ export function SearchConsoleConnectionCard({
   projectId: string;
   returnTo?: string;
 }) {
-  const hosted = isHostedClientAuthMode();
   const queryClient = useQueryClient();
   const { picking, setPicking, linkAccount, linking } = useGooglePickerResume(
     "gsc",
@@ -44,14 +42,14 @@ export function SearchConsoleConnectionCard({
   const connected = Boolean(connection?.connected);
   const hasGrant = Boolean(connection?.currentUserHasGrant);
   const canManage = connection?.canManage === true;
-  const selfHostedNeedsSetup =
-    !hosted && connectionQuery.isSuccess && !connection?.googleOAuthConfigured;
+  const needsGoogleOAuthSetup =
+    connectionQuery.isSuccess && !connection?.googleOAuthConfigured;
 
   const showPicker = picking ?? (!connected && hasGrant && canManage);
   const sitesQuery = useQuery({
     queryKey: ["gscSites", projectId],
     queryFn: () => listGscSites({ data: { projectId } }),
-    enabled: Boolean(showPicker && !selfHostedNeedsSetup),
+    enabled: Boolean(showPicker && !needsGoogleOAuthSetup),
   });
   const accounts = React.useMemo(
     () => sitesQuery.data?.accounts ?? [],
@@ -155,7 +153,7 @@ export function SearchConsoleConnectionCard({
       status={
         connectionQuery.isPending || (connectionQuery.isError && !connection)
           ? undefined
-          : selfHostedNeedsSetup
+          : needsGoogleOAuthSetup
             ? "setup_required"
             : connected
               ? "connected"
@@ -185,7 +183,7 @@ export function SearchConsoleConnectionCard({
             Try again
           </button>
         </div>
-      ) : selfHostedNeedsSetup ? (
+      ) : needsGoogleOAuthSetup ? (
         <SelfHostedSetupWarning />
       ) : connected && !picking ? (
         <GoogleConnectedState
@@ -253,7 +251,7 @@ export function SearchConsoleConnectionCard({
           )}
         </p>
       ) : null}
-      {connectionQuery.isSuccess && !selfHostedNeedsSetup && !canManage ? (
+      {connectionQuery.isSuccess && !needsGoogleOAuthSetup && !canManage ? (
         <p className="mt-3 text-sm text-base-content/60">
           Ask an organization owner or admin to change this project's
           connection.
