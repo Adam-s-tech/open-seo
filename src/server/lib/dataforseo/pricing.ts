@@ -46,7 +46,10 @@ import {
   type LlmResponseModelSlug,
   resolveLlmMentionsLimit,
 } from "@/server/lib/dataforseo/ai";
-import { costPerSerpAtDepth } from "@/shared/rank-tracking";
+import {
+  costPerSerpAtDepth,
+  serpKeywordCostMultiplier,
+} from "@/shared/rank-tracking";
 
 /**
  * Raw DataForSEO USD upper bound for one metered call, computed from the
@@ -148,8 +151,11 @@ function backlinksUsd(rows: number) {
 }
 
 /** SERP endpoints bill per page of 10; a partial page is a full page. */
-function serpUsd(depth: number, method: "live" | "queued") {
-  return costPerSerpAtDepth(Math.ceil(depth / 10) * 10, method);
+function serpUsd(depth: number, method: "live" | "queued", keyword: string) {
+  return (
+    costPerSerpAtDepth(Math.ceil(depth / 10) * 10, method) *
+    serpKeywordCostMultiplier(keyword)
+  );
 }
 
 function daysInclusive(from: string, to: string) {
@@ -226,15 +232,21 @@ export const dataforseoPricing = {
   },
   serp: {
     live: priced(fetchLiveSerp, (input) =>
-      serpUsd(clampSerpDepth(input.depth ?? SERP_ANALYSIS_DEPTH), "live"),
+      serpUsd(
+        clampSerpDepth(input.depth ?? SERP_ANALYSIS_DEPTH),
+        "live",
+        input.keyword,
+      ),
     ),
     rankCheck: priced(fetchRankCheckSerp, (input) =>
-      serpUsd(clampSerpDepth(input.depth), "live"),
+      serpUsd(clampSerpDepth(input.depth), "live", input.keyword),
     ),
-    rankCheckTaskPost: priced(
-      postRankCheckTasks,
-      (input) =>
-        input.tasks.length * serpUsd(clampSerpDepth(input.depth), "queued"),
+    rankCheckTaskPost: priced(postRankCheckTasks, (input) =>
+      input.tasks.reduce(
+        (sum, task) =>
+          sum + serpUsd(clampSerpDepth(input.depth), "queued", task.keyword),
+        0,
+      ),
     ),
     local: priced(fetchLocalSerp, (input) =>
       input.searchType === "maps"

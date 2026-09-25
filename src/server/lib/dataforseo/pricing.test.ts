@@ -35,6 +35,15 @@ describe("dataforseoPricing", () => {
       credits: 5,
     },
     {
+      name: "live SERP for a keyword with a search operator (billed 5x)",
+      estimateUsd: dataforseoPricing.serp.live({
+        keyword: "site:example.com seo",
+        ...location,
+      }),
+      rawUsd: 0.0175,
+      credits: 23,
+    },
+    {
       name: "Lighthouse run",
       estimateUsd: dataforseoPricing.lighthouse.live({
         url: "https://example.com",
@@ -127,19 +136,37 @@ describe("dataforseoPricing", () => {
   );
 
   it("prices a queued task_post batch the way the rank check estimate does", () => {
-    const tasks = Array.from({ length: 100 }, (_, i) => ({
-      keyword: `kw ${i}`,
-      keywordId: `id-${i}`,
-      device: "desktop" as const,
-    }));
+    // Operator keywords bill 5x, so approvals must see the same mix.
+    const keywords = Array.from({ length: 100 }, (_, i) =>
+      i % 10 === 0 ? `site:example.com kw ${i}` : `kw ${i}`,
+    );
     const estimateUsd = dataforseoPricing.serp.rankCheckTaskPost({
-      tasks,
+      tasks: keywords.map((keyword, i) => ({
+        keyword,
+        keywordId: `id-${i}`,
+        device: "desktop" as const,
+      })),
       ...location,
       depth: 20,
       targetDomain: "example.com",
     });
     expect(creditsForProviderUsd(estimateUsd)).toBe(
-      estimateRankCheckCredits(100, "desktop", 20, "queued").costCredits,
+      estimateRankCheckCredits(keywords, "desktop", 20, "queued").costCredits,
+    );
+  });
+
+  it("prices a live operator rank check the way the rank check estimate does", () => {
+    const keyword = "site:example.com seo";
+    const estimateUsd = dataforseoPricing.serp.rankCheck({
+      keyword,
+      keywordId: "id",
+      ...location,
+      device: "desktop",
+      depth: 20,
+      targetDomain: "example.com",
+    });
+    expect(creditsForProviderUsd(estimateUsd)).toBe(
+      estimateRankCheckCredits([keyword], "desktop", 20, "live").costCredits,
     );
   });
 });

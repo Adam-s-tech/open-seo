@@ -2,7 +2,6 @@ import { Loader2, Zap } from "lucide-react";
 import { Modal } from "@/client/components/Modal";
 import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
 import {
-  estimateRankCheckCredits,
   devicesCount,
   KEYWORDS_PER_BATCH,
   SECONDS_PER_BATCH,
@@ -11,24 +10,19 @@ import {
 export function CheckConfirmModal({
   keywordCount,
   devices,
-  serpDepth,
+  costUsd,
   isPending,
   onRunNow,
   onCancel,
 }: {
   keywordCount: number;
   devices: RankTrackingConfig["devices"];
-  serpDepth: number;
+  /** Server estimate; it prices each keyword's text (operators cost 5x). */
+  costUsd: number | undefined;
   isPending: boolean;
   onRunNow: () => void;
   onCancel: () => void;
 }) {
-  const { costUsd } = estimateRankCheckCredits(
-    keywordCount,
-    devices,
-    serpDepth,
-    "live",
-  );
   const dc = devicesCount(devices);
   const totalChecks = keywordCount * dc;
   const liveTime =
@@ -67,7 +61,9 @@ export function CheckConfirmModal({
           </p>
         </div>
         <div className="text-right">
-          <p className="font-mono font-semibold">~${costUsd.toFixed(2)}</p>
+          {costUsd != null && (
+            <p className="font-mono font-semibold">~${costUsd.toFixed(2)}</p>
+          )}
           {isPending && <Loader2 className="size-3 animate-spin ml-auto" />}
         </div>
       </button>

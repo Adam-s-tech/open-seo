@@ -39,7 +39,12 @@ describe("rank tracking cost estimates", () => {
     "matches per-call billing for $method checks",
     ({ keywordCount, devices, depth, method, costUsd, costCredits }) => {
       expect(
-        estimateRankCheckCredits(keywordCount, devices, depth, method),
+        estimateRankCheckCredits(
+          Array.from({ length: keywordCount }, (_, i) => `kw ${i}`),
+          devices,
+          depth,
+          method,
+        ),
       ).toEqual({ costUsd, costCredits });
     },
   );

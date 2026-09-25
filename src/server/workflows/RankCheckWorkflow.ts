@@ -86,7 +86,7 @@ async function prepareRankCheckKeywords(input: {
   }
 
   const { costCredits } = estimateRankCheckCredits(
-    trackingKeywords.length,
+    trackingKeywords.map((kw) => kw.keyword),
     input.devices,
     input.serpDepth,
     input.trigger === "scheduled" ? "queued" : "live",

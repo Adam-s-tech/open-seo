@@ -78,13 +78,29 @@ export function pagesToDepth(pages: number): number {
   return pages * 10;
 }
 
+// Google Organic bills 5x when the keyword contains an advanced search
+// operator (docs.dataforseo.com/v3/serp/google/organic/live/advanced). The
+// docs say "contains", so match anywhere: a false match only over-holds.
+const SERP_OPERATOR_KEYWORD =
+  /(allinanchor|allintext|allintitle|allinurl|cache|define|definition|filetype|id|inanchor|info|intext|intitle|inurl|link|site):/i;
+
+export function serpKeywordCostMultiplier(keyword: string) {
+  return SERP_OPERATOR_KEYWORD.test(keyword) ? 5 : 1;
+}
+
 export function estimateRankCheckCredits(
-  keywordCount: number,
+  keywords: readonly string[],
   devices: RankTrackingConfig["devices"],
   depth: number,
   method: RankCheckMethod,
 ) {
-  const totalChecks = keywordCount * devicesCount(devices);
+  // One entry per keyword/device pair, keyword-major like the workflow's
+  // task list, so queued chunks group the same pairs the real posts do.
+  const checkMultipliers = keywords.flatMap((keyword) =>
+    Array<number>(devicesCount(devices)).fill(
+      serpKeywordCostMultiplier(keyword),
+    ),
+  );
   const checksPerMeteredCall = method === "queued" ? MAX_TASKS_PER_POST : 1;
   let costUsd = 0;
   let costCredits = 0;
@@ -93,9 +109,15 @@ export function estimateRankCheckCredits(
   // checks make one call per keyword/device pair, while queued checks post up
   // to MAX_TASKS_PER_POST pairs per call. Summing one aggregate and rounding
   // once can therefore understate the credits that will actually be charged.
-  for (let offset = 0; offset < totalChecks; offset += checksPerMeteredCall) {
-    const checksInCall = Math.min(checksPerMeteredCall, totalChecks - offset);
-    const callRawUsd = checksInCall * costPerSerpAtDepth(depth, method);
+  for (
+    let offset = 0;
+    offset < checkMultipliers.length;
+    offset += checksPerMeteredCall
+  ) {
+    const callMultiplier = checkMultipliers
+      .slice(offset, offset + checksPerMeteredCall)
+      .reduce((sum, multiplier) => sum + multiplier, 0);
+    const callRawUsd = callMultiplier * costPerSerpAtDepth(depth, method);
     costUsd += applyBillingMarkupUsd(callRawUsd);
     costCredits += creditsForProviderUsd(callRawUsd);
   }
@@ -123,13 +145,13 @@ export type RankTrackingSkipReason =
   | "insufficient_credits";
 
 export function estimateScheduledRankCheckCredits(
-  keywordCount: number,
+  keywords: readonly string[],
   devices: RankTrackingConfig["devices"],
   depth: number,
   scheduleInterval: ScheduledRankTrackingInterval,
 ) {
   const { costUsd, costCredits } = estimateRankCheckCredits(
-    keywordCount,
+    keywords,
     devices,
     depth,
     "queued",

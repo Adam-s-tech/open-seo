@@ -265,7 +265,7 @@ async function triggerCheck(input: {
 
   if (input.maxCostCredits != null) {
     const { costCredits } = estimateRankCheckCredits(
-      keywords.length,
+      keywords.map((kw) => kw.keyword),
       config.devices,
       config.serpDepth,
       "live",

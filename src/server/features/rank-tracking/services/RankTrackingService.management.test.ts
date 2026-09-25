@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   getKeywordsForConfig: vi.fn(),
   addKeywordsToConfig: vi.fn(),
   removeKeywordsFromConfig: vi.fn(),
-  getKeywordCountForConfig: vi.fn(),
   updateKeywordMetrics: vi.fn(),
   isHostedServerAuthMode: vi.fn(),
   customerHasPaidPlan: vi.fn(),
@@ -127,8 +126,12 @@ describe("RankTrackingService management invariants", () => {
   });
 
   it("adds scheduled keywords at the approved estimate", async () => {
-    mocks.getKeywordsForConfig.mockResolvedValue([]);
-    mocks.getKeywordCountForConfig.mockResolvedValue(2);
+    mocks.getKeywordsForConfig
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { keyword: "seo" },
+        { keyword: "technical seo" },
+      ]);
     mocks.addKeywordsToConfig.mockImplementation(
       async (rows: Array<{ id: string }>) => rows.map((row) => row.id),
     );
@@ -155,8 +158,13 @@ describe("RankTrackingService management invariants", () => {
   });
 
   it("rolls back its inserts when a concurrent add exceeds the estimate", async () => {
-    mocks.getKeywordsForConfig.mockResolvedValue([]);
-    mocks.getKeywordCountForConfig.mockResolvedValue(3);
+    mocks.getKeywordsForConfig
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { keyword: "seo" },
+        { keyword: "technical seo" },
+        { keyword: "concurrent add" },
+      ]);
     mocks.addKeywordsToConfig.mockImplementation(
       async (rows: Array<{ id: string }>) => rows.map((row) => row.id),
     );
@@ -197,7 +205,7 @@ describe("RankTrackingService management invariants", () => {
         kind: "credit_ceiling",
       }),
     ).resolves.toMatchObject({ added: 1, scheduledEstimate: undefined });
-    expect(mocks.getKeywordCountForConfig).not.toHaveBeenCalled();
+    expect(mocks.getKeywordsForConfig).toHaveBeenCalledTimes(1);
   });
 
   it("rejects a hosted unpaid run before keyword or workflow work", async () => {
