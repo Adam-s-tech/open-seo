@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
 import { RESEARCH_SCOPE_LABELS } from "@/shared/researchScope";
 import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
 import {
@@ -22,26 +22,25 @@ export function BacklinksOverviewPanels({
 }) {
   return (
     <>
-      <div>
-        <Link
-          to="/p/$projectId/backlinks"
-          params={{ projectId }}
-          search={{
-            target: undefined,
-            scope: undefined,
-            tab: undefined,
-            page: undefined,
-            size: undefined,
-            sort: undefined,
-            order: undefined,
-          }}
-          replace
-          className="btn btn-ghost btn-sm gap-2 px-0 text-base-content/70 hover:bg-transparent"
-        >
-          <ArrowLeft className="size-4" />
-          Recent searches
-        </Link>
-      </div>
+      <RecentSearchesBackLink
+        render={(props) => (
+          <Link
+            to="/p/$projectId/backlinks"
+            params={{ projectId }}
+            search={{
+              target: undefined,
+              scope: undefined,
+              tab: undefined,
+              page: undefined,
+              size: undefined,
+              sort: undefined,
+              order: undefined,
+            }}
+            replace
+            {...props}
+          />
+        )}
+      />
       <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/65">
         <span className="badge badge-outline">
           {RESEARCH_SCOPE_LABELS[data.scope]}

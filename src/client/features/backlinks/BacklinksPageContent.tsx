@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { Link } from "@tanstack/react-router";
+import { Link2 } from "lucide-react";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { BacklinksOverviewPanels } from "./BacklinksOverviewPanels";
 import { BacklinksResultsCard } from "./BacklinksPageSections";
@@ -6,7 +8,6 @@ import {
   BacklinksErrorState,
   BacklinksLoadingState,
 } from "./BacklinksPageStates";
-import { BacklinksHistorySection } from "./BacklinksHistorySection";
 import type { BacklinksSearchHistoryItem } from "@/client/hooks/useBacklinksSearchHistory";
 import type {
   BacklinksSearchState,
@@ -17,6 +18,11 @@ import type { BacklinksDomainExpansion } from "./useBacklinksDomainExpansion";
 import type { BacklinksFiltersState } from "./useBacklinksFilters";
 import type { BacklinksPageData } from "./useBacklinksPageData";
 import { SearchTabStrip } from "@/client/features/search-tabs/SearchTabStrip";
+import { RecentSearches } from "@/client/components/RecentSearches";
+import {
+  RESEARCH_SCOPE_LABELS,
+  toScopeSearchParam,
+} from "@/shared/researchScope";
 import type { useSearchTabNavigation } from "@/client/features/search-tabs/useSearchTabNavigation";
 
 type BacklinksBodyProps = {
@@ -86,11 +92,31 @@ export function BacklinksBody({
 
   if (!searchState.target) {
     return (
-      <BacklinksHistorySection
-        projectId={projectId}
-        history={history}
-        historyLoaded={historyLoaded}
-        onRemoveHistoryItem={onRemoveHistoryItem}
+      <RecentSearches
+        items={history}
+        loaded={historyLoaded}
+        onRemove={onRemoveHistoryItem}
+        emptyIcon={Link2}
+        emptyTitle="Enter a domain or URL to get started"
+        getTitle={(item) => item.target}
+        getSubtitle={(item) => RESEARCH_SCOPE_LABELS[item.scope]}
+        renderLink={(item, props) => (
+          <Link
+            to="/p/$projectId/backlinks"
+            params={{ projectId }}
+            search={(prev) => ({
+              ...prev,
+              target: item.target,
+              scope: toScopeSearchParam(item.target, item.scope),
+              tab: undefined,
+              page: undefined,
+              sort: undefined,
+              order: undefined,
+            })}
+            replace
+            {...props}
+          />
+        )}
       />
     );
   }

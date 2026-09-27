@@ -316,7 +316,7 @@ export function buildTopQueriesColumns({
       meta: { cellClassName: "w-px whitespace-nowrap text-right align-top" },
       cell: ({ row }) => (
         <span
-          className="tooltip tooltip-left opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+          className="tooltip tooltip-left reveal-on-hover"
           data-tip="Run this prompt in Prompt Explorer"
         >
           <Link

@@ -4,8 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { identity, sortBy } from "remeda";
 import {
   AlertCircle,
-  ArrowLeft,
   Columns3,
+  MessageSquare,
   SearchCheck,
   Sparkles,
 } from "lucide-react";
@@ -18,8 +18,12 @@ import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { PromptExplorerForm } from "@/client/features/ai-search/components/PromptExplorerForm";
 import { PromptExplorerResults } from "@/client/features/ai-search/components/PromptExplorerResults";
 import { PromptExplorerLoadingState } from "@/client/features/ai-search/components/PromptExplorerLoadingState";
-import { PromptExplorerHistorySection } from "@/client/features/ai-search/components/PromptExplorerHistorySection";
+import {
+  RecentSearches,
+  RecentSearchesBackLink,
+} from "@/client/components/RecentSearches";
 import { AiSearchPaidPlanGate } from "@/client/features/ai-search/components/AiSearchPaidPlanGate";
+import { formatModelLabel } from "@/client/features/ai-search/platformLabels";
 import { usePromptExplorerSearchHistory } from "@/client/hooks/usePromptExplorerSearchHistory";
 import {
   PROMPT_EXPLORER_MAX_PROMPT_LENGTH,
@@ -240,27 +244,50 @@ function PromptExplorerPageInner({
               <PromptExplorerLoadingState modelCount={form.models.length} />
             ) : resultData ? (
               <>
-                <div>
+                <RecentSearchesBackLink
+                  render={(props) => (
+                    <Link
+                      from="/p/$projectId/prompt-explorer"
+                      to="/p/$projectId/prompt-explorer"
+                      params={{ projectId }}
+                      search={{}}
+                      replace
+                      {...props}
+                    />
+                  )}
+                />
+                <PromptExplorerResults result={resultData} />
+              </>
+            ) : !errorMessage ? (
+              <RecentSearches
+                items={history}
+                loaded={historyLoaded}
+                onRemove={removeHistoryItem}
+                emptyIcon={MessageSquare}
+                emptyTitle="Enter a prompt to compare model answers"
+                getTitle={(item) => item.prompt}
+                getSubtitle={(item) =>
+                  item.models.map(formatModelLabel).join(", ")
+                }
+                renderLink={(item, props) => (
                   <Link
                     from="/p/$projectId/prompt-explorer"
                     to="/p/$projectId/prompt-explorer"
                     params={{ projectId }}
-                    search={{}}
+                    search={{
+                      q: item.prompt,
+                      models: item.models,
+                      web: item.webSearch ? undefined : false,
+                      cc:
+                        item.webSearchCountryCode === "US"
+                          ? undefined
+                          : item.webSearchCountryCode,
+                      hb: item.highlightBrand || undefined,
+                    }}
                     replace
-                    className="btn btn-ghost btn-sm gap-2 px-0 text-base-content/70 hover:bg-transparent"
-                  >
-                    <ArrowLeft className="size-4" />
-                    Recent searches
-                  </Link>
-                </div>
-                <PromptExplorerResults result={resultData} />
-              </>
-            ) : !errorMessage ? (
-              <PromptExplorerHistorySection
-                projectId={projectId}
-                history={history}
-                historyLoaded={historyLoaded}
-                onRemoveHistoryItem={removeHistoryItem}
+                    {...props}
+                  />
+                )}
               />
             ) : null}
           </>

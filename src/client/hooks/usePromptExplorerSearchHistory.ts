@@ -16,10 +16,6 @@ const promptExplorerSearchBodySchema = z.object({
 
 type PromptExplorerSearchBody = z.infer<typeof promptExplorerSearchBodySchema>;
 
-export type PromptExplorerSearchHistoryItem = PromptExplorerSearchBody & {
-  timestamp: number;
-};
-
 function sameModels(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
   const sortedA = sortBy(a, identity());

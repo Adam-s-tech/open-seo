@@ -1,7 +1,7 @@
 /* eslint-disable max-lines, max-lines-per-function -- Domain Overview keeps page-only orchestration colocated to avoid fake indirection. */
 import { useCallback, useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { ArrowLeft } from "lucide-react";
+import { Globe } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE,
@@ -19,7 +19,10 @@ import {
 } from "@/client/features/domain/domainSearchValidation";
 import { useDomainOverviewQuery } from "@/client/features/domain/hooks/useDomainOverviewQuery";
 import { DomainOverviewLoadingState } from "@/client/features/domain/components/DomainOverviewLoadingState";
-import { DomainHistorySection } from "@/client/features/domain/components/DomainHistorySection";
+import {
+  RecentSearches,
+  RecentSearchesBackLink,
+} from "@/client/components/RecentSearches";
 import { DomainSearchCard } from "@/client/features/domain/components/DomainSearchCard";
 import { KeywordsTab } from "@/client/features/domain/components/KeywordsTab";
 import { PagesTab } from "@/client/features/domain/components/PagesTab";
@@ -526,19 +529,18 @@ export function DomainOverviewPage({
 
   const tabControls = routeState.domain ? (
     <div className="flex flex-col gap-2">
-      <div>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm gap-2 px-0 text-base-content/70 hover:bg-transparent"
-          onClick={() => {
-            searchTabs.setActiveTab(null);
-            onShowRecentSearches();
-          }}
-        >
-          <ArrowLeft className="size-4" />
-          Recent searches
-        </button>
-      </div>
+      <RecentSearchesBackLink
+        render={(props) => (
+          <button
+            type="button"
+            onClick={() => {
+              searchTabs.setActiveTab(null);
+              onShowRecentSearches();
+            }}
+            {...props}
+          />
+        )}
+      />
       <SearchTabStrip
         projectId={projectId}
         activeTabId={searchTabs.activeTabId}
@@ -581,12 +583,22 @@ export function DomainOverviewPage({
             <DomainOverviewLoadingState />
           </>
         ) : state.overview === null ? (
-          <div className="space-y-4 pt-1">
-            <DomainHistorySection
-              history={state.history}
-              historyLoaded={state.historyLoaded}
-              onRemoveHistoryItem={state.removeHistoryItem}
-              onSelectHistoryItem={state.handleHistorySelect}
+          <div className="pt-1">
+            <RecentSearches
+              items={state.history}
+              loaded={state.historyLoaded}
+              onRemove={state.removeHistoryItem}
+              emptyIcon={Globe}
+              emptyTitle="Enter a domain to get started"
+              getTitle={(item) => item.domain}
+              getSubtitle={(item) => RESEARCH_SCOPE_LABELS[item.scope]}
+              renderLink={(item, props) => (
+                <button
+                  type="button"
+                  onClick={() => state.handleHistorySelect(item)}
+                  {...props}
+                />
+              )}
             />
           </div>
         ) : (

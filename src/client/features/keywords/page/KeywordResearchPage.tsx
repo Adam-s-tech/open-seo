@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
 import { formatLocationLabel } from "@/shared/keyword-locations";
@@ -206,15 +207,16 @@ export function KeywordResearchPage(input: Props) {
         <KeywordResearchSearchBar controller={controller} />
         {controller.hasSearched ? (
           <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              data-testid="keyword-research-recent-searches"
-              className="btn btn-ghost btn-sm w-fit gap-2 px-0 text-base-content/70 hover:bg-transparent"
-              onClick={showRecentSearches}
-            >
-              <ArrowLeft className="size-4" />
-              Recent searches
-            </button>
+            <RecentSearchesBackLink
+              render={(props) => (
+                <button
+                  type="button"
+                  data-testid="keyword-research-recent-searches"
+                  onClick={showRecentSearches}
+                  {...props}
+                />
+              )}
+            />
             <SearchTabStrip
               projectId={projectId}
               tabs={searchTabs.tabs}

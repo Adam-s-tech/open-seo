@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   AlertCircle,
-  ArrowLeft,
   BarChart3,
   Quote,
+  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { lookupBrand } from "@/serverFunctions/ai-search";
@@ -16,7 +16,10 @@ import {
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { BrandLookupResults } from "@/client/features/ai-search/components/BrandLookupResults";
 import { BrandLookupSearchCard } from "@/client/features/ai-search/components/BrandLookupSearchCard";
-import { BrandLookupHistorySection } from "@/client/features/ai-search/components/BrandLookupHistorySection";
+import {
+  RecentSearches,
+  RecentSearchesBackLink,
+} from "@/client/components/RecentSearches";
 import { AiSearchLoadingState } from "@/client/features/ai-search/components/AiSearchLoadingState";
 import { AiSearchPaidPlanGate } from "@/client/features/ai-search/components/AiSearchPaidPlanGate";
 import { useBrandLookupSearchHistory } from "@/client/hooks/useBrandLookupSearchHistory";
@@ -27,6 +30,7 @@ import {
 import { detectTarget } from "@/shared/targetDetection";
 import {
   parseResearchTarget,
+  RESEARCH_SCOPE_LABELS,
   toScopeSearchParam,
   type ResearchScope,
 } from "@/shared/researchScope";
@@ -307,27 +311,61 @@ function BrandLookupPageInner({
               <AiSearchLoadingState />
             ) : resultData ? (
               <>
-                <div>
+                <RecentSearchesBackLink
+                  render={(props) => (
+                    <Link
+                      from="/p/$projectId/brand-lookup"
+                      to="/p/$projectId/brand-lookup"
+                      params={{ projectId }}
+                      search={{ q: undefined, c: undefined, scope: undefined }}
+                      replace
+                      {...props}
+                    />
+                  )}
+                />
+                <BrandLookupResults result={resultData} projectId={projectId} />
+              </>
+            ) : !errorMessage ? (
+              <RecentSearches
+                items={history}
+                loaded={historyLoaded}
+                onRemove={removeHistoryItem}
+                emptyIcon={Sparkles}
+                emptyTitle="Search a brand name or domain to see how AI cites it"
+                getTitle={(item) => (
+                  <>
+                    {item.query}
+                    {/* Only non-default scopes are stored, so this badge always
+                        adds information the query string doesn't carry. */}
+                    {item.scope ? (
+                      <span className="badge badge-ghost badge-sm ml-2">
+                        {RESEARCH_SCOPE_LABELS[item.scope]}
+                      </span>
+                    ) : null}
+                  </>
+                )}
+                getSubtitle={(item) =>
+                  item.competitors.length > 0
+                    ? `vs ${item.competitors.join(", ")}`
+                    : null
+                }
+                renderLink={(item, props) => (
                   <Link
                     from="/p/$projectId/brand-lookup"
                     to="/p/$projectId/brand-lookup"
                     params={{ projectId }}
-                    search={{ q: undefined, c: undefined, scope: undefined }}
+                    search={{
+                      q: item.query,
+                      c:
+                        item.competitors.length > 0
+                          ? item.competitors.join(",")
+                          : undefined,
+                      scope: item.scope,
+                    }}
                     replace
-                    className="btn btn-ghost btn-sm gap-2 px-0 text-base-content/70 hover:bg-transparent"
-                  >
-                    <ArrowLeft className="size-4" />
-                    Recent searches
-                  </Link>
-                </div>
-                <BrandLookupResults result={resultData} projectId={projectId} />
-              </>
-            ) : !errorMessage ? (
-              <BrandLookupHistorySection
-                projectId={projectId}
-                history={history}
-                historyLoaded={historyLoaded}
-                onRemoveHistoryItem={removeHistoryItem}
+                    {...props}
+                  />
+                )}
               />
             ) : null}
           </>
