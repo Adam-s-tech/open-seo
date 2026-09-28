@@ -77,6 +77,7 @@ function SubscribePage() {
     hasSession,
     isCustomerLoading: customerQuery.isLoading,
     isCustomerError: customerQuery.isError,
+    hasCustomerData: customerQuery.data != null,
     hasManagedAccess,
     planStatus,
     isUpgradeFlow: isUpgradeFlow === true,

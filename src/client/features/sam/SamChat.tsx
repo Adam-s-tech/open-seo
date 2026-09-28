@@ -25,27 +25,28 @@ export function SamChat({
 }) {
   const optedIn = useSamBetaOptIn();
   const access = useSamAccess(projectId);
-  const { sessionsQuery, sessions, goToSession, createSession } =
-    useSamSessions(projectId, { replace: true });
 
   // The ref (not isPending) guards the auto-create below: React can re-run the
   // effect before the mutation state updates, and it resets on settle so
   // archiving the last chat starts a fresh one.
   const creating = useRef(false);
-  // Kept in state: the per-call callbacks fire for the create started from
-  // the effect below, but the hook's `isError` can miss it and leave the
+  // Kept in state: the mutation's own callbacks fire for the create started
+  // from the effect below, but the hook's `isError` can miss it and leave the
   // spinner up.
   const [createError, setCreateError] = useState<Error | null>(null);
+  const { sessionsQuery, sessions, goToSession, createSession } =
+    useSamSessions(projectId, {
+      replace: true,
+      onCreateError: setCreateError,
+      onCreateSettled: () => {
+        creating.current = false;
+      },
+    });
   const { mutate: createSessionMutate } = createSession;
   const startChat = useCallback(() => {
     creating.current = true;
     setCreateError(null);
-    createSessionMutate(undefined, {
-      onError: setCreateError,
-      onSettled: () => {
-        creating.current = false;
-      },
-    });
+    createSessionMutate();
   }, [createSessionMutate]);
 
   // Landing without a session: open the most recent one, or start a fresh

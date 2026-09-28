@@ -1,6 +1,7 @@
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, Loader2, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Archive, Loader2, Plus, X } from "lucide-react";
 import { archiveSamSession } from "@/serverFunctions/sam";
 import {
   invalidateSamSessions,
@@ -9,6 +10,46 @@ import {
 import { QueryState } from "@/client/components/QueryState";
 import { useSamBetaOptIn } from "./samBetaOptIn";
 import { useSamSessions } from "./useSamSessions";
+
+const BETA_NOTICE_DISMISSED_KEY = "sam-beta-notice-dismissed";
+
+// The MCP nudge for users who already opted into SAM: SamBetaGate carries it
+// before opt-in, and this card keeps it in view afterwards. Dismissible per
+// browser; localStorage is read in an effect so SSR and the first client
+// render stay identical.
+function BetaNotice() {
+  const [dismissed, setDismissed] = useState(true);
+  useEffect(() => {
+    setDismissed(localStorage.getItem(BETA_NOTICE_DISMISSED_KEY) === "1");
+  }, []);
+  if (dismissed) return null;
+
+  return (
+    <div className="mx-2 mb-2 rounded-lg border border-base-300 bg-base-100 p-3">
+      <div className="flex items-center justify-between">
+        <span className="badge badge-primary badge-sm">Beta</span>
+        <button
+          type="button"
+          aria-label="Dismiss"
+          className="btn btn-ghost btn-xs btn-square text-base-content/40"
+          onClick={() => {
+            localStorage.setItem(BETA_NOTICE_DISMISSED_KEY, "1");
+            setDismissed(true);
+          }}
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
+      <p className="mt-1.5 text-xs text-base-content/70">
+        For more powerful AI workflows, use the OpenSEO MCP with your own agent
+        like Claude Code or Hermes.
+      </p>
+      <Link to="/ai" className="link link-primary mt-1.5 inline-block text-xs">
+        Set up the MCP →
+      </Link>
+    </div>
+  );
+}
 
 // Compact age label for the session list (PostHog-style "3h" / "12d").
 // Timestamps come back as UTC from both backends: D1 as "YYYY-MM-DD HH:MM:SS"
@@ -145,6 +186,8 @@ export function SamSidebarPanel({
           }
         </QueryState>
       </div>
+
+      <BetaNotice />
     </div>
   );
 }

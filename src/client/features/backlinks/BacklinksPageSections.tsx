@@ -52,6 +52,7 @@ export function BacklinksResultsCard({
   isTabLoading,
   showTable,
   tabErrorMessage,
+  tabError,
   onRetryTab,
   isTabRetrying,
   exportTarget,
@@ -75,6 +76,7 @@ export function BacklinksResultsCard({
   isTabLoading: boolean;
   showTable: boolean;
   tabErrorMessage: string | null;
+  tabError?: unknown;
   onRetryTab?: () => void;
   isTabRetrying: boolean;
   exportTarget: string;
@@ -265,6 +267,7 @@ export function BacklinksResultsCard({
         {tabErrorMessage ? (
           <div className="mb-3">
             <QueryError
+              cause={tabError}
               fallback={tabErrorMessage}
               onRetry={onRetryTab}
               isRetrying={isTabRetrying}

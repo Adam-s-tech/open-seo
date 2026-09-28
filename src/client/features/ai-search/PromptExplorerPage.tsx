@@ -222,6 +222,7 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
 
             {errorMessage ? (
               <QueryError
+                cause={exploreQuery.error}
                 fallback={
                   resultData
                     ? `${errorMessage} Showing earlier results.`

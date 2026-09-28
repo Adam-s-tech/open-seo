@@ -289,6 +289,7 @@ export function BrandLookupPage({
 
             {errorMessage ? (
               <QueryError
+                cause={lookupQuery.error}
                 fallback={
                   resultData
                     ? `${errorMessage} Showing earlier results.`

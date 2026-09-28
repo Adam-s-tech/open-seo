@@ -262,8 +262,9 @@ function ReportDetailPage() {
             They belong to the viewer, not the document, so they overlay the
             iframe instead of being injected into it. Placed before the iframe
             so keyboard focus reaches them without tabbing through the report;
-            inset from the edge so they clear a classic scrollbar. */}
-        <div className="absolute top-1 right-5 flex items-center gap-0.5 rounded-md border border-base-300 bg-base-100/95 p-0.5 shadow-sm backdrop-blur">
+            inset from the edge so they clear a classic scrollbar. z-10 keeps
+            them above the viewer, which is positioned and comes later. */}
+        <div className="absolute top-1 right-5 z-10 flex items-center gap-0.5 rounded-md border border-base-300 bg-base-100/95 p-0.5 shadow-sm backdrop-blur">
           <button
             type="button"
             className="btn btn-ghost btn-sm btn-square"

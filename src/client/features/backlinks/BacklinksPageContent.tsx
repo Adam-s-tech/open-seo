@@ -175,6 +175,9 @@ export function BacklinksBody({
         // them because the query never ran for the current filters.
         showTable={activeTabPage !== undefined && !data.activeTabFilterError}
         tabErrorMessage={data.activeTabErrorMessage}
+        tabError={
+          data.activeTabFilterError ? undefined : data.activeTabQuery.error
+        }
         onRetryTab={
           data.activeTabFilterError
             ? undefined

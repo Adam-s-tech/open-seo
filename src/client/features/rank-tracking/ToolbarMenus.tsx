@@ -89,7 +89,6 @@ function MenuItem({
 export function MoreMenu({
   onCheckNow,
   checkBusy,
-  checkDisabled,
   onRefreshMetrics,
   metricsRefreshing,
   trackedKeywordCount,
@@ -97,7 +96,6 @@ export function MoreMenu({
 }: {
   onCheckNow: () => void;
   checkBusy: boolean;
-  checkDisabled: boolean;
   onRefreshMetrics: () => void;
   metricsRefreshing: boolean;
   trackedKeywordCount: number;
@@ -110,15 +108,13 @@ export function MoreMenu({
         icon={<MoreHorizontal className="size-4" />}
         title="More actions"
       >
-        {!checkDisabled && (
-          <MenuItem
-            icon={<Play className="size-3.5" />}
-            label={checkBusy ? "Running..." : "Check rankings"}
-            description="Fetch current Google positions"
-            onClick={onCheckNow}
-            disabled={checkBusy}
-          />
-        )}
+        <MenuItem
+          icon={<Play className="size-3.5" />}
+          label={checkBusy ? "Running..." : "Check rankings"}
+          description="Fetch current Google positions"
+          onClick={onCheckNow}
+          disabled={checkBusy}
+        />
         <MenuItem
           icon={
             <RefreshCw

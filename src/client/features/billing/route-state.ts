@@ -23,6 +23,7 @@ export function getSubscribeRouteState(args: {
   hasSession: boolean;
   isCustomerLoading: boolean;
   isCustomerError: boolean;
+  hasCustomerData: boolean;
   hasManagedAccess: boolean;
   planStatus: PlanStatus;
   isUpgradeFlow: boolean;
@@ -42,8 +43,14 @@ export function getSubscribeRouteState(args: {
   }
 
   // A failed poll while finalizing keeps polling: the error screen would stop
-  // the poll and park a just-paid user on "Billing unavailable".
-  if (args.isCustomerError && !args.checkoutCompleted) {
+  // the poll and park a just-paid user on "Billing unavailable". A failed
+  // refetch with the customer already loaded keeps the paywall, since every
+  // Upgrade button in the app lands here.
+  if (
+    args.isCustomerError &&
+    !args.checkoutCompleted &&
+    !args.hasCustomerData
+  ) {
     return "error" as const;
   }
 

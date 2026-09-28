@@ -18,7 +18,14 @@ export function useSamSessions(
   {
     replace = false,
     onNavigate,
-  }: { replace?: boolean; onNavigate?: () => void } = {},
+    onCreateError,
+    onCreateSettled,
+  }: {
+    replace?: boolean;
+    onNavigate?: () => void;
+    onCreateError?: (error: Error) => void;
+    onCreateSettled?: () => void;
+  } = {},
 ) {
   const navigate = useNavigate();
   const sessionsQuery = useQuery(samSessionsQueryOptions(projectId));
@@ -44,6 +51,12 @@ export function useSamSessions(
       await invalidateSamSessions(projectId);
       goToSession(id);
     },
+    // On the mutation, not per call: per-call callbacks go through the
+    // observer and are skipped when it detaches (StrictMode's double mount).
+    // Passing onCreateError also keeps the global error toast quiet, since
+    // the caller shows the error itself.
+    onError: onCreateError,
+    onSettled: onCreateSettled,
   });
 
   return {

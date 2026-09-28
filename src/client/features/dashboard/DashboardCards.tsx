@@ -161,19 +161,23 @@ export function AuditHealthCard({
         </Link>
       }
     >
-      {audit.status !== "completed" ? (
-        // A running or failed crawl has at most a partial issue list, and an
-        // empty one is not the same as a healthy site.
+      {audit.status === "running" ? (
+        // A running crawl has at most a partial issue list, and an empty one
+        // is not the same as a healthy site.
         <p className="text-sm text-base-content/70">
-          {audit.status === "running"
-            ? "Issues appear here when the crawl finishes."
-            : "Run the audit again to see issues."}
+          Issues appear here when the crawl finishes.
         </p>
       ) : audit.topIssues.length === 0 ? (
-        <div className="flex items-center gap-2 text-sm text-base-content/70">
-          <Check className="size-4 text-success" />
-          No issues found — your site looks healthy.
-        </div>
+        audit.status === "completed" ? (
+          <div className="flex items-center gap-2 text-sm text-base-content/70">
+            <Check className="size-4 text-success" />
+            No issues found — your site looks healthy.
+          </div>
+        ) : (
+          <p className="text-sm text-base-content/70">
+            Run the audit again to see issues.
+          </p>
+        )
       ) : (
         <ul className="space-y-2">
           {audit.topIssues.map((issue) => (
@@ -204,6 +208,12 @@ export function AuditHealthCard({
             <li className="text-xs text-base-content/50">
               + {audit.totalIssueTypes - audit.topIssues.length} more issue
               {audit.totalIssueTypes - audit.topIssues.length === 1 ? "" : "s"}
+            </li>
+          ) : null}
+          {/* A failed crawl keeps what it found, as the audit page does. */}
+          {audit.status !== "completed" ? (
+            <li className="text-xs text-base-content/50">
+              From the pages crawled before the audit stopped.
             </li>
           ) : null}
         </ul>

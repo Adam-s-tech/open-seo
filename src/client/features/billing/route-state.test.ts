@@ -8,6 +8,7 @@ describe("getSubscribeRouteState", () => {
     hasSession: true,
     isCustomerLoading: false,
     isCustomerError: false,
+    hasCustomerData: true,
     hasManagedAccess: true,
     planStatus: "free" as const,
     isUpgradeFlow: false,
@@ -47,6 +48,15 @@ describe("getSubscribeRouteState", () => {
         isCustomerError: true,
       }),
     ).toBe("finalizing");
+  });
+
+  it("keeps the paywall when a customer refetch fails, but not a first load", () => {
+    const failed = { ...base, isUpgradeFlow: true, isCustomerError: true };
+
+    expect(getSubscribeRouteState(failed)).toBe("showPaywall");
+    expect(getSubscribeRouteState({ ...failed, hasCustomerData: false })).toBe(
+      "error",
+    );
   });
 
   it("lets the user through once the finalizing window runs out", () => {

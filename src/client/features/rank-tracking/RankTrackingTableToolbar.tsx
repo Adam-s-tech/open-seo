@@ -116,15 +116,18 @@ export function RankTrackingTableToolbar({
         hasData={hasData}
       />
 
-      <MoreMenu
-        onCheckNow={onCheckNow}
-        checkBusy={checkBusy}
-        checkDisabled={checkDisabled}
-        onRefreshMetrics={onRefreshMetrics}
-        metricsRefreshing={metricsRefreshing}
-        trackedKeywordCount={trackedKeywordCount}
-        hasData={hasData}
-      />
+      {/* Both actions need a paid plan; free users get the page's upgrade
+          alert instead of a menu whose items fail. */}
+      {!checkDisabled && (
+        <MoreMenu
+          onCheckNow={onCheckNow}
+          checkBusy={checkBusy}
+          onRefreshMetrics={onRefreshMetrics}
+          metricsRefreshing={metricsRefreshing}
+          trackedKeywordCount={trackedKeywordCount}
+          hasData={hasData}
+        />
+      )}
     </div>
   );
 }
