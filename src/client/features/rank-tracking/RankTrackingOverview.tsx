@@ -25,12 +25,6 @@ const BUCKETS = [
   { key: "notRanking", label: "Not in top 20", color: "#6b7280" },
 ] as const;
 
-/** Narrowed recharts tooltip payload entry (typed `any` upstream). */
-interface PayloadEntry {
-  dataKey?: string | number;
-  value?: number | string | null;
-}
-
 export function RankTrackingOverview({
   device,
   projectId,
@@ -142,7 +136,7 @@ export function RankTrackingOverview({
                       width={28}
                     />
                     <Tooltip
-                      content={(props: TooltipContentProps<number, string>) => {
+                      content={(props: TooltipContentProps) => {
                         const { active, payload, label } = props;
                         if (
                           !active ||
@@ -152,7 +146,7 @@ export function RankTrackingOverview({
                           return null;
                         }
                         const byKey = new Map(
-                          payload.map((p: PayloadEntry) => [
+                          payload.map((p) => [
                             String(p.dataKey),
                             typeof p.value === "number" ? p.value : 0,
                           ]),

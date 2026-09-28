@@ -26,14 +26,6 @@ interface TooltipEntry {
   color?: string;
 }
 
-/** Narrowed shape of a recharts tooltip payload entry (typed `any` upstream). */
-interface RechartsPayloadEntry {
-  dataKey?: string | number;
-  name?: string;
-  value?: number | string | null;
-  color?: string;
-}
-
 /**
  * Shared inverted-axis line chart for rank trends. Y-axis is reversed so #1 is
  * pinned at the top and an improving line moves up. The very bottom of the
@@ -113,19 +105,18 @@ export function RankTrendChart({
               width={32}
             />
             <Tooltip
-              content={(props: TooltipContentProps<number, string>) => {
+              content={(props: TooltipContentProps) => {
                 const { active, payload, label } = props;
                 if (!active || !payload?.length || typeof label !== "number") {
                   return null;
                 }
-                const entries: TooltipEntry[] = payload.map(
-                  (p: RechartsPayloadEntry) => ({
-                    dataKey: p.dataKey,
-                    name: p.name,
-                    value: typeof p.value === "number" ? p.value : null,
-                    color: p.color,
-                  }),
-                );
+                const entries: TooltipEntry[] = payload.map((p) => ({
+                  dataKey:
+                    typeof p.dataKey === "function" ? undefined : p.dataKey,
+                  name: typeof p.name === "string" ? p.name : undefined,
+                  value: typeof p.value === "number" ? p.value : null,
+                  color: p.color,
+                }));
                 return renderTooltip(label, entries);
               }}
               cursor={{ stroke: "rgba(150,150,150,0.3)" }}
