@@ -52,7 +52,7 @@ export function SamChat({
   // chat when the project has none.
   const firstSessionId = sessions[0]?.id;
   useEffect(() => {
-    if (activeSessionId || !optedIn || access.showSetupGate) return;
+    if (activeSessionId || !optedIn || access.status !== "ready") return;
     if (firstSessionId) {
       goToSession(firstSessionId);
       return;
@@ -62,7 +62,7 @@ export function SamChat({
   }, [
     activeSessionId,
     optedIn,
-    access.showSetupGate,
+    access.status,
     firstSessionId,
     sessionsQuery.isSuccess,
     goToSession,
@@ -94,11 +94,30 @@ export function SamChat({
     return <SamBetaGate onContinue={optInToSamBeta} />;
   }
 
+  if (access.status === "checking") {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (access.status === "error") {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <QueryError
+          error={access.error}
+          fallback="Could not load AI agent setup status."
+          onRetry={access.onRetry}
+          isRetrying={access.isRetrying}
+        />
+      </div>
+    );
+  }
+
   // SAM cannot answer a turn without OPENROUTER_API_KEY, so surface setup
-  // instructions instead of letting a chat fail mid-stream. Only shown once the
-  // check confirms the key is missing (self-hosted) — never as a blocking
-  // skeleton while the check is in flight.
-  if (access.showSetupGate) {
+  // instructions instead of letting a chat fail mid-stream (self-hosted only).
+  if (access.status === "setup") {
     return (
       <div className="overflow-auto px-4 py-4 md:px-6 md:py-6">
         <div className="mx-auto max-w-3xl">

@@ -141,5 +141,7 @@ export function useKeywordSerpAnalysis(
     canLoadMoreSerp,
     deepFetchFailed,
     serpError,
+    // `isLoading` stays false while a failed query refetches.
+    serpRetrying: serpQuery.isFetching,
   };
 }

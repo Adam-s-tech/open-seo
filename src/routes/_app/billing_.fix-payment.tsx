@@ -48,6 +48,7 @@ function FixPaymentPage() {
     isSessionPending,
     isCustomerLoading: customerQuery.isLoading,
     isCustomerError: customerQuery.isError,
+    hasCustomerData: customerQuery.data != null,
   });
   const isPastDue =
     customerQuery.data?.subscriptions?.some((s) => s.pastDue) ?? false;

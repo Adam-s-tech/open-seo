@@ -6,6 +6,7 @@ import {
   AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
   autumnSeoDataCreditsToUsd,
 } from "@/shared/billing";
+import { QueryError } from "@/client/components/QueryState";
 
 const BILLING_USAGE_FEATURE_IDS: string[] = [
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
@@ -58,7 +59,15 @@ export function BillingUsageChart() {
       </div>
 
       <div ref={containerRef} className="w-full h-32 min-w-0">
-        {eventsQuery.isLoading ? null : chartData.length === 0 ? (
+        {eventsQuery.isLoading ? null : eventsQuery.list === undefined &&
+          eventsQuery.isError ? (
+          <QueryError
+            error={eventsQuery.error}
+            fallback="Failed to load usage"
+            onRetry={() => void eventsQuery.refetch()}
+            isRetrying={eventsQuery.isFetching}
+          />
+        ) : chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <span className="text-sm text-base-content/40">
               No usage recorded yet

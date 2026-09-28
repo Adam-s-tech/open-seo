@@ -340,6 +340,7 @@ function SerpPanel({ controller }: Props) {
             canLoadMore={controller.canLoadMoreSerp}
             error={controller.serpError}
             onRetry={controller.retrySerp}
+            retrying={controller.serpRetrying}
             deepFetchFailed={controller.deepFetchFailed}
             page={controller.serpPage}
             pageSize={controller.SERP_PAGE_SIZE}

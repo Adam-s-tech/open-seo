@@ -89,8 +89,20 @@ function ReportDetailPage() {
     return <PageLoading />;
   }
 
-  if (reportQuery.isError) {
-    const notFound = getErrorCode(reportQuery.error) === "NOT_FOUND";
+  const loadError = (
+    <QueryError
+      error={reportQuery.error}
+      fallback="Failed to load the report"
+      onRetry={() => void reportQuery.refetch()}
+      isRetrying={reportQuery.isFetching}
+    />
+  );
+
+  // A failed refetch keeps the loaded report on screen, unless the report is
+  // gone: then the not-found answer replaces it.
+  const notFound =
+    reportQuery.isError && getErrorCode(reportQuery.error) === "NOT_FOUND";
+  if (notFound || reportQuery.data === undefined) {
     return (
       <div className="px-4 py-6 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
@@ -100,12 +112,7 @@ function ReportDetailPage() {
           {notFound ? (
             <QueryError fallback="This report does not exist or you do not have access to it." />
           ) : (
-            <QueryError
-              error={reportQuery.error}
-              fallback="Failed to load the report"
-              onRetry={() => void reportQuery.refetch()}
-              isRetrying={reportQuery.isFetching}
-            />
+            loadError
           )}
           <Link
             to="/p/$projectId/reports"
@@ -143,6 +150,7 @@ function ReportDetailPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 px-4 py-4 md:px-6 md:py-6">
+      {reportQuery.isError ? loadError : null}
       <div className="space-y-3">
         <Link
           to="/p/$projectId/reports"

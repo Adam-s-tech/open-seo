@@ -122,7 +122,9 @@ export function BacklinksBody({
     );
   }
 
-  if (data.overviewQuery.isLoading) {
+  // isPending (not isLoading) also covers a fetch paused while offline, which
+  // would otherwise fall through to the error card with no error.
+  if (data.overviewQuery.isPending) {
     return (
       <>
         {tabStrip}
@@ -138,6 +140,7 @@ export function BacklinksBody({
         <BacklinksErrorState
           errorMessage={data.overviewErrorMessage}
           onRetry={() => void data.overviewQuery.refetch()}
+          isRetrying={data.overviewQuery.isFetching}
         />
       </>
     );
@@ -165,8 +168,19 @@ export function BacklinksBody({
         hideSpam={!searchState.includeSpam}
         onHideSpamChange={onHideSpamChange}
         domainExpansion={domainExpansion}
-        isTabLoading={data.activeTabQuery.isLoading}
+        isTabLoading={
+          data.activeTabQuery.isPending && !data.activeTabFilterError
+        }
+        // A failed refetch keeps the loaded rows; a filter budget error hides
+        // them because the query never ran for the current filters.
+        showTable={activeTabPage !== undefined && !data.activeTabFilterError}
         tabErrorMessage={data.activeTabErrorMessage}
+        onRetryTab={
+          data.activeTabFilterError
+            ? undefined
+            : () => void data.activeTabQuery.refetch()
+        }
+        isTabRetrying={data.activeTabQuery.isFetching}
         exportTarget={overviewData.displayTarget || searchState.target}
         pagination={{
           page: searchState.page,

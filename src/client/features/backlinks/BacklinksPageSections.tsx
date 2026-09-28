@@ -27,6 +27,7 @@ import {
 } from "@/types/schemas/backlinks";
 import type { ResearchScope } from "@/shared/researchScope";
 import { Skeleton } from "@/client/components/Skeleton";
+import { QueryError } from "@/client/components/QueryState";
 
 const BACKLINKS_RESULTS_TABS: Array<{
   tab: BacklinksSearchState["tab"];
@@ -49,7 +50,10 @@ export function BacklinksResultsCard({
   onHideSpamChange,
   domainExpansion,
   isTabLoading,
+  showTable,
   tabErrorMessage,
+  onRetryTab,
+  isTabRetrying,
   exportTarget,
   pagination,
   onPageChange,
@@ -69,7 +73,10 @@ export function BacklinksResultsCard({
   onHideSpamChange: (hideSpam: boolean) => void;
   domainExpansion: BacklinksDomainExpansion;
   isTabLoading: boolean;
+  showTable: boolean;
   tabErrorMessage: string | null;
+  onRetryTab?: () => void;
+  isTabRetrying: boolean;
   exportTarget: string;
   pagination: {
     page: number;
@@ -256,14 +263,18 @@ export function BacklinksResultsCard({
 
       <div className="p-4">
         {tabErrorMessage ? (
-          <div className="alert alert-error mb-3">
-            <span>{tabErrorMessage}</span>
+          <div className="mb-3">
+            <QueryError
+              fallback={tabErrorMessage}
+              onRetry={onRetryTab}
+              isRetrying={isTabRetrying}
+            />
           </div>
         ) : null}
-        {isTabLoading && !tabErrorMessage ? (
+        {isTabLoading ? (
           <TabLoadingState label={TAB_LOADING_LABELS[activeTab]} />
         ) : null}
-        {!isTabLoading && !tabErrorMessage ? (
+        {!isTabLoading && showTable ? (
           <>
             {activeTab === "backlinks" ? (
               <BacklinksTable

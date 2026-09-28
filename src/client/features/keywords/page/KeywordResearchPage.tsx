@@ -248,40 +248,60 @@ function KeywordResearchContent({
     return <KeywordResearchLoadingState />;
   }
 
-  if (controller.researchError) {
-    const errorCode = getErrorCode(controller.researchMutationError);
-
-    return (
-      <div className="flex-1 flex items-center justify-center pt-1">
-        <div className="w-full max-w-xl rounded-xl border border-error/30 bg-error/10 p-5 text-error space-y-3">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <p className="text-sm">{controller.researchError}</p>
-          </div>
-          {errorCode === "INSUFFICIENT_CREDITS" ? (
-            <Link to={BILLING_ROUTE} className="btn btn-sm">
-              Go to Billing
-            </Link>
-          ) : errorCode === "UNKNOWN_LOCATION" ? null : (
-            <button className="btn btn-sm" onClick={controller.retrySearch}>
-              Try again
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const errorCard = controller.researchError ? (
+    <ResearchErrorCard controller={controller} />
+  ) : null;
 
   if (controller.rows.length === 0) {
     return (
-      <KeywordResearchEmptyState
-        controller={controller}
-        projectId={projectId}
-      />
+      errorCard ?? (
+        <KeywordResearchEmptyState
+          controller={controller}
+          projectId={projectId}
+        />
+      )
     );
   }
 
-  return <KeywordResearchResults controller={controller} />;
+  // A failed refetch keeps the loaded results on screen, under the error.
+  return (
+    <>
+      {errorCard}
+      <KeywordResearchResults controller={controller} />
+    </>
+  );
+}
+
+function ResearchErrorCard({
+  controller,
+}: {
+  controller: KeywordResearchControllerState;
+}) {
+  const errorCode = getErrorCode(controller.researchMutationError);
+
+  return (
+    <div className="flex-1 flex items-center justify-center pt-1">
+      <div className="w-full max-w-xl rounded-xl border border-error/30 bg-error/10 p-5 text-error space-y-3">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          <p className="text-sm">{controller.researchError}</p>
+        </div>
+        {errorCode === "INSUFFICIENT_CREDITS" ? (
+          <Link to={BILLING_ROUTE} className="btn btn-sm">
+            Go to Billing
+          </Link>
+        ) : errorCode === "UNKNOWN_LOCATION" ? null : (
+          <button
+            className="btn btn-sm"
+            onClick={controller.retrySearch}
+            disabled={controller.researchRetrying}
+          >
+            {controller.researchRetrying ? "Retrying…" : "Try again"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function KeywordSaveDialog({

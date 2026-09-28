@@ -122,20 +122,20 @@ export function TeamSettings() {
   const pendingInvitations = teamQuery.data?.pendingInvitations ?? [];
 
   // The team query waits on the org context, so a failed context would
-  // otherwise leave the team spinner up for good.
+  // otherwise leave the team spinner up for good. A failed refetch keeps the
+  // loaded table, with the error above it.
   const failedQuery = [orgContextQuery, teamQuery].find(
-    (query) => query.isError && query.data === undefined,
+    (query) => query.isError,
   );
-  if (failedQuery) {
-    return (
-      <QueryError
-        error={failedQuery.error}
-        fallback="We couldn't load your team right now."
-        onRetry={() => void failedQuery.refetch()}
-        isRetrying={failedQuery.isFetching}
-      />
-    );
-  }
+  const loadError = failedQuery ? (
+    <QueryError
+      error={failedQuery.error}
+      fallback="We couldn't load your team right now."
+      onRetry={() => void failedQuery.refetch()}
+      isRetrying={failedQuery.isFetching}
+    />
+  ) : null;
+  if (failedQuery && failedQuery.data === undefined) return loadError;
 
   return (
     <section className="space-y-3">
@@ -155,6 +155,7 @@ export function TeamSettings() {
         Teammates join as Admins. Admins have full access to each project except
         for billing.
       </p>
+      {loadError}
 
       {teamQuery.isPending ? (
         <PageLoading />

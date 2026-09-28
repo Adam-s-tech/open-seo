@@ -6,6 +6,7 @@ import {
   invalidateSamSessions,
   samSessionsQueryOptions,
 } from "@/client/features/sam/samQueries";
+import { QueryState } from "@/client/components/QueryState";
 import { useSamBetaOptIn } from "./samBetaOptIn";
 import { useSamSessions } from "./useSamSessions";
 
@@ -39,8 +40,10 @@ export function SamSidebarPanel({
   const location = useLocation();
   const activeSessionId = (location.search as { s?: string }).s;
   const optedIn = useSamBetaOptIn();
-  const { sessionsQuery, sessions, goToSession, createSession } =
-    useSamSessions(projectId, { onNavigate });
+  const { sessionsQuery, goToSession, createSession } = useSamSessions(
+    projectId,
+    { onNavigate },
+  );
 
   const archiveSession = useMutation({
     mutationFn: (sessionId: string) =>
@@ -88,51 +91,59 @@ export function SamSidebarPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 py-1">
-        {sessionsQuery.isLoading ? (
-          <div className="flex justify-center py-6 text-base-content/50">
-            <Loader2 className="size-4 animate-spin" />
-          </div>
-        ) : sessions.length === 0 ? (
-          <p className="px-2 py-6 text-center text-xs text-base-content/50">
-            No chats yet. Start a new one.
-          </p>
-        ) : (
-          sessions.map((session) => {
-            const isActive = session.id === activeSessionId;
-            return (
-              <div
-                key={session.id}
-                className={`group flex items-center gap-1 rounded-md px-1 ${
-                  isActive ? "bg-base-300/50" : "hover:bg-base-300/40"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => goToSession(session.id)}
-                  className="min-w-0 flex-1 truncate px-2 py-1.5 text-left text-sm text-base-content/80"
-                >
-                  {session.title}
-                </button>
-                {/* The age and the Archive button share one grid cell, so the
-                    button takes the place of the age when it shows. */}
-                <div className="grid shrink-0 place-items-center *:col-start-1 *:row-start-1">
-                  <span className="text-xs text-base-content/40 transition-opacity group-hover:opacity-0 group-focus-within:opacity-0 pointer-coarse:opacity-0">
-                    {ageLabel(session.updatedAt)}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Archive chat"
-                    className="btn btn-ghost btn-xs btn-square reveal-on-hover"
-                    disabled={archiveSession.isPending}
-                    onClick={() => archiveSession.mutate(session.id)}
+        <QueryState
+          query={sessionsQuery}
+          errorFallback="Failed to load chats."
+          loading={
+            <div className="flex justify-center py-6 text-base-content/50">
+              <Loader2 className="size-4 animate-spin" />
+            </div>
+          }
+        >
+          {(loadedSessions) =>
+            loadedSessions.length === 0 ? (
+              <p className="px-2 py-6 text-center text-xs text-base-content/50">
+                No chats yet. Start a new one.
+              </p>
+            ) : (
+              loadedSessions.map((session) => {
+                const isActive = session.id === activeSessionId;
+                return (
+                  <div
+                    key={session.id}
+                    className={`group flex items-center gap-1 rounded-md px-1 ${
+                      isActive ? "bg-base-300/50" : "hover:bg-base-300/40"
+                    }`}
                   >
-                    <Archive className="size-3.5 text-base-content/50" />
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
+                    <button
+                      type="button"
+                      onClick={() => goToSession(session.id)}
+                      className="min-w-0 flex-1 truncate px-2 py-1.5 text-left text-sm text-base-content/80"
+                    >
+                      {session.title}
+                    </button>
+                    {/* The age and the Archive button share one grid cell, so the
+                    button takes the place of the age when it shows. */}
+                    <div className="grid shrink-0 place-items-center *:col-start-1 *:row-start-1">
+                      <span className="text-xs text-base-content/40 transition-opacity group-hover:opacity-0 group-focus-within:opacity-0 pointer-coarse:opacity-0">
+                        {ageLabel(session.updatedAt)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Archive chat"
+                        className="btn btn-ghost btn-xs btn-square reveal-on-hover"
+                        disabled={archiveSession.isPending}
+                        onClick={() => archiveSession.mutate(session.id)}
+                      >
+                        <Archive className="size-3.5 text-base-content/50" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )
+          }
+        </QueryState>
       </div>
     </div>
   );

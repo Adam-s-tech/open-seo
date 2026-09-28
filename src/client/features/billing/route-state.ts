@@ -5,12 +5,14 @@ export function getBillingRouteState(args: {
   isSessionPending: boolean;
   isCustomerLoading: boolean;
   isCustomerError: boolean;
+  hasCustomerData: boolean;
 }) {
   if (args.isSessionPending || !args.hasSession || args.isCustomerLoading) {
     return "loading" as const;
   }
 
-  if (args.isCustomerError) {
+  // A failed refetch keeps the loaded page; the caller shows the error inline.
+  if (args.isCustomerError && !args.hasCustomerData) {
     return "error" as const;
   }
 

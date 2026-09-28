@@ -37,9 +37,11 @@ export function BacklinksLoadingState() {
 export function BacklinksErrorState({
   errorMessage,
   onRetry,
+  isRetrying,
 }: {
   errorMessage: string | null;
   onRetry: () => void;
+  isRetrying: boolean;
 }) {
   return (
     <section className="rounded-2xl border border-error/30 bg-error/5 p-6 space-y-3">
@@ -54,8 +56,8 @@ export function BacklinksErrorState({
           </p>
         </div>
       </div>
-      <button className="btn btn-sm" onClick={onRetry}>
-        Retry
+      <button className="btn btn-sm" onClick={onRetry} disabled={isRetrying}>
+        {isRetrying ? "Retrying…" : "Retry"}
       </button>
     </section>
   );

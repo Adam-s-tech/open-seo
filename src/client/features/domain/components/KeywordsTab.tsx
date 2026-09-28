@@ -6,6 +6,7 @@ import {
   TableBulkActionButton,
   TableBulkExportMenu,
 } from "@/client/components/table/TableBulkActionBar";
+import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
 import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainKeywordsTable } from "@/client/features/domain/components/DomainKeywordsTable";
@@ -312,16 +313,28 @@ export function KeywordsTab({
           />
         }
       >
-        <DomainKeywordsTable
-          domain={hostname}
-          rows={rows}
-          selectedKeywords={selectedKeywords}
-          visibleKeywords={visibleKeywords}
-          sortMode={routeState.sort}
-          currentSortOrder={routeState.order}
-          onSortClick={onSortClick}
-          onToggleKeyword={toggleKeywordSelection}
-        />
+        <div className="space-y-3">
+          {query.isError ? (
+            <QueryError
+              error={query.error}
+              fallback="Failed to load keywords."
+              onRetry={() => void query.refetch()}
+              isRetrying={query.isFetching}
+            />
+          ) : null}
+          {query.isError && !query.data ? null : (
+            <DomainKeywordsTable
+              domain={hostname}
+              rows={rows}
+              selectedKeywords={selectedKeywords}
+              visibleKeywords={visibleKeywords}
+              sortMode={routeState.sort}
+              currentSortOrder={routeState.order}
+              onSortClick={onSortClick}
+              onToggleKeyword={toggleKeywordSelection}
+            />
+          )}
+        </div>
       </DomainTableTabSurface>
     </>
   );

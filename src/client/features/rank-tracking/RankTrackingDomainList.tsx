@@ -29,6 +29,7 @@ import {
 import { Skeleton } from "@/client/components/Skeleton";
 import { useDebouncedDraft } from "@/client/hooks/useDebouncedDraft";
 import type { RankTrackingListSearch } from "@/types/schemas/rank-tracking-search";
+import { QueryError } from "@/client/components/QueryState";
 
 type ConfigSummary = Awaited<
   ReturnType<typeof getRankTrackingConfigSummaries>
@@ -81,10 +82,11 @@ export function RankTrackingDomainList({
     setQuery("");
     onSearchChange({});
   };
-  const { data: summaries, isPending } = useQuery({
+  const summariesQuery = useQuery({
     queryKey: ["rankTrackingConfigSummaries", projectId],
     queryFn: () => getRankTrackingConfigSummaries({ data: { projectId } }),
   });
+  const summaries = summariesQuery.data;
   const allSummaries = useMemo(() => summaries ?? [], [summaries]);
   const filteredSummaries = applyDomainListFilters(allSummaries, filters);
   const filterOptions = useMemo(() => {
@@ -146,7 +148,17 @@ export function RankTrackingDomainList({
           />
         )}
         <div className="divide-y divide-base-300 border-t border-base-300">
-          {isPending ? (
+          {summariesQuery.isError && (
+            <div className="px-5 py-4">
+              <QueryError
+                error={summariesQuery.error}
+                fallback="Failed to load tracked domains"
+                onRetry={() => void summariesQuery.refetch()}
+                isRetrying={summariesQuery.isFetching}
+              />
+            </div>
+          )}
+          {summariesQuery.isPending ? (
             <div className="space-y-4 px-5 py-4" aria-busy>
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="space-y-2">
@@ -155,7 +167,7 @@ export function RankTrackingDomainList({
                 </div>
               ))}
             </div>
-          ) : allSummaries.length === 0 ? (
+          ) : !summaries ? null : summaries.length === 0 ? (
             <div className="px-5 py-10 text-center space-y-2">
               <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-base-200">
                 <Globe className="size-5 text-base-content/40" />

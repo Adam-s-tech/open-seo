@@ -11,6 +11,7 @@ export function SerpAnalysisCard({
   canLoadMore,
   error,
   onRetry,
+  retrying,
   deepFetchFailed,
   page,
   pageSize,
@@ -25,6 +26,7 @@ export function SerpAnalysisCard({
   canLoadMore: boolean;
   error?: string | null;
   onRetry?: () => void;
+  retrying: boolean;
   /** The failure was the deeper crawl, so retrying restores the shallow one. */
   deepFetchFailed: boolean;
   page: number;
@@ -35,22 +37,23 @@ export function SerpAnalysisCard({
   const pageItems = items.slice(page * pageSize, (page + 1) * pageSize);
 
   if (loading) return <SerpAnalysisLoadingState />;
-  if (error) {
-    return (
-      <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error space-y-2">
-        <p>{error}</p>
-        {onRetry ? (
-          <button className="btn btn-xs" onClick={onRetry}>
-            {deepFetchFailed ? "Show top 20" : "Retry"}
-          </button>
-        ) : null}
-      </div>
-    );
+  const errorBox = error ? (
+    <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error space-y-2 mb-3">
+      <p>{error}</p>
+      {onRetry ? (
+        <button className="btn btn-xs" onClick={onRetry} disabled={retrying}>
+          {retrying ? "Retrying…" : deepFetchFailed ? "Show top 20" : "Retry"}
+        </button>
+      ) : null}
+    </div>
+  ) : null;
+  if (items.length === 0) {
+    return errorBox ?? <SerpAnalysisEmptyState keyword={keyword} />;
   }
-  if (items.length === 0) return <SerpAnalysisEmptyState keyword={keyword} />;
 
   return (
     <div>
+      {errorBox}
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs text-base-content/50">
           {items.length} organic results

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type QueryKey } from "@tanstack/react-query";
 import type {
   BacklinksPageProps,
   BacklinksSearchState,
@@ -88,6 +88,18 @@ export function useBacklinksPageData({
   const targetReady = Boolean(target);
   const baseQueryKeyParts = [projectId, scope, target] as const;
   const pageInputBase = { projectId, target, scope, page, pageSize };
+  // Keep the current table on screen while paging, sorting or filtering the
+  // same target. A new target shows the loading state instead. Each tab has
+  // its own query, so switching tabs never shows another tab's rows.
+  const keepSameTarget = <T>(
+    previous: T | undefined,
+    previousQuery: { queryKey: QueryKey } | undefined,
+  ) =>
+    baseQueryKeyParts.every(
+      (part, index) => previousQuery?.queryKey[index + 1] === part,
+    )
+      ? previous
+      : undefined;
 
   const overviewQuery = useQuery({
     queryKey: ["backlinksOverview", ...baseQueryKeyParts],
@@ -125,6 +137,9 @@ export function useBacklinksPageData({
     ],
     enabled: targetReady && tab === "backlinks" && !rowsFilterError,
     staleTime: BACKLINKS_QUERY_STALE_TIME_MS,
+    // Over-budget filters never run the query, so no rows (and no export) may
+    // stand in for them.
+    placeholderData: rowsFilterError ? undefined : keepSameTarget,
     queryFn: () =>
       getBacklinksRows({
         data: {
@@ -160,6 +175,7 @@ export function useBacklinksPageData({
     ],
     enabled: targetReady && tab === "domains",
     staleTime: BACKLINKS_QUERY_STALE_TIME_MS,
+    placeholderData: keepSameTarget,
     queryFn: () =>
       getBacklinksReferringDomains({
         data: {
@@ -193,6 +209,7 @@ export function useBacklinksPageData({
     ],
     enabled: targetReady && tab === "pages",
     staleTime: BACKLINKS_QUERY_STALE_TIME_MS,
+    placeholderData: keepSameTarget,
     queryFn: () =>
       getBacklinksTopPages({
         data: {
@@ -214,12 +231,14 @@ export function useBacklinksPageData({
       : tab === "domains"
         ? referringDomainsQuery
         : topPagesQuery;
+  const activeTabFilterError = tab === "backlinks" ? rowsFilterError : null;
   const activeTabErrorMessage =
-    (tab === "backlinks" ? rowsFilterError : null) ??
+    activeTabFilterError ??
     getBacklinksErrorMessage(activeTabQuery.error, "Could not load this tab.");
 
   return {
     activeTabErrorMessage,
+    activeTabFilterError,
     activeTabQuery,
     overviewErrorMessage,
     overviewQuery,

@@ -2,17 +2,12 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { identity, sortBy } from "remeda";
-import {
-  AlertCircle,
-  Columns3,
-  MessageSquare,
-  SearchCheck,
-  Sparkles,
-} from "lucide-react";
+import { Columns3, MessageSquare, SearchCheck, Sparkles } from "lucide-react";
 import { explorePrompt } from "@/serverFunctions/ai-search";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { PageLoading } from "@/client/components/Spinner";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryError } from "@/client/components/QueryState";
 import { PromptExplorerForm } from "@/client/features/ai-search/components/PromptExplorerForm";
 import { PromptExplorerResults } from "@/client/features/ai-search/components/PromptExplorerResults";
 import { PromptExplorerLoadingState } from "@/client/features/ai-search/components/PromptExplorerLoadingState";
@@ -172,7 +167,10 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
   };
 
   const errorMessage = exploreQuery.isError
-    ? getStandardErrorMessage(exploreQuery.error)
+    ? getStandardErrorMessage(
+        exploreQuery.error,
+        "Failed to load prompt results",
+      )
     : null;
   const isLoading = hasActivePrompt && exploreQuery.isPending;
   const resultData = hasActivePrompt ? exploreQuery.data : undefined;
@@ -223,13 +221,15 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
             />
 
             {errorMessage ? (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
+              <QueryError
+                fallback={
+                  resultData
+                    ? `${errorMessage} Showing earlier results.`
+                    : errorMessage
+                }
+                onRetry={() => void exploreQuery.refetch()}
+                isRetrying={exploreQuery.isFetching}
+              />
             ) : null}
 
             {isLoading ? (

@@ -67,6 +67,7 @@ function BillingPage() {
     isSessionPending,
     isCustomerLoading: customerQuery.isLoading,
     isCustomerError: customerQuery.isError,
+    hasCustomerData: customerQuery.data != null,
   });
 
   const monthlyRemaining = autumnSeoDataCreditsToUsd(
@@ -137,6 +138,15 @@ function BillingPage() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-5 p-4 py-10 md:p-6 md:py-12">
       <h1 className="text-xl font-semibold">Billing</h1>
+
+      {customerQuery.isError ? (
+        <QueryError
+          error={customerQuery.error}
+          fallback="Failed to refresh billing details"
+          onRetry={() => void customerQuery.refetch()}
+          isRetrying={customerQuery.isFetching}
+        />
+      ) : null}
 
       <div className="grid gap-5 md:grid-cols-2">
         {/* Subscription card */}

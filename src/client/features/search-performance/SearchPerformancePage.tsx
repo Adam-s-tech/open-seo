@@ -7,9 +7,10 @@ import {
 } from "@tanstack/react-query";
 import { Download, Loader2, Sheet, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { QueryError } from "@/client/components/QueryState";
 import { TableExportMenu } from "@/client/components/table/TableBulkActionBar";
-import { TablePagination } from "@/client/components/table/TablePagination";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
+import { DimensionSection } from "@/client/features/search-performance/SearchPerformanceDimensionSection";
 import { SearchPerformanceSelects } from "@/client/features/search-performance/SearchPerformanceSelects";
 import { SearchPerformanceLoadingState } from "@/client/features/search-performance/SearchPerformanceLoadingState";
 import {
@@ -21,7 +22,6 @@ import {
   type TextFilters,
 } from "@/client/features/search-performance/SearchPerformanceTextFilters";
 import {
-  DimensionTable,
   exportDimensionRows,
   exportStriking,
   StrikingDistanceTable,
@@ -36,7 +36,6 @@ import {
 } from "@/serverFunctions/searchPerformance";
 import {
   SEARCH_PERFORMANCE_DEFAULT_PAGE_SIZE,
-  SEARCH_PERFORMANCE_PAGE_SIZES,
   type SearchPerformanceSearch,
   type SearchPerformanceTab,
   type SearchPerformanceTableDimension,
@@ -117,10 +116,14 @@ export function SearchPerformancePage({
   const tableQuery = useQuery({
     ...tableQueryOptions(projectId, dimension, page, pageSize, filterInput),
     enabled: report?.connected === true && isTableTab,
+    // Hold the current rows while paging or filtering, but not across a tab
+    // or project change: Query rows must not render under the Pages header.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[1] === projectId &&
+      previousQuery.queryKey[2] === dimension
+        ? previous
+        : undefined,
   });
-  const tableData = tableQuery.data;
-  const tableRows = tableData?.connected ? tableData.rows : [];
-  const hasNextPage = tableData?.connected ? tableData.hasNextPage : false;
 
   // Warm the Queries tab (first page) as soon as the report connects so the tab
   // opens instantly instead of showing a spinner. Free first-party GSC data.
@@ -160,6 +163,15 @@ export function SearchPerformancePage({
       toast.error(getStandardErrorMessage(error, "Export failed"));
     }
   };
+
+  const reportError = (
+    <QueryError
+      error={reportQuery.error}
+      fallback="Failed to load Search Console data"
+      onRetry={() => void reportQuery.refetch()}
+      isRetrying={reportQuery.isFetching}
+    />
+  );
 
   const filtersPanel = (
     <SearchPerformanceTextFilters
@@ -213,21 +225,20 @@ export function SearchPerformancePage({
           ) : null}
         </div>
 
-        {reportQuery.isError ? filtersPanel : null}
         {reportQuery.isPending ? (
           <SearchPerformanceLoadingState />
-        ) : reportQuery.isError ? (
-          <div className="alert alert-error">
-            <span className="text-sm">
-              {getStandardErrorMessage(reportQuery.error)}
-            </span>
-          </div>
-        ) : !report?.connected ? (
+        ) : !report ? (
+          <>
+            {filtersPanel}
+            {reportError}
+          </>
+        ) : !report.connected ? (
           <div className="max-w-2xl">
             <GoogleConnectionCard provider="gsc" projectId={projectId} />
           </div>
         ) : (
           <>
+            {reportQuery.isError ? reportError : null}
             {reportQuery.isPlaceholderData ? (
               <SearchPerformanceLoadingState />
             ) : (
@@ -317,43 +328,20 @@ export function SearchPerformancePage({
                   projectId={projectId}
                   rows={report.strikingDistance}
                 />
-              ) : tableQuery.isPending ? (
-                <div className="flex items-center gap-2 p-8 text-sm text-base-content/60">
-                  <Loader2 className="size-4 animate-spin" /> Loading…
-                </div>
-              ) : tableQuery.isError ? (
-                <div className="p-4">
-                  <div className="alert alert-error">
-                    <span className="text-sm">
-                      {getStandardErrorMessage(tableQuery.error)}
-                    </span>
-                  </div>
-                </div>
               ) : (
-                <>
-                  <div className="p-4">
-                    <DimensionTable
-                      rows={tableRows}
-                      keyLabel={tab === "queries" ? "Query" : "Page"}
-                    />
-                  </div>
-                  <TablePagination
-                    page={page}
-                    pageSize={pageSize}
-                    pageSizes={SEARCH_PERFORMANCE_PAGE_SIZES}
-                    totalCount={
-                      tableData?.connected ? tableData.totalCount : null
-                    }
-                    hasNextPage={hasNextPage}
-                    isLoading={tableQuery.isFetching}
-                    onPageChange={(nextPage) =>
-                      onSearchChange({ page: nextPage })
-                    }
-                    onPageSizeChange={(size) =>
-                      onSearchChange({ page: undefined, size })
-                    }
-                  />
-                </>
+                <DimensionSection
+                  projectId={projectId}
+                  tableQuery={tableQuery}
+                  keyLabel={tab === "queries" ? "Query" : "Page"}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={(nextPage) =>
+                    onSearchChange({ page: nextPage })
+                  }
+                  onPageSizeChange={(size) =>
+                    onSearchChange({ page: undefined, size })
+                  }
+                />
               )}
             </div>
           </>

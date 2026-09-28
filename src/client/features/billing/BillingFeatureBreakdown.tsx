@@ -13,6 +13,7 @@ import {
   getBillingUsageEvents,
   type BillingUsageEvent,
 } from "@/serverFunctions/billing";
+import { QueryState } from "@/client/components/QueryState";
 import { Skeleton } from "@/client/components/Skeleton";
 
 const BILLING_USAGE_FEATURE_IDS: string[] = [
@@ -144,9 +145,6 @@ export function BillingFeatureBreakdown() {
     staleTime: 60_000,
   });
 
-  const rows = getBillingFeatureBreakdownRows(eventsQuery.data ?? []);
-  const total = rows.reduce((sum, row) => sum + row.usd, 0);
-
   return (
     <div className="rounded-lg border border-base-300 bg-base-100 p-4 space-y-3">
       <div className="flex items-baseline justify-between gap-4">
@@ -154,36 +152,51 @@ export function BillingFeatureBreakdown() {
         <span className="text-xs text-base-content/50">Last 30 days</span>
       </div>
 
-      {eventsQuery.isLoading ? (
-        <div className="space-y-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-4 w-full" />
-          ))}
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="text-sm text-base-content/40">
-          No usage recorded yet
-        </div>
-      ) : (
-        <ul className="space-y-2.5">
-          {rows.map((row) => (
-            <li key={row.label} className="space-y-1">
-              <div className="flex items-baseline justify-between gap-4 text-sm">
-                <span>{row.label}</span>
-                <span className="tabular-nums text-base-content/70">
-                  ${row.usd.toFixed(2)}
-                </span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-base-200">
-                <div
-                  className="h-full rounded-full bg-[#7c3aed]"
-                  style={{ width: `${(row.usd / total) * 100}%` }}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <QueryState
+        query={eventsQuery}
+        errorFallback="Failed to load usage"
+        loading={
+          <div className="space-y-3">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
+        }
+      >
+        {(events) => <BreakdownRows events={events} />}
+      </QueryState>
     </div>
+  );
+}
+
+function BreakdownRows({ events }: { events: BillingUsageEvent[] }) {
+  const rows = getBillingFeatureBreakdownRows(events);
+  const total = rows.reduce((sum, row) => sum + row.usd, 0);
+
+  if (rows.length === 0) {
+    return (
+      <div className="text-sm text-base-content/40">No usage recorded yet</div>
+    );
+  }
+
+  return (
+    <ul className="space-y-2.5">
+      {rows.map((row) => (
+        <li key={row.label} className="space-y-1">
+          <div className="flex items-baseline justify-between gap-4 text-sm">
+            <span>{row.label}</span>
+            <span className="tabular-nums text-base-content/70">
+              ${row.usd.toFixed(2)}
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-base-200">
+            <div
+              className="h-full rounded-full bg-[#7c3aed]"
+              style={{ width: `${(row.usd / total) * 100}%` }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

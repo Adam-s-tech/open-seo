@@ -26,7 +26,6 @@ import type { SelectionAnchor } from "@/client/components/table/tableSelection";
 export function RankTrackingTable({
   totalCount,
   rows,
-  resultsLoading,
   showDesktop,
   showMobile,
   sorting,
@@ -41,7 +40,6 @@ export function RankTrackingTable({
 }: {
   totalCount: number;
   rows: RankTrackingRow[];
-  resultsLoading: boolean;
   showDesktop: boolean;
   showMobile: boolean;
   sorting: SortingState;
@@ -127,14 +125,6 @@ export function RankTrackingTable({
       );
     },
   });
-
-  if (resultsLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="size-5 animate-spin text-base-content/50" />
-      </div>
-    );
-  }
 
   if (rows.length === 0) {
     return (

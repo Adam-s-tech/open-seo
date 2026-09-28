@@ -37,8 +37,7 @@ export function LaunchView({
 
         <AuditHistorySection
           projectId={projectId}
-          history={controller.historyQuery.data ?? []}
-          isLoading={controller.historyQuery.isLoading}
+          historyQuery={controller.historyQuery}
           onDelete={controller.deleteAudit}
         />
       </div>

@@ -1,21 +1,48 @@
 import { Link } from "@tanstack/react-router";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { ScanSearch, Trash2 } from "lucide-react";
 import type { getAuditHistory } from "@/serverFunctions/audit";
 import { PortalMenu } from "@/client/components/PortalMenu";
+import { QueryState } from "@/client/components/QueryState";
 import { formatDate, StatusBadge } from "@/client/features/audit/shared";
+
+type AuditHistory = Awaited<ReturnType<typeof getAuditHistory>>;
 
 export function AuditHistorySection({
   projectId,
-  history,
-  isLoading,
+  historyQuery,
   onDelete,
 }: {
   projectId: string;
-  history: Awaited<ReturnType<typeof getAuditHistory>>;
-  isLoading: boolean;
+  historyQuery: UseQueryResult<AuditHistory>;
   onDelete: (auditId: string) => void;
 }) {
-  if (history.length === 0 && !isLoading) {
+  return (
+    <QueryState
+      query={historyQuery}
+      errorFallback="Failed to load audit history"
+    >
+      {(history) => (
+        <AuditHistoryTable
+          projectId={projectId}
+          history={history}
+          onDelete={onDelete}
+        />
+      )}
+    </QueryState>
+  );
+}
+
+function AuditHistoryTable({
+  projectId,
+  history,
+  onDelete,
+}: {
+  projectId: string;
+  history: AuditHistory;
+  onDelete: (auditId: string) => void;
+}) {
+  if (history.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="text-center text-base-content/40 space-y-3">
@@ -25,8 +52,6 @@ export function AuditHistorySection({
       </div>
     );
   }
-
-  if (history.length === 0) return null;
 
   return (
     <div className="card bg-base-100 border border-base-300">

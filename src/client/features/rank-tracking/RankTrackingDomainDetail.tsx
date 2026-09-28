@@ -1,12 +1,17 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   getLatestRankResults,
   getRankPositionMatrix,
   estimateRankCheckCost,
 } from "@/serverFunctions/rank-tracking";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import { QueryState } from "@/client/components/QueryState";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { FreePlanAlert } from "./FreePlanAlert";
@@ -106,13 +111,17 @@ export function RankTrackingDomainDetail({
     config.devices === "both" ? (search.device ?? "desktop") : config.devices;
   const viewMode = search.view ?? "table";
 
-  const { data: resultsData, isLoading: resultsLoading } = useQuery({
+  // The route keys this component by config, so previous data here is always
+  // the same domain at another compare period.
+  const resultsQuery = useQuery({
     queryKey: ["rankTrackingResults", projectId, config.id, comparePeriod],
     queryFn: () =>
       getLatestRankResults({
         data: { projectId, configId: config.id, comparePeriod },
       }),
+    placeholderData: keepPreviousData,
   });
+  const resultsData = resultsQuery.data;
 
   const latestRun = useRankRunPolling(projectId, config.id);
 
@@ -213,6 +222,15 @@ export function RankTrackingDomainDetail({
       : search.sort;
   // Fall back to the table if history disappears (e.g. device switch).
   const effectiveViewMode = historyAvailable ? viewMode : "table";
+  const exportFiltered = (format: "csv" | "sheets") =>
+    exportRankTracking({
+      format,
+      rows: filtered,
+      showDesktop,
+      showMobile,
+      domain: config.domain,
+      locationName: config.locationName,
+    });
 
   return (
     <div className="space-y-3">
@@ -307,26 +325,8 @@ export function RankTrackingDomainDetail({
             onSearchChange({ view: view === "history" ? view : undefined })
           }
           historyAvailable={historyAvailable}
-          onExport={() =>
-            exportRankTracking({
-              format: "csv",
-              rows: filtered,
-              showDesktop,
-              showMobile,
-              domain: config.domain,
-              locationName: config.locationName,
-            })
-          }
-          onExportToSheets={() =>
-            exportRankTracking({
-              format: "sheets",
-              rows: filtered,
-              showDesktop,
-              showMobile,
-              domain: config.domain,
-              locationName: config.locationName,
-            })
-          }
+          onExport={() => exportFiltered("csv")}
+          onExportToSheets={() => exportFiltered("sheets")}
           onCopyKeywords={() => {
             void navigator.clipboard.writeText(
               filtered.map((r) => r.keyword).join("\n"),
@@ -365,34 +365,45 @@ export function RankTrackingDomainDetail({
               }))}
             />
           ) : (
-            <RankTrackingTable
-              key={defaultSortId}
-              totalCount={rows?.length ?? 0}
-              rows={filtered}
-              resultsLoading={resultsLoading}
-              showDesktop={showDesktop}
-              showMobile={showMobile}
-              sorting={
-                sortId
-                  ? [{ id: sortId, desc: search.order === "desc" }]
-                  : [{ id: defaultSortId, desc: false }]
+            <QueryState
+              query={resultsQuery}
+              errorFallback="Failed to load rank data"
+              loading={
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="size-5 animate-spin text-base-content/50" />
+                </div>
               }
-              onSortingChange={(sorting) => {
-                onSearchChange({
-                  sort: rankTrackingDetailSearchSchema.shape.sort.parse(
-                    sorting[0]?.id,
-                  ),
-                  order: sorting[0]?.desc ? "desc" : undefined,
-                });
-              }}
-              domain={config.domain}
-              configId={config.id}
-              projectId={projectId}
-              locationCode={config.locationCode}
-              locationName={config.locationName}
-              serpDepth={config.serpDepth}
-              canCheck={planStatus === "paid"}
-            />
+            >
+              {(results) => (
+                <RankTrackingTable
+                  key={defaultSortId}
+                  totalCount={results.rows.length}
+                  rows={filtered}
+                  showDesktop={showDesktop}
+                  showMobile={showMobile}
+                  sorting={
+                    sortId
+                      ? [{ id: sortId, desc: search.order === "desc" }]
+                      : [{ id: defaultSortId, desc: false }]
+                  }
+                  onSortingChange={(sorting) => {
+                    onSearchChange({
+                      sort: rankTrackingDetailSearchSchema.shape.sort.parse(
+                        sorting[0]?.id,
+                      ),
+                      order: sorting[0]?.desc ? "desc" : undefined,
+                    });
+                  }}
+                  domain={config.domain}
+                  configId={config.id}
+                  projectId={projectId}
+                  locationCode={config.locationCode}
+                  locationName={config.locationName}
+                  serpDepth={config.serpDepth}
+                  canCheck={planStatus === "paid"}
+                />
+              )}
+            </QueryState>
           )}
         </div>
       </div>

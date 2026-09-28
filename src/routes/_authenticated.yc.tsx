@@ -59,6 +59,7 @@ function YcPlanPage() {
     isSessionPending,
     isCustomerLoading: customerQuery.isLoading,
     isCustomerError: customerQuery.isError,
+    hasCustomerData: customerQuery.data != null,
   });
 
   const isPaid = getCustomerPlanStatus(customerQuery.data) === "paid";

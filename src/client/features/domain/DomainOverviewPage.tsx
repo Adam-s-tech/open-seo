@@ -22,6 +22,7 @@ import {
   RecentSearches,
   RecentSearchesBackLink,
 } from "@/client/components/RecentSearches";
+import { QueryError } from "@/client/components/QueryState";
 import { DomainSearchCard } from "@/client/features/domain/components/DomainSearchCard";
 import { KeywordsTab } from "@/client/features/domain/components/KeywordsTab";
 import { PagesTab } from "@/client/features/domain/components/PagesTab";
@@ -43,12 +44,8 @@ import {
   toScopeSearchParam,
   type ResearchScope,
 } from "@/shared/researchScope";
-import {
-  createFormValidationErrors,
-  shouldValidateFieldOnChange,
-} from "@/client/lib/forms";
+import { shouldValidateFieldOnChange } from "@/client/lib/forms";
 import { buildDomainFiltersClearSearchUpdate } from "@/client/features/domain/domainFilterUtils";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
 import type { DomainOverviewRouteState } from "@/client/features/domain/domainRouteState";
 import type {
@@ -356,19 +353,6 @@ function useDomainOverviewState({
   }, []);
 
   useEffect(() => {
-    controlsForm.setErrorMap({
-      onSubmit: overviewQuery.error
-        ? createFormValidationErrors({
-            form: getStandardErrorMessage(
-              overviewQuery.error,
-              "Lookup failed.",
-            ),
-          })
-        : undefined,
-    });
-  }, [controlsForm, overviewQuery.error]);
-
-  useEffect(() => {
     if (!overviewQuery.isSuccess || !overview) return;
     const key = `${routeState.domain}|${routeState.scope}|${routeState.locationCode}`;
     if (lastTrackedKey.current === key) return;
@@ -424,6 +408,7 @@ function useDomainOverviewState({
   return {
     controlsForm,
     isLoading,
+    overviewQuery,
     overview,
     canSaveKeywords,
     history,
@@ -523,6 +508,17 @@ export function DomainOverviewPage({
       ? "Whole domain incl. subdomains"
       : undefined;
 
+  // The error stays until the query for this search succeeds; editing the
+  // form doesn't clear it.
+  const overviewError = state.overviewQuery.isError ? (
+    <QueryError
+      error={state.overviewQuery.error}
+      fallback="Lookup failed."
+      onRetry={() => void state.overviewQuery.refetch()}
+      isRetrying={state.overviewQuery.isFetching}
+    />
+  ) : null;
+
   const tabControls = routeState.domain ? (
     <div className="flex flex-col gap-2">
       <RecentSearchesBackLink
@@ -578,6 +574,11 @@ export function DomainOverviewPage({
             {tabControls}
             <DomainOverviewLoadingState />
           </>
+        ) : state.overview === null && overviewError ? (
+          <>
+            {tabControls}
+            {overviewError}
+          </>
         ) : state.overview === null ? (
           <div className="pt-1">
             <RecentSearches
@@ -600,6 +601,7 @@ export function DomainOverviewPage({
         ) : (
           <>
             {tabControls}
+            {overviewError}
             <div className="flex flex-wrap items-center gap-2">
               <span className="badge badge-ghost font-medium">
                 {state.overview.displayTarget}

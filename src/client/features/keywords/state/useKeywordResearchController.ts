@@ -96,6 +96,7 @@ export function useKeywordResearchController(
     deepFetchFailed,
     retrySerp,
     serpError,
+    serpRetrying,
   } = useKeywordSerpAnalysis(input.projectId, locationCode, input.locationName);
 
   const {
@@ -281,6 +282,8 @@ export function useKeywordResearchController(
     removeHistoryItem,
     researchError,
     researchMutationError,
+    // `isLoading` stays false while a failed query refetches.
+    researchRetrying: researchQuery.isFetching,
     retrySearch,
     resetFilters,
     retrySerp,
@@ -291,6 +294,7 @@ export function useKeywordResearchController(
     canLoadMoreSerp,
     deepFetchFailed,
     serpError,
+    serpRetrying,
     serpLoading,
     serpLoadingMore,
     serpPage,

@@ -1,17 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import {
-  AlertCircle,
-  BarChart3,
-  Quote,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { BarChart3, Quote, Sparkles, TrendingUp } from "lucide-react";
 import { lookupBrand } from "@/serverFunctions/ai-search";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { PageLoading } from "@/client/components/Spinner";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryError } from "@/client/components/QueryState";
 import { BrandLookupResults } from "@/client/features/ai-search/components/BrandLookupResults";
 import { BrandLookupSearchCard } from "@/client/features/ai-search/components/BrandLookupSearchCard";
 import {
@@ -246,7 +241,10 @@ export function BrandLookupPage({
   const isLoading = hasActiveQuery && lookupQuery.isPending;
   const errorMessage =
     hasActiveQuery && lookupQuery.isError
-      ? getStandardErrorMessage(lookupQuery.error)
+      ? getStandardErrorMessage(
+          lookupQuery.error,
+          "Failed to load brand lookup",
+        )
       : null;
   const resultData = hasActiveQuery ? lookupQuery.data : undefined;
 
@@ -290,13 +288,15 @@ export function BrandLookupPage({
             />
 
             {errorMessage ? (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
+              <QueryError
+                fallback={
+                  resultData
+                    ? `${errorMessage} Showing earlier results.`
+                    : errorMessage
+                }
+                onRetry={() => void lookupQuery.refetch()}
+                isRetrying={lookupQuery.isFetching}
+              />
             ) : null}
 
             {isLoading ? (

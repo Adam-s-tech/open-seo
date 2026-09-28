@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { TooltipContentProps } from "recharts";
 import { getRankConfigTrend } from "@/serverFunctions/rank-tracking";
+import { QueryState } from "@/client/components/QueryState";
 import {
   formatDateTick,
   TrendRangeToggle,
@@ -41,13 +42,14 @@ export function RankTrackingOverview({
 }) {
   const [sinceDays, setSinceDays] = useState(730);
 
-  const { data: trend, isLoading: trendLoading } = useQuery({
+  const trendQuery = useQuery({
     queryKey: ["rankConfigTrend", projectId, configId, device, sinceDays],
     queryFn: () =>
       getRankConfigTrend({
         data: { projectId, configId, device, sinceDays },
       }),
   });
+  const trend = trendQuery.data;
 
   const chartData = useMemo(
     () =>
@@ -86,90 +88,100 @@ export function RankTrackingOverview({
           ))}
         </div>
 
-        {trendLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="size-4 animate-spin text-base-content/50" />
-          </div>
-        ) : chartData.length <= 1 ? (
-          <div className="rounded-lg border border-dashed border-base-300 p-8 text-center text-xs text-base-content/60">
-            {chartData.length === 0
-              ? "No history yet — run a check to start tracking positions over time."
-              : "Only 1 check so far — the trend fills in after the next check."}
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className="w-full min-w-0"
-            style={{ height: 220 }}
-          >
-            {width > 0 ? (
-              <AreaChart
-                width={width}
-                height={220}
-                data={chartData}
-                margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+        <QueryState
+          query={trendQuery}
+          errorFallback="Failed to load position history"
+          loading={
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="size-4 animate-spin text-base-content/50" />
+            </div>
+          }
+        >
+          {() =>
+            chartData.length <= 1 ? (
+              <div className="rounded-lg border border-dashed border-base-300 p-8 text-center text-xs text-base-content/60">
+                {chartData.length === 0
+                  ? "No history yet — run a check to start tracking positions over time."
+                  : "Only 1 check so far — the trend fills in after the next check."}
+              </div>
+            ) : (
+              <div
+                ref={containerRef}
+                className="w-full min-w-0"
+                style={{ height: 220 }}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="currentColor"
-                  opacity={0.1}
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="checkedAt"
-                  type="number"
-                  scale="time"
-                  domain={["dataMin", "dataMax"]}
-                  tickFormatter={formatDateTick}
-                  tick={{ fontSize: 10, fill: "#888" }}
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={32}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 10, fill: "#888" }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={28}
-                />
-                <Tooltip
-                  content={(props: TooltipContentProps<number, string>) => {
-                    const { active, payload, label } = props;
-                    if (
-                      !active ||
-                      !payload?.length ||
-                      typeof label !== "number"
-                    ) {
-                      return null;
-                    }
-                    const byKey = new Map(
-                      payload.map((p: PayloadEntry) => [
-                        String(p.dataKey),
-                        typeof p.value === "number" ? p.value : 0,
-                      ]),
-                    );
-                    return <DistributionTooltip label={label} byKey={byKey} />;
-                  }}
-                  cursor={{ stroke: "rgba(150,150,150,0.3)" }}
-                />
-                {BUCKETS.map((b) => (
-                  <Area
-                    key={b.key}
-                    type="monotone"
-                    dataKey={b.key}
-                    name={b.label}
-                    stackId="positions"
-                    stroke={b.color}
-                    fill={b.color}
-                    fillOpacity={0.7}
-                    isAnimationActive={false}
-                  />
-                ))}
-              </AreaChart>
-            ) : null}
-          </div>
-        )}
+                {width > 0 ? (
+                  <AreaChart
+                    width={width}
+                    height={220}
+                    data={chartData}
+                    margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="currentColor"
+                      opacity={0.1}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="checkedAt"
+                      type="number"
+                      scale="time"
+                      domain={["dataMin", "dataMax"]}
+                      tickFormatter={formatDateTick}
+                      tick={{ fontSize: 10, fill: "#888" }}
+                      tickLine={false}
+                      axisLine={false}
+                      minTickGap={32}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fontSize: 10, fill: "#888" }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={28}
+                    />
+                    <Tooltip
+                      content={(props: TooltipContentProps<number, string>) => {
+                        const { active, payload, label } = props;
+                        if (
+                          !active ||
+                          !payload?.length ||
+                          typeof label !== "number"
+                        ) {
+                          return null;
+                        }
+                        const byKey = new Map(
+                          payload.map((p: PayloadEntry) => [
+                            String(p.dataKey),
+                            typeof p.value === "number" ? p.value : 0,
+                          ]),
+                        );
+                        return (
+                          <DistributionTooltip label={label} byKey={byKey} />
+                        );
+                      }}
+                      cursor={{ stroke: "rgba(150,150,150,0.3)" }}
+                    />
+                    {BUCKETS.map((b) => (
+                      <Area
+                        key={b.key}
+                        type="monotone"
+                        dataKey={b.key}
+                        name={b.label}
+                        stackId="positions"
+                        stroke={b.color}
+                        fill={b.color}
+                        fillOpacity={0.7}
+                        isAnimationActive={false}
+                      />
+                    ))}
+                  </AreaChart>
+                ) : null}
+              </div>
+            )
+          }
+        </QueryState>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
-import { AlertCircle, Search } from "lucide-react";
-import { getFieldError, getFormError } from "@/client/lib/forms";
+import { Search } from "lucide-react";
+import { getFieldError } from "@/client/lib/forms";
 import type { DomainOverviewControlsForm } from "@/client/features/domain/DomainOverviewPage";
 import { toSortMode } from "@/client/features/domain/utils";
 import type { DomainSortMode } from "@/client/features/domain/types";
@@ -129,19 +129,6 @@ export function DomainSearchCard({
             ) : null;
           }}
         </controlsForm.Field>
-
-        <controlsForm.Subscribe selector={(state) => state.errorMap.onSubmit}>
-          {(submitError) => {
-            const errorMessage = getFormError(submitError);
-
-            return errorMessage ? (
-              <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error flex items-start gap-2">
-                <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                <span>{errorMessage}</span>
-              </div>
-            ) : null;
-          }}
-        </controlsForm.Subscribe>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Copy, Download, FileSpreadsheet, Sheet } from "lucide-react";
+import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
 import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainFilterPanel } from "@/client/features/domain/components/DomainFilterPanel";
@@ -222,13 +223,25 @@ export function PagesTab({
         />
       }
     >
-      <DomainPagesTable
-        domain={hostname}
-        rows={rows}
-        sortMode={routeState.sort}
-        currentSortOrder={routeState.order}
-        onSortClick={onSortClick}
-      />
+      <div className="space-y-3">
+        {query.isError ? (
+          <QueryError
+            error={query.error}
+            fallback="Failed to load pages."
+            onRetry={() => void query.refetch()}
+            isRetrying={query.isFetching}
+          />
+        ) : null}
+        {query.isError && !query.data ? null : (
+          <DomainPagesTable
+            domain={hostname}
+            rows={rows}
+            sortMode={routeState.sort}
+            currentSortOrder={routeState.order}
+            onSortClick={onSortClick}
+          />
+        )}
+      </div>
     </DomainTableTabSurface>
   );
 }

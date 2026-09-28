@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getRankTrackingConfigs } from "@/serverFunctions/rank-tracking";
 import { RankTrackingDomainDetail } from "@/client/features/rank-tracking/RankTrackingDomainDetail";
 import { PageLoading } from "@/client/components/Spinner";
+import { QueryError } from "@/client/components/QueryState";
 import { RankTrackingConfigModal } from "@/client/features/rank-tracking/RankTrackingConfigModal";
 import { rankTrackingDetailSearchSchema } from "@/types/schemas/rank-tracking-search";
 
@@ -21,12 +22,12 @@ function RankTrackingConfigRoute() {
   const queryClient = useQueryClient();
   const [showConfigModal, setShowConfigModal] = useState(false);
 
-  const { data: configs, isPending } = useQuery({
+  const configsQuery = useQuery({
     queryKey: ["rankTrackingConfigs", projectId],
     queryFn: () => getRankTrackingConfigs({ data: { projectId } }),
   });
 
-  const config = configs?.find((c) => c.id === configId) ?? null;
+  const config = configsQuery.data?.find((c) => c.id === configId) ?? null;
 
   const invalidateConfigs = () => {
     void queryClient.invalidateQueries({
@@ -44,8 +45,19 @@ function RankTrackingConfigRoute() {
     });
   };
 
-  if (isPending) {
+  if (configsQuery.isPending) {
     return <PageLoading />;
+  }
+
+  if (!configsQuery.data) {
+    return (
+      <QueryError
+        error={configsQuery.error}
+        fallback="Failed to load domain configuration"
+        onRetry={() => void configsQuery.refetch()}
+        isRetrying={configsQuery.isFetching}
+      />
+    );
   }
 
   if (!config) {
@@ -64,6 +76,7 @@ function RankTrackingConfigRoute() {
   return (
     <>
       <RankTrackingDomainDetail
+        key={config.id}
         config={config}
         projectId={projectId}
         search={search}

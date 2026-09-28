@@ -19,6 +19,7 @@ import type {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
 import { SavedKeywordsBulkActionBar } from "@/client/features/saved-keywords/SavedKeywordsBulkActionBar";
 import { SavedKeywordsBulkTagsModal } from "@/client/features/saved-keywords/SavedKeywordsBulkTagsModal";
@@ -191,11 +192,12 @@ function SavedKeywordsPage() {
     [appliedFilters, order, page, pageSize, projectId, selectedTagIds, sort],
   );
 
-  const { data, isLoading, isFetching } = useQuery({
+  const savedKeywordsQuery = useQuery({
     queryKey: ["savedKeywords", projectId, queryInput],
     queryFn: () => getSavedKeywords({ data: queryInput }),
     placeholderData: keepPreviousData,
   });
+  const { data, isLoading, isFetching } = savedKeywordsQuery;
 
   const savedKeywords = data?.rows ?? [];
   const availableTags = data?.tags ?? [];
@@ -344,15 +346,27 @@ function SavedKeywordsPage() {
             {removeError ? (
               <RemoveSavedKeywordsError message={removeError} />
             ) : null}
-            <SavedKeywordsTable
-              rows={savedKeywords}
-              rowSelection={rowSelection}
-              sorting={sorting}
-              isLoading={isLoading}
-              hasActiveFilters={hasActiveFilters}
-              onRowSelectionChange={setRowSelection}
-              onSortingChange={handleSortingChange}
-            />
+            {savedKeywordsQuery.isError ? (
+              <QueryError
+                error={savedKeywordsQuery.error}
+                fallback="Failed to load saved keywords."
+                onRetry={() => void savedKeywordsQuery.refetch()}
+                isRetrying={isFetching}
+              />
+            ) : null}
+            {/* Without data a failed load has nothing to show; the empty
+                state would claim there are no saved keywords. */}
+            {savedKeywordsQuery.isError && data === undefined ? null : (
+              <SavedKeywordsTable
+                rows={savedKeywords}
+                rowSelection={rowSelection}
+                sorting={sorting}
+                isLoading={isLoading}
+                hasActiveFilters={hasActiveFilters}
+                onRowSelectionChange={setRowSelection}
+                onSortingChange={handleSortingChange}
+              />
+            )}
           </div>
 
           <TablePagination

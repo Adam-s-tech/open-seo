@@ -9,7 +9,7 @@ import {
 } from "@/client/features/dashboard/DashboardCards";
 import { Ga4Card } from "@/client/features/dashboard/Ga4Card";
 import { WorkspaceMergeBanner } from "@/client/features/dashboard/WorkspaceMergeBanner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
+import { QueryError } from "@/client/components/QueryState";
 import {
   getDashboardActivation,
   getDashboardOverview,
@@ -53,19 +53,23 @@ export function DashboardPage({ projectId }: { projectId: string }) {
     refreshMutation.mutate();
   }, [needsSnapshot, refreshMutation]);
 
-  if (activationQuery.isError) {
+  if (activationQuery.isError && !activation) {
     return (
       <div className="px-4 py-4 md:px-6 md:py-6">
-        <div className="alert alert-error">
-          {getStandardErrorMessage(activationQuery.error)}
-        </div>
+        <QueryError
+          error={activationQuery.error}
+          fallback="Failed to load dashboard"
+          onRetry={() => void activationQuery.refetch()}
+          isRetrying={activationQuery.isFetching}
+        />
       </div>
     );
   }
 
   // Wait for the overview too: rendering cards from `overview === undefined`
   // flashes their empty states (and reshuffles the data-first sort) once the
-  // real data lands. An overview error falls through so the page still loads.
+  // real data lands. An overview error falls through so the page still loads,
+  // with the error in place of the audit and backlink cards.
   if (!activation || overviewQuery.isPending) {
     return (
       <div
@@ -103,25 +107,26 @@ export function DashboardPage({ projectId }: { projectId: string }) {
           },
         ]
       : []),
-    {
-      key: "audit",
-      hasData: overview?.audit != null,
-      node: (
-        <AuditHealthCard
-          projectId={projectId}
-          audit={overview?.audit ?? null}
-        />
-      ),
-    },
-    ...(showBacklinks
+    ...(overview
+      ? [
+          {
+            key: "audit",
+            hasData: overview.audit != null,
+            node: (
+              <AuditHealthCard projectId={projectId} audit={overview.audit} />
+            ),
+          },
+        ]
+      : []),
+    ...(overview && showBacklinks
       ? [
           {
             key: "backlinks",
-            hasData: overview?.backlinks != null || refreshMutation.isPending,
+            hasData: overview.backlinks != null || refreshMutation.isPending,
             node: (
               <BacklinkPulseCard
                 projectId={projectId}
-                backlinks={overview?.backlinks ?? null}
+                backlinks={overview.backlinks}
                 refreshing={refreshMutation.isPending}
               />
             ),
@@ -142,6 +147,24 @@ export function DashboardPage({ projectId }: { projectId: string }) {
           projectId={projectId}
           activation={activation}
         />
+
+        {activationQuery.isError ? (
+          <QueryError
+            error={activationQuery.error}
+            fallback="Failed to refresh dashboard"
+            onRetry={() => void activationQuery.refetch()}
+            isRetrying={activationQuery.isFetching}
+          />
+        ) : null}
+
+        {overviewQuery.isError ? (
+          <QueryError
+            error={overviewQuery.error}
+            fallback="Failed to load site audit and backlink summaries"
+            onRetry={() => void overviewQuery.refetch()}
+            isRetrying={overviewQuery.isFetching}
+          />
+        ) : null}
 
         {/* Every card is half width on large screens (only the checklist spans).
           Cards with data render before setup pitches and empty states. */}
