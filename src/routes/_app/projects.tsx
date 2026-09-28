@@ -1,11 +1,11 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   getArchivedProjects,
-  getProjects,
   restoreProject,
 } from "@/serverFunctions/projects";
 import { QueryState } from "@/client/components/QueryState";
@@ -25,10 +25,7 @@ function ProjectsPage() {
   React.useEffect(() => {
     setCurrentProjectId(getLastProjectId());
   }, []);
-  const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
-  });
+  const projectsQuery = useQuery(projectsQueryOptions());
 
   return (
     <div className="h-full overflow-auto bg-base-100 px-4 py-8 pb-24 md:px-6 md:py-12 md:pb-8">
@@ -110,7 +107,9 @@ function ArchivedProjects() {
       restoreProject({ data: { archivedProjectId: projectId } }),
     onSuccess: async () => {
       // Prefix match invalidates both the active and archived lists.
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions().queryKey,
+      });
       toast.success("Project restored");
     },
   });

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,18 +9,11 @@ import {
   clearLastProjectId,
   getLastProjectId,
 } from "@/client/lib/active-project";
-import {
-  archiveProject,
-  getProjects,
-  updateProject,
-} from "@/serverFunctions/projects";
+import { archiveProject, updateProject } from "@/serverFunctions/projects";
 import type { ProjectSummary } from "./types";
 
 export function ProjectGeneralSettings({ projectId }: { projectId: string }) {
-  const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
-  });
+  const projectsQuery = useQuery(projectsQueryOptions());
 
   return (
     <QueryState
@@ -63,7 +57,9 @@ function GeneralSection({ project }: { project: ProjectSummary }) {
         },
       }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions().queryKey,
+      });
       toast.success("Project updated");
     },
   });
@@ -150,7 +146,9 @@ function DangerSection({
     mutationFn: () => archiveProject({ data: { projectId: project.id } }),
     onSuccess: async () => {
       if (getLastProjectId() === project.id) clearLastProjectId();
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions().queryKey,
+      });
       toast.success("Project archived");
       // Re-resolve to a remaining project via the landing redirect.
       void navigate({ to: "/" });

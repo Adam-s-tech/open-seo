@@ -1,4 +1,5 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { GoogleGlyph } from "@/client/features/gsc/GoogleGlyph";
@@ -18,7 +19,6 @@ import {
   useGoogleLinkPending,
 } from "@/client/features/integrations/startGoogleLink";
 import { captureClientEvent } from "@/client/lib/posthog";
-import { getProjects } from "@/serverFunctions/projects";
 
 const GRANT_STATUS_KEY = ["gscGrantStatus"];
 
@@ -35,10 +35,7 @@ type NavigationProps = {
 };
 
 export function SearchConsoleOnboardingStep(props: NavigationProps) {
-  const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
-  });
+  const projectsQuery = useQuery(projectsQueryOptions());
   const project = projectsQuery.data?.[0];
 
   return (
@@ -119,7 +116,9 @@ function GscConnect({
       captureClientEvent("gsc:property_select");
       void queryClient.invalidateQueries({ queryKey: connectionKey });
       // The dashboard checklist reads the same connection state.
-      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions().queryKey,
+      });
       onNext();
     },
   });

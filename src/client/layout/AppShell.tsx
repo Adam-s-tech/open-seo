@@ -1,4 +1,5 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
@@ -11,10 +12,8 @@ import { GscReEngagementModal } from "@/client/features/gsc/GscReEngagementModal
 import { Sidebar } from "@/client/components/Sidebar";
 import { BILLING_ROUTE } from "@/shared/billing";
 import { getSeoApiKeyStatus } from "@/serverFunctions/config";
-import { getProjects } from "@/serverFunctions/projects";
 import { getLastProjectId } from "@/client/lib/active-project";
-
-const DATAFORSEO_HELP_PATH = "/help/dataforseo-api-key";
+import { dataforseoHelpLinkOptions } from "@/client/navigation/items";
 
 export function AuthenticatedAppLayout({
   children,
@@ -27,23 +26,21 @@ export function AuthenticatedAppLayout({
 }) {
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const setupModalRef = React.useRef<HTMLDivElement | null>(null);
   const [showMissingSeoApiKeyModal, setShowMissingSeoApiKeyModal] =
     React.useState(false);
   // On non-project pages (e.g. /settings) there's no projectId in the URL, so
   // derive one for the nav/switcher: prefer the last-visited project, else the
   // most recent. The whole app tree is client-only (see root ClientOnly), so we
-  // can read localStorage synchronously during the first render — this lets the
-  // sidebar show the full project nav on the very first paint instead of briefly
-  // flashing only the always-visible Connect group while projects load.
+  // can read localStorage synchronously during render — this lets the sidebar
+  // show the full project nav on the very first paint instead of briefly
+  // flashing only the always-visible Connect group while projects load. It is
+  // read on every render, not once: the shell stays mounted across project
+  // pages, which update the remembered project as the user moves between them.
   const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
+    ...projectsQueryOptions(),
     enabled: !projectId,
   });
-  const [rememberedProjectId] = React.useState<string | null>(() =>
-    getLastProjectId(),
-  );
+  const rememberedProjectId = getLastProjectId();
   const fallbackProjects = projectsQuery.data ?? [];
   const fallbackProjectId =
     fallbackProjects.find((project) => project.id === rememberedProjectId)
@@ -56,7 +53,11 @@ export function AuthenticatedAppLayout({
   // builds links that self-correct via the route guard once data arrives.
   const sidebarProjectId =
     projectId ?? fallbackProjectId ?? rememberedProjectId;
-  const shouldCheckSeoApiKeyStatus = location.pathname !== BILLING_ROUTE;
+  // The setup guide is where the modal and banners send the user, so it shows
+  // neither: a banner there would link to the page the user is already on.
+  const shouldCheckSeoApiKeyStatus =
+    location.pathname !== BILLING_ROUTE &&
+    location.pathname !== dataforseoHelpLinkOptions.to;
   const seoApiKeyStatusQuery = useQuery({
     queryKey: ["seoApiKeyStatus"],
     queryFn: () => getSeoApiKeyStatus(),
@@ -89,30 +90,10 @@ export function AuthenticatedAppLayout({
     shouldCheckSeoApiKeyStatus,
   ]);
 
-  const shouldShowMissingSeoApiKeyModal =
-    showMissingSeoApiKeyModal && location.pathname !== DATAFORSEO_HELP_PATH;
-
   const shouldShowSeoApiWarning =
     !seoApiKeyStatusError &&
     isSeoApiKeyConfigured === false &&
-    !shouldShowMissingSeoApiKeyModal;
-
-  React.useEffect(() => {
-    if (!shouldShowMissingSeoApiKeyModal) return;
-
-    setupModalRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setShowMissingSeoApiKeyModal(false);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [shouldShowMissingSeoApiKeyModal]);
+    !showMissingSeoApiKeyModal;
 
   return (
     <div className="flex h-[100dvh] bg-base-200">
@@ -148,15 +129,15 @@ export function AuthenticatedAppLayout({
         onClose={() => setDrawerOpen(false)}
       />
 
-      <MissingSeoSetupModal
-        ref={setupModalRef}
-        isOpen={shouldShowMissingSeoApiKeyModal}
-        onClose={() => setShowMissingSeoApiKeyModal(false)}
-      />
+      {showMissingSeoApiKeyModal ? (
+        <MissingSeoSetupModal
+          onClose={() => setShowMissingSeoApiKeyModal(false)}
+        />
+      ) : null}
 
       <GscReEngagementModal
         projectId={sidebarProjectId}
-        suppressed={shouldShowMissingSeoApiKeyModal}
+        suppressed={showMissingSeoApiKeyModal}
       />
     </div>
   );

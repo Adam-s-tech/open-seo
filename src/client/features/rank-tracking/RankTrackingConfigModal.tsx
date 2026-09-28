@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Info, Loader2, X } from "lucide-react";
@@ -19,7 +20,6 @@ import { LocationSelect } from "@/client/components/LocationSelect";
 import type { ProjectMarket } from "@/client/features/projects/types";
 import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
-import { getProjects } from "@/serverFunctions/projects";
 import { SearchTargetingField } from "./SearchTargetingField";
 import { KeywordSuggestionStep } from "./KeywordSuggestionStep";
 import { useSaveConfigMutations } from "./useSaveConfigMutations";
@@ -47,8 +47,7 @@ export function RankTrackingConfigModal({
 }: Props) {
   // A new domain starts from the project's market, so it waits for projects.
   const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
+    ...projectsQueryOptions(),
     enabled: !existingConfig,
   });
   const initialMarket =

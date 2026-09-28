@@ -1,15 +1,10 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Brain } from "lucide-react";
 import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
-import { createSamSession } from "@/serverFunctions/sam";
-import {
-  invalidateSamSessions,
-  samSessionsQueryOptions,
-} from "@/client/features/sam/samQueries";
 import { useSamAccess } from "./useSamAccess";
+import { useSamSessions } from "./useSamSessions";
 import { optInToSamBeta, useSamBetaOptIn } from "./samBetaOptIn";
 import { SamBetaGate } from "./SamBetaGate";
 import { SamSetupGate } from "./SamSetupGate";
@@ -28,48 +23,34 @@ export function SamChat({
   projectId: string;
   activeSessionId: string | undefined;
 }) {
-  const navigate = useNavigate();
   const optedIn = useSamBetaOptIn();
   const access = useSamAccess(projectId);
-  const sessionsQuery = useQuery(samSessionsQueryOptions(projectId));
-  const sessions = sessionsQuery.data ?? [];
-
-  const goToSession = useCallback(
-    (sessionId: string) =>
-      void navigate({
-        to: "/p/$projectId/sam",
-        params: { projectId },
-        search: { s: sessionId },
-        replace: true,
-      }),
-    [navigate, projectId],
-  );
+  const { sessionsQuery, sessions, goToSession, createSession } =
+    useSamSessions(projectId, { replace: true });
 
   // The ref (not isPending) guards the auto-create below: React can re-run the
   // effect before the mutation state updates, and it resets on settle so
   // archiving the last chat starts a fresh one.
   const creating = useRef(false);
-  // Kept in state: the mutation's own callbacks fire for the create started
-  // from the effect below, but the hook's `isError` can miss it and leave the
+  // Kept in state: the per-call callbacks fire for the create started from
+  // the effect below, but the hook's `isError` can miss it and leave the
   // spinner up.
   const [createError, setCreateError] = useState<Error | null>(null);
-  const createSession = useMutation({
-    mutationFn: () => createSamSession({ data: { projectId } }),
-    onMutate: () => setCreateError(null),
-    onError: (error) => setCreateError(error),
-    onSuccess: ({ id }) => {
-      invalidateSamSessions(projectId);
-      goToSession(id);
-    },
-    onSettled: () => {
-      creating.current = false;
-    },
-  });
+  const { mutate: createSessionMutate } = createSession;
+  const startChat = useCallback(() => {
+    creating.current = true;
+    setCreateError(null);
+    createSessionMutate(undefined, {
+      onError: setCreateError,
+      onSettled: () => {
+        creating.current = false;
+      },
+    });
+  }, [createSessionMutate]);
 
   // Landing without a session: open the most recent one, or start a fresh
   // chat when the project has none.
   const firstSessionId = sessions[0]?.id;
-  const { mutate: createSessionMutate } = createSession;
   useEffect(() => {
     if (activeSessionId || !optedIn || access.showSetupGate) return;
     if (firstSessionId) {
@@ -77,8 +58,7 @@ export function SamChat({
       return;
     }
     if (!sessionsQuery.isSuccess || creating.current) return;
-    creating.current = true;
-    createSessionMutate();
+    startChat();
   }, [
     activeSessionId,
     optedIn,
@@ -86,8 +66,29 @@ export function SamChat({
     firstSessionId,
     sessionsQuery.isSuccess,
     goToSession,
-    createSessionMutate,
+    startChat,
   ]);
+
+  // The list holds every chat the user can open, so an id missing from it is
+  // archived, deleted, or not theirs. The cached list can predate the link,
+  // though (a chat started in another tab), so refetch once before saying so.
+  const activeSession = sessions.find(
+    (session) => session.id === activeSessionId,
+  );
+  // Gated on the cached list, not on isSuccess: a failed refetch keeps the
+  // old list but leaves the query in error.
+  const isMissing =
+    activeSessionId !== undefined &&
+    !activeSession &&
+    sessionsQuery.data !== undefined;
+  const [recheckedSessionId, setRecheckedSessionId] = useState<string>();
+  const { refetch: refetchSessions } = sessionsQuery;
+  useEffect(() => {
+    if (!isMissing || recheckedSessionId === activeSessionId) return;
+    void refetchSessions().finally(() =>
+      setRecheckedSessionId(activeSessionId),
+    );
+  }, [isMissing, recheckedSessionId, activeSessionId, refetchSessions]);
 
   if (!optedIn) {
     return <SamBetaGate onContinue={optInToSamBeta} />;
@@ -128,10 +129,7 @@ export function SamChat({
           <QueryError
             error={createError}
             fallback="Failed to start a new chat."
-            onRetry={() => {
-              creating.current = true;
-              createSessionMutate();
-            }}
+            onRetry={startChat}
           />
         ) : (
           <Spinner />
@@ -140,16 +138,53 @@ export function SamChat({
     );
   }
 
-  const activeTitle = sessions.find(
-    (session) => session.id === activeSessionId,
-  )?.title;
+  // Never open a chat the list has not confirmed. Wait for the list and the
+  // one refetch, show the list error if either fails, else say it is gone.
+  if (!activeSession) {
+    const confirmed =
+      sessionsQuery.data !== undefined &&
+      recheckedSessionId === activeSessionId;
+    if (sessionsQuery.isFetching || (!confirmed && !sessionsQuery.isError)) {
+      return (
+        <div className="flex h-full items-center justify-center p-4">
+          <Spinner />
+        </div>
+      );
+    }
+    if (sessionsQuery.isError) {
+      return (
+        <div className="flex h-full items-center justify-center p-4">
+          <QueryError
+            error={sessionsQuery.error}
+            fallback="Failed to load your chats."
+            onRetry={() => void refetchSessions()}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center">
+        <p className="text-sm text-base-content/70">
+          This chat was archived or does not exist.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => goToSession()}
+        >
+          Go to your latest chat
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Session title + the shortest path to inspect or correct the shared
           memory SAM reads and writes during the conversation. */}
       <div className="flex items-center justify-between gap-3 border-b border-base-300 px-5 py-3.5">
         <span className="truncate text-sm font-medium text-base-content/80">
-          {activeTitle ?? "Chat"}
+          {activeSession.title}
         </span>
         <Link
           to="/p/$projectId/context"

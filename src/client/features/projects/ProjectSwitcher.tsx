@@ -1,4 +1,5 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { findLast } from "remeda";
@@ -10,7 +11,6 @@ import {
   Search,
   Settings,
 } from "lucide-react";
-import { getProjects } from "@/serverFunctions/projects";
 import { setLastProjectId } from "@/client/lib/active-project";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 import type { ProjectSummary } from "./types";
@@ -44,10 +44,7 @@ export function ProjectSwitcher({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLUListElement>(null);
 
-  const projectsQuery = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
-  });
+  const projectsQuery = useQuery(projectsQueryOptions());
   const projects = projectsQuery.data ?? [];
   const activeProject =
     projects.find((project) => project.id === activeProjectId) ?? null;

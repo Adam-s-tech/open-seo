@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
+import { AppBanner } from "@/client/layout/AppBanner";
 import { useSession } from "@/lib/auth-client";
 import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
 import {
@@ -56,25 +57,25 @@ export function FreePlanBanner() {
 
   if (isOutOfCredits) {
     return (
-      <BannerShell variant="error">
+      <AppBanner variant="error">
         You&rsquo;ve used all your credits. {creditsActionLink} to continue
         using OpenSEO.
-      </BannerShell>
+      </AppBanner>
     );
   }
 
   if (isLowCredits) {
     return (
-      <BannerShell variant="warning">
+      <AppBanner variant="warning">
         You&rsquo;re running low on credits. {creditsActionLink} to keep using
         OpenSEO.
-      </BannerShell>
+      </AppBanner>
     );
   }
 
   if (isFreePlan) {
     return (
-      <BannerShell variant="info">
+      <AppBanner variant="info">
         We hope you&rsquo;re enjoying OpenSEO!{" "}
         <Link
           to={SUBSCRIBE_ROUTE}
@@ -88,34 +89,9 @@ export function FreePlanBanner() {
           reach out with questions
         </Link>
         .
-      </BannerShell>
+      </AppBanner>
     );
   }
 
   return null;
-}
-
-function BannerShell({
-  variant,
-  children,
-}: {
-  variant: "info" | "warning" | "error";
-  children: React.ReactNode;
-}) {
-  const alertClass =
-    variant === "error"
-      ? "alert-error"
-      : variant === "warning"
-        ? "alert-warning"
-        : "alert-info";
-
-  return (
-    <div className="shrink-0 px-4 py-2.5 md:px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className={`alert text-sm ${alertClass}`}>
-          <span>{children}</span>
-        </div>
-      </div>
-    </div>
-  );
 }

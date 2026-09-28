@@ -6,9 +6,8 @@ import {
   getErrorCode,
   getStandardErrorMessage,
 } from "@/client/lib/error-messages";
-import { AuthConfigErrorCard } from "@/client/components/AuthConfigErrorCard";
+import { AuthErrorCard } from "@/client/components/AuthErrorCard";
 import { captureClientError } from "@/client/lib/posthog";
-import { UnauthenticatedErrorCard } from "@/client/components/UnauthenticatedErrorCard";
 
 export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
   const router = useRouter();
@@ -35,36 +34,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
     });
   }, [error, errorCode, pathname]);
 
-  const showAuthConfigHelp = errorCode === "AUTH_CONFIG_MISSING";
-  const showSignInHelp = errorCode === "UNAUTHENTICATED";
-
-  if (showAuthConfigHelp) {
-    return (
-      <div className="min-w-0 flex-1 p-4 flex items-center justify-center">
-        <AuthConfigErrorCard
-          message={message}
-          onRetry={() => {
-            void router.invalidate();
-          }}
-        />
-      </div>
-    );
-  }
-
-  if (showSignInHelp) {
-    return (
-      <div className="min-w-0 flex-1 p-4 flex items-center justify-center">
-        <UnauthenticatedErrorCard
-          message={message}
-          onRetry={() => {
-            void router.invalidate();
-          }}
-        />
-      </div>
-    );
-  }
-
-  return (
+  const genericError = (
     <div className="min-w-0 flex-1 p-4 flex flex-col items-center justify-center gap-6">
       <p className="text-center text-error">{message}</p>
       <div className="flex gap-2 items-center flex-wrap">
@@ -94,5 +64,15 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
         )}
       </div>
     </div>
+  );
+
+  return (
+    <AuthErrorCard
+      error={error}
+      onRetry={() => {
+        void router.invalidate();
+      }}
+      fallback={genericError}
+    />
   );
 }

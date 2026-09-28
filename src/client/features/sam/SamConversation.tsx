@@ -2,7 +2,7 @@ import { useAgent } from "agents/react";
 // Think speaks the same chat protocol as @cloudflare/ai-chat, but its hook
 // variant skips the client->server transcript sync Think doesn't support.
 import { useAgentChat } from "@cloudflare/think/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { findLast } from "remeda";
 import { toast } from "sonner";
@@ -84,6 +84,16 @@ export function SamConversation({
     });
   }, [status, connectionError, sessionId, projectId]);
 
+  // The socket reconnects on its own after a drop; a close the server marks
+  // terminal sets connectionError and stops retrying until the user asks.
+  // `identified` is false before the first connect too, so "reconnecting"
+  // waits until one connect has succeeded.
+  const [hasConnected, setHasConnected] = useState(false);
+  useEffect(() => {
+    if (agent.identified) setHasConnected(true);
+  }, [agent.identified]);
+  const isReconnecting = hasConnected && !agent.identified && !connectionError;
+
   // Rewind the server-side conversation to before `messageId`: the DO aborts
   // any in-flight turn, then deletes the message and everything after it. Sync
   // the local view from the server afterwards rather than slicing locally —
@@ -138,7 +148,7 @@ export function SamConversation({
     }
     if (wasBusyRef.current) {
       wasBusyRef.current = false;
-      invalidateSamSessions(projectId);
+      void invalidateSamSessions(projectId);
     }
   }, [isBusy, projectId]);
 
@@ -255,6 +265,20 @@ export function SamConversation({
 
       <div className="flex-shrink-0 border-t border-base-300 px-5 py-3">
         <div className="mx-auto w-full max-w-2xl">
+          {connectionError ? (
+            <div className="mb-2 flex flex-wrap items-center gap-3 text-sm text-error">
+              <span>Lost the connection to SAM.</span>
+              <button
+                type="button"
+                className="btn btn-outline btn-error btn-xs"
+                onClick={() => agent.reconnect()}
+              >
+                Reconnect
+              </button>
+            </div>
+          ) : isReconnecting ? (
+            <p className="mb-2 text-xs text-base-content/60">Reconnecting…</p>
+          ) : null}
           <ChatComposer
             busy={isBusy}
             onSend={sendText}

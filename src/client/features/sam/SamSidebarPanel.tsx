@@ -1,52 +1,13 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Archive, Loader2, Plus, X } from "lucide-react";
-import { archiveSamSession, createSamSession } from "@/serverFunctions/sam";
+import { useLocation } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Archive, Loader2, Plus } from "lucide-react";
+import { archiveSamSession } from "@/serverFunctions/sam";
 import {
   invalidateSamSessions,
   samSessionsQueryOptions,
 } from "@/client/features/sam/samQueries";
 import { useSamBetaOptIn } from "./samBetaOptIn";
-
-const BETA_NOTICE_DISMISSED_KEY = "sam-beta-notice-dismissed";
-
-// Beta framing + the MCP power-path nudge, pinned to the bottom of the Chat
-// tab. Dismissible per browser; localStorage is read in an effect so SSR and
-// the first client render stay identical (same pattern as AppShell).
-function BetaNotice() {
-  const [dismissed, setDismissed] = useState(true);
-  useEffect(() => {
-    setDismissed(localStorage.getItem(BETA_NOTICE_DISMISSED_KEY) === "1");
-  }, []);
-  if (dismissed) return null;
-
-  return (
-    <div className="mx-2 mb-2 rounded-lg border border-base-300 bg-base-100 p-3">
-      <div className="flex items-center justify-between">
-        <span className="badge badge-primary badge-sm">Beta</span>
-        <button
-          type="button"
-          aria-label="Dismiss"
-          className="btn btn-ghost btn-xs btn-square text-base-content/40"
-          onClick={() => {
-            localStorage.setItem(BETA_NOTICE_DISMISSED_KEY, "1");
-            setDismissed(true);
-          }}
-        >
-          <X className="size-3.5" />
-        </button>
-      </div>
-      <p className="mt-1.5 text-xs text-base-content/70">
-        For more powerful AI workflows, use the OpenSEO MCP with your own agent
-        like Claude Code or Hermes.
-      </p>
-      <Link to="/ai" className="link link-primary mt-1.5 inline-block text-xs">
-        Set up the MCP →
-      </Link>
-    </div>
-  );
-}
+import { useSamSessions } from "./useSamSessions";
 
 // Compact age label for the session list (PostHog-style "3h" / "12d").
 // Timestamps come back as UTC from both backends: D1 as "YYYY-MM-DD HH:MM:SS"
@@ -74,39 +35,25 @@ export function SamSidebarPanel({
   projectId: string;
   onNavigate?: () => void;
 }) {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const activeSessionId = (location.search as { s?: string }).s;
   const optedIn = useSamBetaOptIn();
-
-  const sessionsQuery = useQuery(samSessionsQueryOptions(projectId));
-  const sessions = sessionsQuery.data ?? [];
-
-  const goToSession = (sessionId: string | undefined) => {
-    void navigate({
-      to: "/p/$projectId/sam",
-      params: { projectId },
-      search: sessionId ? { s: sessionId } : {},
-    });
-    onNavigate?.();
-  };
-
-  const createSession = useMutation({
-    mutationFn: () => createSamSession({ data: { projectId } }),
-    onSuccess: ({ id }) => {
-      invalidateSamSessions(projectId);
-      goToSession(id);
-    },
-  });
+  const { sessionsQuery, sessions, goToSession, createSession } =
+    useSamSessions(projectId, { onNavigate });
 
   const archiveSession = useMutation({
     mutationFn: (sessionId: string) =>
       archiveSamSession({ data: { sessionId } }),
     onSuccess: (_result, sessionId) => {
-      invalidateSamSessions(projectId);
-      if (sessionId === activeSessionId) {
-        goToSession(sessions.find((s) => s.id !== sessionId)?.id);
-      }
+      // Drop the chat from the cached list before leaving it, so the chat
+      // route cannot pick it again as the most recent chat.
+      queryClient.setQueryData(
+        samSessionsQueryOptions(projectId).queryKey,
+        (current) => current?.filter((session) => session.id !== sessionId),
+      );
+      void invalidateSamSessions(projectId);
+      if (sessionId === activeSessionId) goToSession();
     },
   });
 
@@ -187,8 +134,6 @@ export function SamSidebarPanel({
           })
         )}
       </div>
-
-      <BetaNotice />
     </div>
   );
 }

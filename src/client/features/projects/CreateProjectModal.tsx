@@ -1,4 +1,5 @@
 import * as React from "react";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -32,7 +33,9 @@ export function CreateProjectModal({ onClose }: { onClose: () => void }) {
       }),
     onSuccess: async (created) => {
       setLastProjectId(created.id);
-      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      await queryClient.invalidateQueries({
+        queryKey: projectsQueryOptions().queryKey,
+      });
       await queryClient.invalidateQueries({
         queryKey: ["dashboardActivation"],
       });

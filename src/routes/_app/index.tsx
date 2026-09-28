@@ -1,19 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getProjects } from "@/serverFunctions/projects";
 import {
   clearLastProjectId,
   getLastProjectId,
 } from "@/client/lib/active-project";
-import {
-  getErrorCode,
-  getStandardErrorMessage,
-} from "@/client/lib/error-messages";
-import { AuthConfigErrorCard } from "@/client/components/AuthConfigErrorCard";
+import { getErrorCode } from "@/client/lib/error-messages";
+import { AuthErrorCard } from "@/client/components/AuthErrorCard";
 import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
-import { UnauthenticatedErrorCard } from "@/client/components/UnauthenticatedErrorCard";
 import { SUBSCRIBE_ROUTE } from "@/shared/billing";
 
 export const Route = createFileRoute("/_app/")({
@@ -24,8 +20,7 @@ function IndexRedirect() {
   const navigate = useNavigate();
 
   const { data, error, isError, isFetching, refetch } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => getProjects(),
+    ...projectsQueryOptions(),
     retry: false,
   });
 
@@ -59,35 +54,6 @@ function IndexRedirect() {
   if (isError) {
     const errorCode = getErrorCode(error);
 
-    if (errorCode === "AUTH_CONFIG_MISSING") {
-      return (
-        <div className="flex items-center justify-center h-full p-4">
-          <AuthConfigErrorCard
-            message={getStandardErrorMessage(
-              error,
-              "An unexpected error occurred. Please check server logs.",
-            )}
-            onRetry={() => {
-              void refetch();
-            }}
-          />
-        </div>
-      );
-    }
-
-    if (errorCode === "UNAUTHENTICATED") {
-      return (
-        <div className="flex items-center justify-center h-full p-4">
-          <UnauthenticatedErrorCard
-            message="Please sign in to access your OpenSEO organization."
-            onRetry={() => {
-              void refetch();
-            }}
-          />
-        </div>
-      );
-    }
-
     if (errorCode === "PAYMENT_REQUIRED") {
       return (
         <div className="flex items-center justify-center h-full p-4">
@@ -101,16 +67,22 @@ function IndexRedirect() {
     }
 
     return (
-      <div className="flex items-center justify-center h-full p-4">
-        <div className="w-full max-w-xl">
-          <QueryError
-            error={error}
-            fallback="An unexpected error occurred. Please check server logs."
-            onRetry={() => void refetch()}
-            isRetrying={isFetching}
-          />
-        </div>
-      </div>
+      <AuthErrorCard
+        error={error}
+        onRetry={() => void refetch()}
+        fallback={
+          <div className="flex items-center justify-center h-full p-4">
+            <div className="w-full max-w-xl">
+              <QueryError
+                error={error}
+                fallback="An unexpected error occurred. Please check server logs."
+                onRetry={() => void refetch()}
+                isRetrying={isFetching}
+              />
+            </div>
+          </div>
+        }
+      />
     );
   }
 

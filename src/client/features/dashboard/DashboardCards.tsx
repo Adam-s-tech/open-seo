@@ -161,7 +161,15 @@ export function AuditHealthCard({
         </Link>
       }
     >
-      {audit.topIssues.length === 0 ? (
+      {audit.status !== "completed" ? (
+        // A running or failed crawl has at most a partial issue list, and an
+        // empty one is not the same as a healthy site.
+        <p className="text-sm text-base-content/70">
+          {audit.status === "running"
+            ? "Issues appear here when the crawl finishes."
+            : "Run the audit again to see issues."}
+        </p>
+      ) : audit.topIssues.length === 0 ? (
         <div className="flex items-center gap-2 text-sm text-base-content/70">
           <Check className="size-4 text-success" />
           No issues found — your site looks healthy.

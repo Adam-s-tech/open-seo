@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Spinner } from "@/client/components/Spinner";
 import { REPORT_IFRAME_SANDBOX } from "@/shared/report-sandbox";
 
 /**
@@ -10,6 +12,10 @@ import { REPORT_IFRAME_SANDBOX } from "@/shared/report-sandbox";
  * Framed, the document is served byte for byte — the app injects nothing here.
  * The only injection is the print script on `?print=1`, which this viewer
  * never requests.
+ *
+ * A spinner covers the frame until the document loads. The sandbox hides the
+ * response status from the app, so a failed load shows the error text the
+ * render route writes into the frame.
  */
 export function ReportViewer({
   src,
@@ -20,16 +26,25 @@ export function ReportViewer({
   title: string;
   className?: string;
 }) {
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   return (
-    <iframe
-      src={src}
-      sandbox={REPORT_IFRAME_SANDBOX}
-      referrerPolicy="no-referrer"
-      title={title}
-      className={
-        className ??
-        "h-full w-full rounded-lg border border-base-300 bg-base-100"
-      }
-    />
+    <div className="relative h-full w-full">
+      <iframe
+        src={src}
+        sandbox={REPORT_IFRAME_SANDBOX}
+        referrerPolicy="no-referrer"
+        title={title}
+        onLoad={() => setLoadedSrc(src)}
+        className={
+          className ??
+          "h-full w-full rounded-lg border border-base-300 bg-base-100"
+        }
+      />
+      {loadedSrc !== src ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Spinner />
+        </div>
+      ) : null}
+    </div>
   );
 }
