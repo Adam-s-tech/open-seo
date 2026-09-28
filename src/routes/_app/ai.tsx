@@ -12,7 +12,7 @@ import {
   agentUpdatePrompt,
   getAgentSetupPrompt,
 } from "@/client/features/ai-mcp/agentSetupPrompt";
-import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
+import { CopyButton } from "@/client/components/CopyButton";
 import { AgentList } from "@/client/features/ai-mcp/AgentList";
 
 const DOCS_URL = "https://openseo.so/docs/agent-setup";
@@ -72,9 +72,11 @@ function AiPage() {
                   steps.
                 </p>
                 <AgentList />
-                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 [&>button]:h-11 [&>button]:gap-2 [&>button]:text-sm">
+                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                   <CopyButton
-                    primary
+                    variant="default"
+                    size="lg"
+                    className="h-11 gap-2 px-4"
                     value={prompt}
                     label="Copy setup prompt"
                     successMessage="Setup prompt copied"
@@ -111,9 +113,11 @@ function AiPage() {
                   get the latest OpenSEO skills while preserving your connection
                   settings and personal edits.
                 </p>
-                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 [&>button]:h-11 [&>button]:gap-2 [&>button]:text-sm">
+                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
                   <CopyButton
-                    primary
+                    variant="default"
+                    size="lg"
+                    className="h-11 gap-2 px-4"
                     value={agentUpdatePrompt}
                     label="Copy update prompt"
                     successMessage="Update prompt copied"

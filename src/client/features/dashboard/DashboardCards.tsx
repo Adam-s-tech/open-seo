@@ -17,9 +17,8 @@ import {
   formatDay,
   moreDetailsClass,
   newLost,
-  PercentDelta,
-  Stat,
 } from "@/client/features/dashboard/cardParts";
+import { StatTile } from "@/client/components/StatTile";
 import type {
   DashboardAuditSummary,
   DashboardBacklinkSummary,
@@ -85,28 +84,24 @@ export function GscCard({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          <Stat
+          <StatTile
             label="Clicks"
             value={formatCount(report.totals.clicks)}
-            sub={
-              <PercentDelta
-                current={report.totals.clicks}
-                previous={report.prevTotals.clicks}
-              />
-            }
+            delta={{
+              current: report.totals.clicks,
+              previous: report.prevTotals.clicks,
+            }}
           />
-          <Stat
+          <StatTile
             label="Impressions"
             value={formatCount(report.totals.impressions)}
-            sub={
-              <PercentDelta
-                current={report.totals.impressions}
-                previous={report.prevTotals.impressions}
-              />
-            }
+            delta={{
+              current: report.totals.impressions,
+              previous: report.prevTotals.impressions,
+            }}
           />
-          <Stat label="CTR" value={formatCtr(report.totals.ctr)} />
-          <Stat
+          <StatTile label="CTR" value={formatCtr(report.totals.ctr)} />
+          <StatTile
             label="Avg position"
             value={formatPosition(report.totals.position)}
           />
@@ -271,7 +266,7 @@ export function BacklinkPulseCard({
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Stat
+        <StatTile
           label="Ref. domains"
           value={
             backlinks.referringDomains === null
@@ -279,7 +274,7 @@ export function BacklinkPulseCard({
               : backlinks.referringDomains.toLocaleString()
           }
         />
-        <Stat
+        <StatTile
           label="Backlinks"
           value={
             backlinks.backlinks === null
@@ -287,7 +282,7 @@ export function BacklinkPulseCard({
               : backlinks.backlinks.toLocaleString()
           }
         />
-        <Stat
+        <StatTile
           label="New links"
           value={`▲ ${newLost(backlinks.newBacklinks)}`}
           tone={
@@ -296,12 +291,12 @@ export function BacklinkPulseCard({
               : undefined
           }
         />
-        <Stat
+        <StatTile
           label="Lost links"
           value={`▼ ${newLost(backlinks.lostBacklinks)}`}
           tone={
             backlinks.lostBacklinks && backlinks.lostBacklinks > 0
-              ? "error"
+              ? "destructive"
               : undefined
           }
         />

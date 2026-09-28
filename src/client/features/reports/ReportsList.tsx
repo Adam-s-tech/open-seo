@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
+import { EmptyState } from "@/client/components/EmptyState";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { formatCreatedBy } from "@/client/features/reports/shared";
 import { formatRelativeTime } from "@/client/lib/relative-time";
@@ -17,10 +18,11 @@ export function ReportsList({
 }) {
   if (reports.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-base-300 px-4 py-6 text-sm text-base-content/60">
-        No reports yet. Run an OpenSEO skill such as seo-audit from Claude Code
-        or Codex and the report will appear here.
-      </p>
+      <EmptyState
+        icon={FileText}
+        title="No reports yet"
+        description="Run an OpenSEO skill such as seo-audit from Claude Code or Codex and the report will appear here."
+      />
     );
   }
 

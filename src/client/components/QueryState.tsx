@@ -6,6 +6,8 @@ import {
   getStandardErrorMessage,
 } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
+import { ErrorState } from "@/client/components/ErrorState";
+import { Button } from "@/client/components/ui/button";
 import { PageLoading } from "./Spinner";
 
 /**
@@ -19,6 +21,8 @@ export function QueryError({
   fallback,
   onRetry,
   isRetrying = false,
+  variant,
+  title,
 }: {
   /** Omit to always show `fallback`, for errors the page words itself. */
   error?: unknown;
@@ -28,27 +32,29 @@ export function QueryError({
   fallback: string;
   onRetry?: () => void;
   isRetrying?: boolean;
+  variant?: "inline" | "card" | "page";
+  title?: string;
 }) {
   return (
-    <div role="alert" className="alert alert-error">
-      <span className="text-sm">
-        {getStandardErrorMessage(error, fallback)}
-      </span>
-      {getErrorCode(error ?? cause) === "INSUFFICIENT_CREDITS" ? (
-        <Link to={BILLING_ROUTE} className="btn btn-sm">
-          Go to Billing
-        </Link>
-      ) : onRetry ? (
-        <button
-          type="button"
-          className="btn btn-sm"
-          onClick={onRetry}
-          disabled={isRetrying}
-        >
-          {isRetrying ? "Retrying…" : "Try again"}
-        </button>
-      ) : null}
-    </div>
+    <ErrorState
+      variant={variant}
+      title={title}
+      message={getStandardErrorMessage(error, fallback)}
+      onRetry={onRetry}
+      isRetrying={isRetrying}
+      action={
+        getErrorCode(error ?? cause) === "INSUFFICIENT_CREDITS" ? (
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            render={<Link to={BILLING_ROUTE} />}
+          >
+            Go to Billing
+          </Button>
+        ) : undefined
+      }
+    />
   );
 }
 

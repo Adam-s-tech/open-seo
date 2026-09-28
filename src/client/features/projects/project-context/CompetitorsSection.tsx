@@ -3,15 +3,15 @@ import { InlineConfirm } from "@/client/components/InlineConfirm";
 import { Pencil, Plus } from "lucide-react";
 import type { ProjectContextUpdate } from "@/types/schemas/projectContext";
 import {
-  EmptyState,
-  FormActions,
   listClass,
   Provenance,
   RowActions,
-  SectionHeader,
   useContextUpdate,
   type ContextCompetitor,
 } from "./shared";
+import { EmptyState } from "@/client/components/EmptyState";
+import { FormActions } from "@/client/components/FormActions";
+import { SectionHeader } from "@/client/components/PageHeader";
 
 export function CompetitorsSection({
   projectId,
@@ -80,10 +80,12 @@ export function CompetitorsSection({
 
       {competitors.length === 0 ? (
         adding ? null : (
-          <EmptyState>
-            No competitors yet. Add the sites you compete with, or ask SAM to
-            find them from your rankings and save them here.
-          </EmptyState>
+          <EmptyState
+            size="sm"
+            icon={null}
+            title="No competitors yet"
+            description="Add the sites you compete with, or ask SAM to find them from your rankings and save them here."
+          />
         )
       ) : (
         <ul className={listClass}>
@@ -215,6 +217,7 @@ function CompetitorForm({
         pending={pending}
         disabled={!draft.domain.trim()}
         onCancel={onCancel}
+        size="xs"
       />
     </form>
   );

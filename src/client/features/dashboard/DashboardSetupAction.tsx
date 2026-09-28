@@ -7,7 +7,7 @@ import {
   AgentSetupPanel,
   AGENT_SETUP_DESCRIPTION,
 } from "@/client/features/ai-mcp/AgentSetupPanel";
-import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
+import { CopyButton } from "@/client/components/CopyButton";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 import { InviteTeammateModal } from "@/client/features/team/InviteTeammateModal";
 import { PermissionHint } from "@/client/components/PermissionHint";

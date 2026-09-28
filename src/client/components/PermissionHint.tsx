@@ -1,3 +1,5 @@
+import { cn } from "cn";
+
 /** Shown where a missing permission would otherwise leave a card or step empty. */
 export function PermissionHint({
   action,
@@ -7,7 +9,7 @@ export function PermissionHint({
   className?: string;
 }) {
   return (
-    <p className={`text-sm text-base-content/60 ${className ?? ""}`}>
+    <p className={cn("text-sm text-muted-foreground", className)}>
       Ask an organization owner or admin to {action}.
     </p>
   );

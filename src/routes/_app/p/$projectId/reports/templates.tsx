@@ -1,10 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { BackLink, PageHeader } from "@/client/components/PageHeader";
 import { QueryState } from "@/client/components/QueryState";
+import { Button } from "@/client/components/ui/button";
 import { ReportTemplateForm } from "@/client/features/reports/ReportTemplateForm";
 import { ReportTemplatesList } from "@/client/features/reports/ReportTemplatesList";
 import {
@@ -64,32 +66,20 @@ function ReportTemplatesPage() {
   return (
     <div className="overflow-auto px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-5xl space-y-4">
-        <Link
-          to="/p/$projectId/reports"
-          params={{ projectId }}
-          className="inline-flex items-center gap-1 text-sm text-base-content/60 transition-colors hover:text-base-content"
-        >
-          <ChevronLeft className="size-4" />
+        <BackLink to="/p/$projectId/reports" params={{ projectId }}>
           Reports
-        </Link>
+        </BackLink>
 
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Report templates</h1>
-            <p className="text-sm text-base-content/70">
-              Reusable briefs your agents follow when they write a report: who
-              it is for, which sections it has, and how it should sound.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm gap-1.5"
-            onClick={() => setForm({})}
-          >
-            <Plus className="size-4" />
-            New template
-          </button>
-        </div>
+        <PageHeader
+          title="Report templates"
+          description="Reusable briefs your agents follow when they write a report: who it is for, which sections it has, and how it should sound."
+          actions={
+            <Button onClick={() => setForm({})}>
+              <Plus data-icon="inline-start" />
+              New template
+            </Button>
+          }
+        />
 
         <QueryState
           query={templatesQuery}

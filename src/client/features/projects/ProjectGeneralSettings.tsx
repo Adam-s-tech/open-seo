@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { revalidateLogic } from "@tanstack/react-form";
 import { useAppForm } from "@/client/components/form/useAppForm";
+import { SectionHeader } from "@/client/components/PageHeader";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { ProjectMarketFields } from "@/client/features/projects/ProjectMarketFields";
 import {
@@ -89,7 +90,7 @@ function GeneralSection({ project }: { project: ProjectSummary }) {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-medium text-base-content/50">General</h2>
+      <SectionHeader title="General" />
       <form.AppForm>
         <form.Form className="flex flex-col gap-4">
           <form.AppField name="name">
@@ -171,9 +172,7 @@ function DangerSection({
 
   return (
     <section className="space-y-3 border-t border-base-300 pt-8">
-      <h2 className="text-sm font-medium text-base-content/50">
-        Archive project
-      </h2>
+      <SectionHeader title="Archive project" />
 
       {confirming ? (
         <div className="space-y-3">

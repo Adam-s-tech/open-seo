@@ -60,69 +60,10 @@ export function Provenance({ by, at }: { by: ContextAuthor; at?: string }) {
   );
 }
 
-export function SectionHeader({
-  title,
-  hint,
-  action,
-}: {
-  title: string;
-  hint?: string;
-  action?: ReactNode;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="space-y-0.5">
-        <h2 className="text-sm font-medium text-base-content/50">{title}</h2>
-        {hint ? <p className="text-xs text-base-content/50">{hint}</p> : null}
-      </div>
-      {action}
-    </div>
-  );
-}
-
-/** Muted panel used when a list has nothing in it yet. */
-export function EmptyState({ children }: { children: ReactNode }) {
-  return (
-    <p className="rounded-lg border border-dashed border-base-300 px-4 py-3 text-sm text-base-content/60">
-      {children}
-    </p>
-  );
-}
-
 export const listClass =
   "divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300";
 
 /** Row actions and footer buttons shared by the inline competitor/page forms. */
 export function RowActions({ children }: { children: ReactNode }) {
   return <div className="flex shrink-0 items-center gap-1">{children}</div>;
-}
-
-export function FormActions({
-  pending,
-  disabled,
-  onCancel,
-}: {
-  pending: boolean;
-  disabled: boolean;
-  onCancel: () => void;
-}) {
-  return (
-    <div className="flex justify-end gap-2">
-      <button
-        type="button"
-        className="btn btn-ghost btn-xs"
-        onClick={onCancel}
-        disabled={pending}
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        className="btn btn-primary btn-xs"
-        disabled={disabled || pending}
-      >
-        Save
-      </button>
-    </div>
-  );
 }

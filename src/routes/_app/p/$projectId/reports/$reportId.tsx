@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ChevronLeft,
   ExternalLink,
   FileDown,
   Globe,
@@ -13,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { z } from "zod";
+import { BackLink, PageHeader } from "@/client/components/PageHeader";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { QueryError } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
@@ -89,14 +89,12 @@ function ReportDetailPage() {
     return <PageLoading />;
   }
 
-  const loadError = (
-    <QueryError
-      error={reportQuery.error}
-      fallback="Failed to load the report"
-      onRetry={() => void reportQuery.refetch()}
-      isRetrying={reportQuery.isFetching}
-    />
-  );
+  const loadError = {
+    error: reportQuery.error,
+    fallback: "Failed to load the report",
+    onRetry: () => void reportQuery.refetch(),
+    isRetrying: reportQuery.isFetching,
+  };
 
   // A failed refetch keeps the loaded report on screen, unless the report is
   // gone: then the not-found answer replaces it.
@@ -106,21 +104,25 @@ function ReportDetailPage() {
     return (
       <div className="px-4 py-6 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
+          <BackLink to="/p/$projectId/reports" params={{ projectId }}>
+            Reports
+          </BackLink>
           {/* A deleted report and another project's report are the same
               answer on purpose, so ids cannot be probed. Retrying either
               cannot help. */}
           {notFound ? (
-            <QueryError fallback="This report does not exist or you do not have access to it." />
+            <QueryError
+              variant="page"
+              title="Report not found"
+              fallback="This report does not exist or you do not have access to it."
+            />
           ) : (
-            loadError
+            <QueryError
+              variant="page"
+              title="Couldn't load the report"
+              {...loadError}
+            />
           )}
-          <Link
-            to="/p/$projectId/reports"
-            params={{ projectId }}
-            className="btn btn-ghost btn-sm"
-          >
-            &larr; Back to reports
-          </Link>
         </div>
       </div>
     );
@@ -150,20 +152,15 @@ function ReportDetailPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 px-4 py-4 md:px-6 md:py-6">
-      {reportQuery.isError ? loadError : null}
+      {reportQuery.isError ? <QueryError {...loadError} /> : null}
       <div className="space-y-3">
-        <Link
-          to="/p/$projectId/reports"
-          params={{ projectId }}
-          className="inline-flex items-center gap-1 text-sm text-base-content/60 transition-colors hover:text-base-content"
-        >
-          <ChevronLeft className="size-4" />
+        <BackLink to="/p/$projectId/reports" params={{ projectId }}>
           Reports
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold">{report.title}</h1>
-            <dl className="mt-1.5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
+        </BackLink>
+        <PageHeader
+          title={report.title}
+          description={
+            <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-foreground">
               <div className="flex items-baseline gap-1.5">
                 <dt className="text-base-content/50">Created by</dt>
                 <dd>{formatCreatedBy(report)}</dd>
@@ -181,80 +178,82 @@ function ReportDetailPage() {
                 </dd>
               </div>
             </dl>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {/* Share links are hosted-only (see shareAccess.ts), so a
+          }
+          actions={
+            <>
+              {/* Share links are hosted-only (see shareAccess.ts), so a
                 self-hosted deployment keeps Export as its primary action
                 rather than offering a button the server would refuse. The
                 icon carries the state: a globe once a public link is live, a
                 lock while only members can open it. */}
-            {hosted ? (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm gap-1.5"
-                onClick={() => setShowShare(true)}
-              >
-                {report.shareToken ? (
-                  <Globe className="size-4" />
-                ) : (
-                  <Lock className="size-4" />
-                )}
-                Share
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm gap-1.5"
-                onClick={exportPdf}
-              >
-                <FileDown className="size-4" />
-                Export
-              </button>
-            )}
-            <PortalMenu
-              ariaLabel="Report actions"
-              triggerClassName="btn btn-ghost btn-sm btn-square"
-              triggerContent={<MoreHorizontal className="size-4" />}
-              menuClassName="w-52"
-            >
-              {(close) => (
-                <>
-                  {hosted ? (
-                    <>
-                      <li>
-                        <button
-                          onClick={() => {
-                            close();
-                            exportPdf();
-                          }}
-                        >
-                          <FileDown className="size-4" />
-                          Export
-                        </button>
-                      </li>
-                      <li
-                        role="separator"
-                        className="mx-1 my-1 h-px bg-base-300"
-                      />
-                    </>
-                  ) : null}
-                  <li>
-                    <button
-                      className="text-error"
-                      onClick={() => {
-                        close();
-                        setShowDelete(true);
-                      }}
-                    >
-                      <Trash2 className="size-4" />
-                      Delete
-                    </button>
-                  </li>
-                </>
+              {hosted ? (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm gap-1.5"
+                  onClick={() => setShowShare(true)}
+                >
+                  {report.shareToken ? (
+                    <Globe className="size-4" />
+                  ) : (
+                    <Lock className="size-4" />
+                  )}
+                  Share
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm gap-1.5"
+                  onClick={exportPdf}
+                >
+                  <FileDown className="size-4" />
+                  Export
+                </button>
               )}
-            </PortalMenu>
-          </div>
-        </div>
+              <PortalMenu
+                ariaLabel="Report actions"
+                triggerClassName="btn btn-ghost btn-sm btn-square"
+                triggerContent={<MoreHorizontal className="size-4" />}
+                menuClassName="w-52"
+              >
+                {(close) => (
+                  <>
+                    {hosted ? (
+                      <>
+                        <li>
+                          <button
+                            onClick={() => {
+                              close();
+                              exportPdf();
+                            }}
+                          >
+                            <FileDown className="size-4" />
+                            Export
+                          </button>
+                        </li>
+                        <li
+                          role="separator"
+                          className="mx-1 my-1 h-px bg-base-300"
+                        />
+                      </>
+                    ) : null}
+                    <li>
+                      <button
+                        className="text-error"
+                        onClick={() => {
+                          close();
+                          setShowDelete(true);
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                        Delete
+                      </button>
+                    </li>
+                  </>
+                )}
+              </PortalMenu>
+            </>
+          }
+        />
       </div>
 
       <div className="relative min-h-0 flex-1">

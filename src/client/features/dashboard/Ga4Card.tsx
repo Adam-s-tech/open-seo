@@ -2,11 +2,8 @@ import { CardShell } from "@/client/components/CardShell";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
-import {
-  moreDetailsClass,
-  PercentDelta,
-  Stat,
-} from "@/client/features/dashboard/cardParts";
+import { moreDetailsClass } from "@/client/features/dashboard/cardParts";
+import { StatTile } from "@/client/components/StatTile";
 import { Ga4ConnectCard } from "@/client/features/dashboard/Ga4ConnectCard";
 import {
   formatCount,
@@ -40,12 +37,6 @@ function statValue(
   format: (value: number) => string,
 ): string {
   return value === null ? "—" : format(value);
-}
-
-function statDelta(current: number | null, previous: number | null) {
-  return current !== null && previous !== null ? (
-    <PercentDelta current={current} previous={previous} />
-  ) : undefined;
 }
 
 export function Ga4Card({
@@ -105,33 +96,33 @@ export function Ga4Card({
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Stat
+            <StatTile
               label="Sessions"
               value={statValue(report.totals.sessions, formatCount)}
-              sub={statDelta(
-                report.totals.sessions,
-                report.prevTotals.sessions,
-              )}
+              delta={{
+                current: report.totals.sessions,
+                previous: report.prevTotals.sessions,
+              }}
             />
-            <Stat
+            <StatTile
               label="Active users"
               value={statValue(report.totals.activeUsers, formatCount)}
-              sub={statDelta(
-                report.totals.activeUsers,
-                report.prevTotals.activeUsers,
-              )}
+              delta={{
+                current: report.totals.activeUsers,
+                previous: report.prevTotals.activeUsers,
+              }}
             />
-            <Stat
+            <StatTile
               label="Engagement rate"
               value={statValue(report.totals.engagementRate, formatCtr)}
             />
-            <Stat
+            <StatTile
               label="Key events"
               value={statValue(report.totals.keyEvents, formatCount)}
-              sub={statDelta(
-                report.totals.keyEvents,
-                report.prevTotals.keyEvents,
-              )}
+              delta={{
+                current: report.totals.keyEvents,
+                previous: report.prevTotals.keyEvents,
+              }}
             />
           </div>
           <ChartContainer config={sessionsChartConfig} className="h-24">

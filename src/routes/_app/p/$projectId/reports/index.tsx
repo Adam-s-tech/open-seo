@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader } from "@/client/components/PageHeader";
+import { Button } from "@/client/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ReportsList } from "@/client/features/reports/ReportsList";
@@ -37,21 +39,24 @@ function ReportsPage() {
   return (
     <div className="overflow-auto px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-5xl space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Reports</h1>
-            <p className="text-sm text-base-content/70">
-              HTML reports your agents saved to this project.
-            </p>
-          </div>
-          <Link
-            to="/p/$projectId/reports/templates"
-            params={{ projectId }}
-            className="btn btn-ghost btn-sm"
-          >
-            Templates
-          </Link>
-        </div>
+        <PageHeader
+          title="Reports"
+          description="HTML reports your agents saved to this project."
+          actions={
+            <Button
+              variant="ghost"
+              nativeButton={false}
+              render={
+                <Link
+                  to="/p/$projectId/reports/templates"
+                  params={{ projectId }}
+                />
+              }
+            >
+              Templates
+            </Button>
+          }
+        />
 
         <QueryState query={reportsQuery} errorFallback="Failed to load reports">
           {(data) => (

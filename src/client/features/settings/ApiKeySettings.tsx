@@ -15,7 +15,7 @@ import {
 } from "@/client/components/ui/dialog";
 import { RowActionsMenu } from "@/client/components/RowActionsMenu";
 import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
-import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
+import { CopyButton } from "@/client/components/CopyButton";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
 
@@ -232,7 +232,9 @@ export function ApiKeySettings() {
                 <CopyButton
                   value={createdKey}
                   successMessage="API key copied"
-                  iconOnly
+                  label="Copy API key"
+                  variant="ghost"
+                  size="icon-sm"
                 />
               </div>
               <DialogFooter>

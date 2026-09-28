@@ -1,4 +1,5 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { LayoutTemplate, Pencil, Trash2 } from "lucide-react";
+import { EmptyState } from "@/client/components/EmptyState";
 import { RowActionsMenu } from "@/client/components/RowActionsMenu";
 import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import { formatRelativeTime } from "@/client/lib/relative-time";
@@ -15,10 +16,11 @@ export function ReportTemplatesList({
 }) {
   if (templates.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-base-300 px-4 py-6 text-sm text-base-content/60">
-        No templates yet. A template is a reusable brief for a kind of report:
-        who it is for, which sections it has, how it sounds.
-      </p>
+      <EmptyState
+        icon={LayoutTemplate}
+        title="No templates yet"
+        description="A template is a reusable brief for a kind of report: who it is for, which sections it has, how it sounds."
+      />
     );
   }
 

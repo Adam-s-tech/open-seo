@@ -26,7 +26,7 @@ import { QueryError } from "@/client/components/QueryState";
 import { DomainSearchCard } from "@/client/features/domain/components/DomainSearchCard";
 import { KeywordsTab } from "@/client/features/domain/components/KeywordsTab";
 import { PagesTab } from "@/client/features/domain/components/PagesTab";
-import { StatCard } from "@/client/features/domain/components/StatCard";
+import { StatTile } from "@/client/components/StatTile";
 import { SearchTabStrip } from "@/client/features/search-tabs/SearchTabStrip";
 import type { SearchTabInput } from "@/client/features/search-tabs/types";
 import { useSearchTabNavigation } from "@/client/features/search-tabs/useSearchTabNavigation";
@@ -611,7 +611,8 @@ export function DomainOverviewPage({
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <StatCard
+              <StatTile
+                card
                 label="Estimated Organic Traffic"
                 value={formatMetric(
                   state.overview.organicTraffic,
@@ -619,7 +620,8 @@ export function DomainOverviewPage({
                 )}
                 hint={overviewMetricsHint}
               />
-              <StatCard
+              <StatTile
+                card
                 label="Organic Keywords"
                 value={formatMetric(
                   state.overview.organicKeywords,

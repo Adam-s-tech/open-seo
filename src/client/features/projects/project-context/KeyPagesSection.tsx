@@ -7,15 +7,15 @@ import {
   type ProjectContextUpdate,
 } from "@/types/schemas/projectContext";
 import {
-  EmptyState,
-  FormActions,
   listClass,
   Provenance,
   RowActions,
-  SectionHeader,
   useContextUpdate,
   type ContextKeyPage,
 } from "./shared";
+import { EmptyState } from "@/client/components/EmptyState";
+import { FormActions } from "@/client/components/FormActions";
+import { SectionHeader } from "@/client/components/PageHeader";
 
 const ROLE_LABELS: Record<KeyPageRole, string> = {
   hub: "Hub page",
@@ -92,10 +92,12 @@ export function KeyPagesSection({
 
       {keyPages.length === 0 ? (
         adding ? null : (
-          <EmptyState>
-            No key pages yet. Add the handful that has to rank, or let an agent
-            propose them from your last site audit.
-          </EmptyState>
+          <EmptyState
+            size="sm"
+            icon={null}
+            title="No key pages yet"
+            description="Add the handful that has to rank, or let an agent propose them from your last site audit."
+          />
         )
       ) : (
         <ul className={listClass}>
@@ -248,6 +250,7 @@ function KeyPageForm({
         pending={pending}
         disabled={!draft.url.trim()}
         onCancel={onCancel}
+        size="xs"
       />
     </form>
   );

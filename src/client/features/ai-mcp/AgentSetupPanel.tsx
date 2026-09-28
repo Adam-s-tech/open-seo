@@ -1,5 +1,5 @@
 import { Package } from "lucide-react";
-import { CopyButton } from "./SetupControls";
+import { CopyButton } from "@/client/components/CopyButton";
 
 export const AGENT_SETUP_DESCRIPTION =
   "Paste this prompt into your agent to automatically configure OpenSEO for you.";
@@ -25,15 +25,15 @@ export function AgentSetupPanel({
             </p>
           </div>
         </div>
-        <div className="[&>button]:h-11 [&>button]:w-full [&>button]:gap-2 [&>button]:text-sm">
-          <CopyButton
-            primary
-            value={prompt}
-            label="Copy setup prompt"
-            successMessage="Setup prompt copied"
-            onCopy={onCopy}
-          />
-        </div>
+        <CopyButton
+          variant="default"
+          size="lg"
+          className="h-11 w-full gap-2"
+          value={prompt}
+          label="Copy setup prompt"
+          successMessage="Setup prompt copied"
+          onCopy={onCopy}
+        />
       </div>
       <div className="mt-4 text-center">
         <a

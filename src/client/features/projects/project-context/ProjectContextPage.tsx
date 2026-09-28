@@ -13,16 +13,16 @@ import {
 import { CompetitorsSection } from "./CompetitorsSection";
 import { KeyPagesSection } from "./KeyPagesSection";
 import {
-  EmptyState,
-  FormActions,
   listClass,
   Provenance,
   RowActions,
-  SectionHeader,
   projectContextQueryKey,
   useContextUpdate,
   type ProjectContextData,
 } from "./shared";
+import { EmptyState } from "@/client/components/EmptyState";
+import { FormActions } from "@/client/components/FormActions";
+import { SectionHeader } from "@/client/components/PageHeader";
 
 const SECTION_HINTS: Record<ProjectContextSectionKey, string> = {
   business_overview: "What you sell, who buys it, and where.",
@@ -148,10 +148,12 @@ function ProseSections({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {missingSections.length === PROJECT_CONTEXT_SECTION_KEYS.length ? (
-        <EmptyState>
-          Nothing written down yet. Fill in what you can — or ask SAM to draft
-          it from your site and confirm what it got right.
-        </EmptyState>
+        <EmptyState
+          size="sm"
+          icon={null}
+          title="Nothing written down yet"
+          description="Fill in what you can — or ask SAM to draft it from your site and confirm what it got right."
+        />
       ) : null}
 
       {PROJECT_CONTEXT_SECTION_KEYS.map((key) => {
@@ -228,10 +230,12 @@ function CustomSections({
       />
 
       {customSections.length === 0 ? (
-        <EmptyState>
-          Nothing here yet. Agents add a section when they learn something
-          important that has nowhere else to live.
-        </EmptyState>
+        <EmptyState
+          size="sm"
+          icon={null}
+          title="Nothing here yet"
+          description="Agents add a section when they learn something important that has nowhere else to live."
+        />
       ) : (
         <div className="space-y-3">
           {customSections.map((custom) =>
@@ -334,6 +338,7 @@ function CustomSectionForm({
         pending={pending}
         disabled={!content.trim()}
         onCancel={onCancel}
+        size="xs"
       />
     </form>
   );
@@ -356,9 +361,12 @@ function ResearchLog({
       />
 
       {researchLog.length === 0 ? (
-        <EmptyState>
-          Nothing logged yet. Agents record paid research here as they run it.
-        </EmptyState>
+        <EmptyState
+          size="sm"
+          icon={null}
+          title="Nothing logged yet"
+          description="Agents record paid research here as they run it."
+        />
       ) : (
         <ul className={listClass}>
           {researchLog.map((entry) => (
