@@ -1,10 +1,7 @@
-import { useCustomer } from "autumn-js/react";
 import { AuditHistorySection } from "@/client/features/audit/launch/AuditHistorySection";
 import { LaunchFormCard } from "@/client/features/audit/launch/LaunchFormCard";
 import { useLaunchController } from "@/client/features/audit/launch/useLaunchController";
-import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
-import { useSession } from "@/lib/auth-client";
-import { isHostedClientAuthMode } from "@/lib/auth-mode";
+import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 
 type LaunchViewProps = {
   projectId: string;
@@ -12,39 +9,14 @@ type LaunchViewProps = {
   onAuditStarted: (auditId: string) => void;
 };
 
-export function LaunchView(props: LaunchViewProps) {
-  // Self-hosted has no Autumn customer and resolves to the paid tier on the
-  // server, so only hosted mode needs to look up the plan.
-  if (!isHostedClientAuthMode()) {
-    return <LaunchContent {...props} isFreePlan={false} />;
-  }
-
-  return <HostedLaunchView {...props} />;
-}
-
-function HostedLaunchView(props: LaunchViewProps) {
-  const { data: session } = useSession();
-  const customerQuery = useCustomer({
-    queryOptions: {
-      enabled: Boolean(session?.user?.id),
-    },
-  });
-
-  // Until the customer loads, leave the form unrestricted rather than flash
-  // free-plan copy at paid users; the server enforces the limit regardless.
-  const isFreePlan =
-    customerQuery.data != null &&
-    getCustomerPlanStatus(customerQuery.data) === "free";
-
-  return <LaunchContent {...props} isFreePlan={isFreePlan} />;
-}
-
-function LaunchContent({
+export function LaunchView({
   projectId,
   initialUrl,
-  isFreePlan,
   onAuditStarted,
-}: LaunchViewProps & { isFreePlan: boolean }) {
+}: LaunchViewProps) {
+  // The plan only sets the page limit, so the form stays usable while the
+  // plan loads. The server enforces the limit regardless.
+  const isFreePlan = useHostedPlanGate() === "free";
   const controller = useLaunchController({
     projectId,
     initialUrl,

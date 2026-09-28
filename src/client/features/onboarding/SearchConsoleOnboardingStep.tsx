@@ -6,19 +6,18 @@ import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
 import { GoogleLinkErrorAlert } from "@/client/features/integrations/GoogleLinkErrorAlert";
 import {
-  SitePicker,
-  type GscSiteSelection,
-} from "@/client/features/gsc/SitePicker";
+  GooglePropertyPicker,
+  type GooglePickerSelection,
+} from "@/client/features/integrations/GooglePropertyPicker";
+import {
+  googleConnectionOptions,
+  googleProviders,
+} from "@/client/features/integrations/googleProviders";
 import {
   startGoogleLink,
   useGoogleLinkPending,
 } from "@/client/features/integrations/startGoogleLink";
 import { captureClientEvent } from "@/client/lib/posthog";
-import {
-  getGscConnection,
-  listGscSites,
-  setGscSite,
-} from "@/serverFunctions/gsc";
 import { getProjects } from "@/serverFunctions/projects";
 
 const GRANT_STATUS_KEY = ["gscGrantStatus"];
@@ -84,28 +83,22 @@ function GscConnect({
 }: { projectId: string } & NavigationProps) {
   const queryClient = useQueryClient();
   const linking = useGoogleLinkPending();
-  const [selection, setSelection] = React.useState<GscSiteSelection | null>(
-    null,
-  );
+  const [selection, setSelection] =
+    React.useState<GooglePickerSelection | null>(null);
 
-  const connectionKey = ["gscConnection", projectId];
-  const connectionQuery = useQuery({
-    queryKey: connectionKey,
-    queryFn: () => getGscConnection({ data: { projectId } }),
-  });
+  const connectionOptions = googleConnectionOptions("gsc", projectId);
+  const connectionKey = connectionOptions.queryKey;
+  const connectionQuery = useQuery(connectionOptions);
   const connection = connectionQuery.data;
   const connected = Boolean(connection?.connected);
   const hasGrant = Boolean(connection?.currentUserHasGrant);
 
   const sitesQuery = useQuery({
-    queryKey: ["gscSites", projectId],
-    queryFn: () => listGscSites({ data: { projectId } }),
+    queryKey: [googleProviders.gsc.accountsKey, projectId],
+    queryFn: () => googleProviders.gsc.listAccounts(projectId),
     enabled: hasGrant && !connected,
   });
-  const accounts = React.useMemo(
-    () => sitesQuery.data?.accounts ?? [],
-    [sitesQuery.data?.accounts],
-  );
+  const accounts = sitesQuery.data?.accounts ?? [];
   const requiresReconnect = accounts.some(
     (account) => account.requiresReconnect,
   );
@@ -114,14 +107,14 @@ function GscConnect({
     if (!requiresReconnect) return;
 
     void queryClient.invalidateQueries({
-      queryKey: ["gscConnection", projectId],
+      queryKey: googleConnectionOptions("gsc", projectId).queryKey,
     });
     void queryClient.invalidateQueries({ queryKey: GRANT_STATUS_KEY });
   }, [requiresReconnect, queryClient, projectId]);
 
   const setSiteMutation = useMutation({
-    mutationFn: (selected: GscSiteSelection) =>
-      setGscSite({ data: { projectId, ...selected } }),
+    mutationFn: (selected: GooglePickerSelection) =>
+      googleProviders.gsc.save(projectId, selected),
     onSuccess: () => {
       captureClientEvent("gsc:property_select");
       void queryClient.invalidateQueries({ queryKey: connectionKey });
@@ -158,14 +151,15 @@ function GscConnect({
           </span>
           <span className="text-base-content/80">
             Connected to{" "}
-            <span className="font-mono">{connection?.siteUrl}</span>.
+            <span className="font-mono">{connection?.property}</span>.
           </span>
         </div>
       ) : (
         <div className="space-y-4">
           <GoogleLinkErrorAlert provider="gsc" />
           {hasGrant ? (
-            <SitePicker
+            <GooglePropertyPicker
+              provider="gsc"
               linking={linking}
               loading={sitesQuery.isLoading}
               error={sitesQuery.isError}

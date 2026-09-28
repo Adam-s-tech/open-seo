@@ -1,11 +1,7 @@
 import { queryClient } from "@/client/tanstack-db/queryClient";
-import {
-  gscConnectionOptions,
-  ga4ConnectionOptions,
-} from "@/client/features/integrations/googleConnectionQueries";
+import { googleConnectionOptions } from "@/client/features/integrations/googleProviders";
 import { createFileRoute } from "@tanstack/react-router";
-import { SearchConsoleConnectionCard } from "@/client/features/gsc/SearchConsoleConnectionCard";
-import { GoogleAnalyticsConnectionCard } from "@/client/features/ga4/GoogleAnalyticsConnectionCard";
+import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { CrawlerAccessSettings } from "@/client/features/settings/CrawlerAccessSettings";
 
 export const Route = createFileRoute(
@@ -13,8 +9,12 @@ export const Route = createFileRoute(
 )({
   loader: ({ params }) => {
     // Start both database checks on link intent without holding up navigation.
-    void queryClient.prefetchQuery(gscConnectionOptions(params.projectId));
-    void queryClient.prefetchQuery(ga4ConnectionOptions(params.projectId));
+    void queryClient.prefetchQuery(
+      googleConnectionOptions("gsc", params.projectId),
+    );
+    void queryClient.prefetchQuery(
+      googleConnectionOptions("ga4", params.projectId),
+    );
   },
   component: ProjectIntegrationsRoute,
 });
@@ -30,12 +30,12 @@ function ProjectIntegrationsRoute() {
         <h2 className="text-sm font-medium text-base-content/50">
           Search Console
         </h2>
-        <SearchConsoleConnectionCard projectId={projectId} />
+        <GoogleConnectionCard provider="gsc" projectId={projectId} />
       </section>
 
       <section id="google-analytics" className="scroll-mt-6 space-y-3">
         <h2 className="text-sm font-medium text-base-content/50">Analytics</h2>
-        <GoogleAnalyticsConnectionCard projectId={projectId} />
+        <GoogleConnectionCard provider="ga4" projectId={projectId} />
       </section>
 
       <CrawlerAccessSettings projectId={projectId} />

@@ -10,6 +10,7 @@ import {
 import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 import { InviteTeammateModal } from "@/client/features/team/InviteTeammateModal";
+import { PermissionHint } from "@/client/components/PermissionHint";
 import { organizationContextQueryOptions } from "@/client/features/team/organizationQueries";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -146,14 +147,16 @@ export function DashboardSetupAction({
       step === "project" ? { project: ["create"] } : { invitation: ["create"] },
     );
   if (!canManage)
-    return (
+    return org.isPending ? (
       <p className="text-sm text-base-content/65">
-        {org.isPending
-          ? "Checking workspace permissions…"
-          : org.isError
-            ? getStandardErrorMessage(org.error)
-            : "Ask a workspace owner or admin to help with this step."}
+        Checking workspace permissions…
       </p>
+    ) : org.isError ? (
+      <p className="text-sm text-base-content/65">
+        {getStandardErrorMessage(org.error)}
+      </p>
+    ) : (
+      <PermissionHint action="help with this step" />
     );
   if (step === "project")
     return (

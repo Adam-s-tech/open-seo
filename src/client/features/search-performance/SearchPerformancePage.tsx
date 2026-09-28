@@ -9,7 +9,7 @@ import { Download, Loader2, Sheet, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { TableExportMenu } from "@/client/components/table/TableBulkActionBar";
 import { TablePagination } from "@/client/components/table/TablePagination";
-import { SearchConsoleConnectionCard } from "@/client/features/gsc/SearchConsoleConnectionCard";
+import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { SearchPerformanceLoadingState } from "@/client/features/search-performance/SearchPerformanceLoadingState";
 import {
   tableQueryOptions,
@@ -227,7 +227,7 @@ export function SearchPerformancePage({ projectId }: { projectId: string }) {
           </div>
         ) : !report?.connected ? (
           <div className="max-w-2xl">
-            <SearchConsoleConnectionCard projectId={projectId} />
+            <GoogleConnectionCard provider="gsc" projectId={projectId} />
           </div>
         ) : (
           <>

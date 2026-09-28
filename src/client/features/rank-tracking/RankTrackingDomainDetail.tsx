@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCustomer } from "autumn-js/react";
 import {
   getLatestRankResults,
   getRankPositionMatrix,
   estimateRankCheckCost,
 } from "@/serverFunctions/rank-tracking";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
-import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
+import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { FreePlanAlert } from "./FreePlanAlert";
 import { RankTrackingDetailHeader } from "./RankTrackingDetailHeader";
@@ -65,14 +63,7 @@ export function RankTrackingDomainDetail({
   onBack: () => void;
   onEdit: () => void;
 }) {
-  const { data: session } = useSession();
-  const customerQuery = useCustomer({
-    queryOptions: { enabled: Boolean(session?.user?.id) },
-  });
-  const isFreePlan =
-    !!customerQuery.data &&
-    getCustomerPlanStatus(customerQuery.data) === "free";
-
+  const planStatus = useHostedPlanGate();
   const queryClient = useQueryClient();
   const [showAddKeywords, setShowAddKeywords] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -142,8 +133,12 @@ export function RankTrackingDomainDetail({
     );
     if (result.checkScheduledSoon) {
       toast.info("The scheduled check within the hour covers these keywords");
-    } else if (!result.checkTriggered && result.added > 0) {
-      toast.info("Use 'Check Now' to check these keywords");
+    } else if (
+      !result.checkTriggered &&
+      result.added > 0 &&
+      planStatus === "paid"
+    ) {
+      toast.info("Use 'Check rankings' to check these keywords");
     }
   };
 
@@ -225,7 +220,7 @@ export function RankTrackingDomainDetail({
         </div>
       )}
 
-      <FreePlanAlert visible={isFreePlan} />
+      <FreePlanAlert visible={planStatus === "free"} />
 
       {/* Results card */}
       <div className="flex-1 flex flex-col min-w-0 border border-base-300 rounded-xl bg-base-100 overflow-hidden">
@@ -307,7 +302,7 @@ export function RankTrackingDomainDetail({
           onRefreshMetrics={refreshMetrics}
           metricsRefreshing={metricsRefreshing}
           checkBusy={isBusy}
-          checkDisabled={isFreePlan}
+          checkDisabled={planStatus !== "paid"}
           hasData={filtered.length > 0}
         />
 
@@ -346,6 +341,7 @@ export function RankTrackingDomainDetail({
               locationCode={config.locationCode}
               locationName={config.locationName}
               serpDepth={config.serpDepth}
+              canCheck={planStatus === "paid"}
             />
           )}
         </div>

@@ -9,10 +9,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { lookupBrand } from "@/serverFunctions/ai-search";
-import {
-  HostedPlanGate,
-  type HostedPlanGateState,
-} from "@/client/features/billing/HostedPlanGate";
+import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
+import { PageLoading } from "@/client/components/Spinner";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { BrandLookupResults } from "@/client/features/ai-search/components/BrandLookupResults";
 import { BrandLookupSearchCard } from "@/client/features/ai-search/components/BrandLookupSearchCard";
@@ -67,22 +65,14 @@ const BRAND_LOOKUP_BULLETS = [
   },
 ];
 
-export function BrandLookupPage(props: Props) {
-  return (
-    <HostedPlanGate>
-      {(planGate) => <BrandLookupPageInner {...props} planGate={planGate} />}
-    </HostedPlanGate>
-  );
-}
-
-function BrandLookupPageInner({
+export function BrandLookupPage({
   projectId,
   initialQuery,
   initialCompetitors,
   initialScope,
   onSearchChange,
-  planGate,
-}: Props & { planGate: HostedPlanGateState }) {
+}: Props) {
+  const planStatus = useHostedPlanGate();
   const [query, setQuery] = useState(initialQuery);
   // The user's explicit scope pick, or undefined to follow the input's default.
   const [scopeChoice, setScopeChoice] = useState<ResearchScope | undefined>(
@@ -142,7 +132,7 @@ function BrandLookupPageInner({
     // Client-side gate is a UX optimization only; the paywall is enforced
     // server-side (lookupBrand → assertPaidPlan) before any DataForSEO spend,
     // so a stale free-plan window here just yields a rejected request, not cost.
-    enabled: hasActiveQuery && !planGate.isFreePlan,
+    enabled: hasActiveQuery && planStatus === "paid",
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
@@ -270,7 +260,9 @@ function BrandLookupPageInner({
           </p>
         </div>
 
-        {planGate.isFreePlan ? (
+        {planStatus === "loading" ? (
+          <PageLoading />
+        ) : planStatus === "free" ? (
           <AiSearchPaidPlanGate
             feature="Brand Lookup"
             description="See how ChatGPT and Google AI Overview cite any brand or domain — total mentions, sample prompts where it appears, and the pages cited alongside it."

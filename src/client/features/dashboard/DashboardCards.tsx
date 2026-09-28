@@ -1,7 +1,8 @@
+import { CardShell } from "@/client/components/CardShell";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
-import { SearchConsoleConnectionCard } from "@/client/features/gsc/SearchConsoleConnectionCard";
+import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { AUDIT_ISSUE_TYPES } from "@/shared/audit-issues";
 
 import {
@@ -11,7 +12,6 @@ import {
 } from "@/client/features/search-performance/SearchPerformanceColumns";
 import { getSearchPerformanceReport } from "@/serverFunctions/searchPerformance";
 import {
-  CardShell,
   EmptyCardBody,
   formatDay,
   moreDetailsClass,
@@ -53,7 +53,7 @@ export function GscCard({
   if (!connected || (report && !report.connected)) {
     return (
       <div id="connect-gsc">
-        <SearchConsoleConnectionCard projectId={projectId} />
+        <GoogleConnectionCard provider="gsc" projectId={projectId} />
       </div>
     );
   }

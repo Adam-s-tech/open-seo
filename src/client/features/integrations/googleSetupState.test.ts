@@ -2,8 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
-import { SearchConsoleConnectionCard } from "@/client/features/gsc/SearchConsoleConnectionCard";
-import { GoogleAnalyticsConnectionCard } from "@/client/features/ga4/GoogleAnalyticsConnectionCard";
+import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { SearchConsoleOnboardingStep } from "@/client/features/onboarding/SearchConsoleOnboardingStep";
 
 vi.mock("@/serverFunctions/gsc", () => ({
@@ -32,7 +31,6 @@ vi.mock("@/client/features/integrations/googleLinkError", () => ({
   clearGoogleLinkError: vi.fn(),
   reportGoogleLinkErrorOnce: vi.fn(),
 }));
-vi.mock("@/lib/auth-mode", () => ({ isHostedClientAuthMode: () => true }));
 vi.mock("@/client/lib/posthog", () => ({ captureClientEvent: vi.fn() }));
 
 function renderSetup(
@@ -52,9 +50,7 @@ function renderSetup(
     currentUserHasGrant: hasGrant,
     canManage,
     googleOAuthConfigured: true,
-    siteUrl: "https://example.com/",
-    propertyId: "properties/123",
-    propertyDisplayName: "Example",
+    property: "https://example.com/",
   });
   if (connectionError) {
     client
@@ -75,12 +71,10 @@ function renderSetup(
           onBack: vi.fn(),
           onSkip: vi.fn(),
         })
-      : createElement(
-          surface === "gsc"
-            ? SearchConsoleConnectionCard
-            : GoogleAnalyticsConnectionCard,
-          { projectId: "project-a" },
-        );
+      : createElement(GoogleConnectionCard, {
+          provider,
+          projectId: "project-a",
+        });
   const html = renderToStaticMarkup(
     createElement(QueryClientProvider, { client }, component),
   );

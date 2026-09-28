@@ -10,14 +10,15 @@ import {
 } from "react";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
 
-type Selection = { accountId: string; propertyId: string };
+export type GooglePickerSelection = { accountId: string; propertyId: string };
 type Property = {
   id: string;
   name: string;
   detail?: string;
   selectable: boolean;
+  isSelected?: boolean;
 };
-type Account = {
+export type GooglePickerAccount = {
   accountId: string;
   email: string | null;
   requiresReconnect: boolean;
@@ -30,7 +31,7 @@ type SecondaryAction = {
   disabled?: boolean;
 };
 
-function accountLabel(account: Account) {
+function accountLabel(account: GooglePickerAccount) {
   return account.email ?? `Google account · ${account.accountId.slice(-6)}`;
 }
 
@@ -56,9 +57,9 @@ export function GooglePropertyPicker({
   loading: boolean;
   linking?: boolean;
   error: boolean;
-  accounts: Account[];
-  selection: Selection | null;
-  onSelect: (selection: Selection | null) => void;
+  accounts: GooglePickerAccount[];
+  selection: GooglePickerSelection | null;
+  onSelect: (selection: GooglePickerSelection | null) => void;
   onSave: () => void;
   saving: boolean;
   saveLabel?: string;
@@ -68,7 +69,7 @@ export function GooglePropertyPicker({
   renderActions?: (saveButton: ReactNode) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [removing, setRemoving] = useState<Account | null>(null);
+  const [removing, setRemoving] = useState<GooglePickerAccount | null>(null);
   const [search, setSearch] = useState("");
   const panelId = useId();
   const trigger = useRef<HTMLButtonElement>(null);

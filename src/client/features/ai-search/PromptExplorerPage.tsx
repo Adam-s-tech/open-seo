@@ -10,10 +10,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { explorePrompt } from "@/serverFunctions/ai-search";
-import {
-  HostedPlanGate,
-  type HostedPlanGateState,
-} from "@/client/features/billing/HostedPlanGate";
+import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
+import { PageLoading } from "@/client/components/Spinner";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { PromptExplorerForm } from "@/client/features/ai-search/components/PromptExplorerForm";
 import { PromptExplorerResults } from "@/client/features/ai-search/components/PromptExplorerResults";
@@ -63,20 +61,8 @@ const PROMPT_EXPLORER_BULLETS = [
   },
 ];
 
-export function PromptExplorerPage(props: Props) {
-  return (
-    <HostedPlanGate>
-      {(planGate) => <PromptExplorerPageInner {...props} planGate={planGate} />}
-    </HostedPlanGate>
-  );
-}
-
-function PromptExplorerPageInner({
-  projectId,
-  urlState,
-  onSubmit,
-  planGate,
-}: Props & { planGate: HostedPlanGateState }) {
+export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
+  const planStatus = useHostedPlanGate();
   const [form, setForm] = useState<PromptExplorerFormValues>(urlState);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -114,7 +100,7 @@ function PromptExplorerPageInner({
     // Client-side gate is a UX optimization only; the paywall is enforced
     // server-side (explorePrompt → assertPaidPlan) before any DataForSEO spend,
     // so a stale free-plan window here just yields a rejected request, not cost.
-    enabled: hasActivePrompt && !planGate.isFreePlan,
+    enabled: hasActivePrompt && planStatus === "paid",
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
@@ -206,7 +192,9 @@ function PromptExplorerPageInner({
           </p>
         </div>
 
-        {planGate.isFreePlan ? (
+        {planStatus === "loading" ? (
+          <PageLoading />
+        ) : planStatus === "free" ? (
           <AiSearchPaidPlanGate
             feature="Prompt Explorer"
             description="Ask one prompt across ChatGPT, Claude, Gemini, and Perplexity at the same time and compare their answers — including which sources each model cites."

@@ -35,6 +35,7 @@ export function RankTrackingTable({
   locationCode,
   locationName,
   serpDepth,
+  canCheck,
 }: {
   totalCount: number;
   rows: RankTrackingRow[];
@@ -48,6 +49,7 @@ export function RankTrackingTable({
   locationCode: number;
   locationName?: string | null;
   serpDepth: number;
+  canCheck: boolean;
 }) {
   const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -131,7 +133,9 @@ export function RankTrackingTable({
     return (
       <div className="rounded-xl border border-dashed border-base-300 p-10 text-center text-sm text-base-content/55">
         {totalCount === 0
-          ? 'No rank data yet. Click "Check Now" to run your first check.'
+          ? canCheck
+            ? 'No rank data yet. Use "Check rankings" in the More actions menu to run the first check.'
+            : "No rank data yet."
           : "No keywords match your search."}
       </div>
     );

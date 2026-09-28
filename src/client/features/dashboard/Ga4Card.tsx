@@ -1,3 +1,4 @@
+import { CardShell } from "@/client/components/CardShell";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -9,7 +10,6 @@ import {
   YAxis,
 } from "recharts";
 import {
-  CardShell,
   moreDetailsClass,
   PercentDelta,
   Stat,

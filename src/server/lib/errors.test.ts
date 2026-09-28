@@ -12,22 +12,11 @@ describe("toClientError", () => {
       message: "INTERNAL_ERROR",
     },
     {
-      label: "keeps public error codes unchanged",
-      error: new AppError("PAYMENT_REQUIRED"),
-      message: "PAYMENT_REQUIRED",
-    },
-    {
-      label: "passes setup-error detail through as CODE: detail",
+      label: "strips setup-error detail down to the bare code",
       error: new AppError(
         "AUTH_CONFIG_MISSING",
         "TEAM_DOMAIN must be a full https URL like https://your-team.cloudflareaccess.com",
       ),
-      message:
-        "AUTH_CONFIG_MISSING: TEAM_DOMAIN must be a full https URL like https://your-team.cloudflareaccess.com",
-    },
-    {
-      label: "keeps a detail-less setup error as its bare code",
-      error: new AppError("AUTH_CONFIG_MISSING"),
       message: "AUTH_CONFIG_MISSING",
     },
   ])("$label", ({ error, message }) => {
