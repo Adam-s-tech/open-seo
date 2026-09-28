@@ -1,5 +1,4 @@
 import {
-  Check,
   ChevronDown,
   MoreHorizontal,
   Search,
@@ -7,13 +6,10 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  resolveTagColor,
-  tagDotClass,
-  type TagColorKey,
-} from "@/shared/tag-colors";
+import type { TagColorKey } from "@/shared/tag-colors";
 import type { SavedKeywordTagSummary } from "@/types/keywords";
 import { ManageTagRow } from "./ManageTagRow";
+import { TagCheckboxRow } from "./TagCheckboxRow";
 import { TagChip } from "./TagChip";
 
 export function SavedKeywordsTagFilter({
@@ -102,7 +98,7 @@ export function SavedKeywordsTagFilter({
         <ChevronDown className="size-3.5 opacity-60" />
       </button>
 
-      {selectedTags.length > 0 ? (
+      {hasSelection ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {selectedTags.map((tag) => (
             <TagChip
@@ -144,7 +140,6 @@ export function SavedKeywordsTagFilter({
             onDeleteTag(tagId);
             setManagingTagId(null);
           }}
-          onClearSelection={onClearSelection}
         />
       ) : null}
     </div>
@@ -163,7 +158,6 @@ function TagFilterPopover({
   onStartManaging,
   onUpdateTag,
   onDeleteTag,
-  onClearSelection,
 }: {
   availableTags: SavedKeywordTagSummary[];
   filteredTags: SavedKeywordTagSummary[];
@@ -179,7 +173,6 @@ function TagFilterPopover({
     input: { name?: string; color?: TagColorKey | null },
   ) => void;
   onDeleteTag: (tagId: string) => void;
-  onClearSelection: () => void;
 }) {
   return (
     <div className="absolute right-0 top-full z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-2xl">
@@ -228,21 +221,6 @@ function TagFilterPopover({
           />
         ))}
       </div>
-
-      {selectedTagIds.length > 0 ? (
-        <div className="flex items-center justify-between border-t border-base-300 px-2 py-1.5 text-xs">
-          <span className="text-base-content/55">
-            {selectedTagIds.length} selected
-          </span>
-          <button
-            type="button"
-            className="rounded px-2 py-1 text-base-content/70 hover:bg-base-200"
-            onClick={onClearSelection}
-          >
-            Clear all
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -266,32 +244,15 @@ function TagFilterRow({
   onUpdate: (input: { name?: string; color?: TagColorKey | null }) => void;
   onDelete: () => void;
 }) {
-  const color = resolveTagColor(tag);
   return (
     <div>
       <div className="group flex items-center gap-2 px-2 py-1.5 hover:bg-base-200">
-        <button
-          type="button"
-          className="flex min-w-0 flex-1 items-center gap-2 text-left"
-          onClick={onToggle}
-        >
-          <span
-            className={`flex size-4 shrink-0 items-center justify-center rounded border ${
-              checked
-                ? "border-primary bg-primary text-primary-content"
-                : "border-base-300"
-            }`}
-          >
-            {checked ? <Check className="size-3" /> : null}
-          </span>
-          <span
-            className={`size-2 shrink-0 rounded-full ${tagDotClass(color)}`}
-          />
-          <span className="min-w-0 flex-1 truncate text-sm">{tag.name}</span>
-          <span className="shrink-0 text-[11px] tabular-nums text-base-content/45">
-            {tag.keywordCount}
-          </span>
-        </button>
+        <TagCheckboxRow
+          tag={tag}
+          checked={checked}
+          onToggle={onToggle}
+          className="min-w-0 flex-1"
+        />
         <button
           type="button"
           className={`rounded p-1 text-base-content/45 hover:bg-base-300 hover:text-base-content ${

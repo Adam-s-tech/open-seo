@@ -1,8 +1,8 @@
 import { Check, Loader2, Plus, Search, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { Modal } from "@/client/components/Modal";
-import { resolveTagColor, tagDotClass } from "@/shared/tag-colors";
 import type { SavedKeywordTag, SavedKeywordTagSummary } from "@/types/keywords";
+import { TagCheckboxRow } from "./TagCheckboxRow";
 import { TagChip } from "./TagChip";
 
 type Mode = "add" | "remove";
@@ -195,35 +195,15 @@ export function SavedKeywordsBulkTagsModal({
                 </div>
               ) : null}
 
-              {filteredAvailable.map((tag) => {
-                const checked = normalizedAddSet.has(tag.normalizedName);
-                const color = resolveTagColor(tag);
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleToggleAdd(tag)}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-base-200"
-                  >
-                    <span
-                      className={`flex size-4 shrink-0 items-center justify-center rounded border ${
-                        checked
-                          ? "border-primary bg-primary text-primary-content"
-                          : "border-base-300"
-                      }`}
-                    >
-                      {checked ? <Check className="size-3" /> : null}
-                    </span>
-                    <span
-                      className={`size-2 shrink-0 rounded-full ${tagDotClass(color)}`}
-                    />
-                    <span className="flex-1 truncate text-sm">{tag.name}</span>
-                    <span className="text-[11px] tabular-nums text-base-content/45">
-                      {tag.keywordCount}
-                    </span>
-                  </button>
-                );
-              })}
+              {filteredAvailable.map((tag) => (
+                <TagCheckboxRow
+                  key={tag.id}
+                  tag={tag}
+                  checked={normalizedAddSet.has(tag.normalizedName)}
+                  onToggle={() => handleToggleAdd(tag)}
+                  className="w-full px-3 py-1.5 hover:bg-base-200"
+                />
+              ))}
             </div>
           </div>
         ) : (

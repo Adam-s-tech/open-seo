@@ -25,16 +25,13 @@ function ProjectIntegrationsRoute() {
   return (
     <div className="space-y-8">
       {/* The ids are the targets old #search-console / #google-analytics deep
-          links are redirected to from the settings index. */}
-      <section id="search-console" className="scroll-mt-6 space-y-3">
-        <h2 className="text-sm font-medium text-base-content/50">
-          Search Console
-        </h2>
+          links are redirected to from the settings index. Each card's title
+          names its integration, so the sections carry no heading. */}
+      <section id="search-console" className="scroll-mt-6">
         <GoogleConnectionCard provider="gsc" projectId={projectId} />
       </section>
 
-      <section id="google-analytics" className="scroll-mt-6 space-y-3">
-        <h2 className="text-sm font-medium text-base-content/50">Analytics</h2>
+      <section id="google-analytics" className="scroll-mt-6">
         <GoogleConnectionCard provider="ga4" projectId={projectId} />
       </section>
 

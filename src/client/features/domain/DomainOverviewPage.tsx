@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Globe } from "lucide-react";
-import { toast } from "sonner";
 import {
   DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE,
   type DomainSearchParams,
@@ -388,9 +387,6 @@ function useDomainOverviewState({
       tab: routeState.tab,
       locationCode: routeState.locationCode,
     });
-    if (!overview.hasData) {
-      toast.info("Not enough data for this domain");
-    }
   }, [
     addSearch,
     overview,

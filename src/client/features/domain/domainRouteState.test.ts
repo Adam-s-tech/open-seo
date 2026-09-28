@@ -65,6 +65,6 @@ describe("getDomainRouteState", () => {
 
     expect(state.defaultLocationCode).toBe(2704);
     expect(state.locationCode).toBe(2704);
-    expect(state.sentLocationCode).toBe(2352);
+    expect(state.sentLocationCode).toBeUndefined();
   });
 });

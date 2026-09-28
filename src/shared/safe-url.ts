@@ -1,11 +1,11 @@
 /**
- * Validate a URL string against an http(s) scheme allow-list.
+ * Validate a URL string against an http(s) scheme allow-list. The one check
+ * for every external URL the app renders as `<a href>` or exports as a link.
  *
- * AI Search renders citation and top-page URLs as `<a href>` in the UI. The
- * URLs come from either DataForSEO (mostly safe but still external) or LLM
- * responses (untrusted — a crafted prompt can coax a model into emitting
- * `javascript:`/`data:` payloads). Without this filter, those links are
- * clickable from inside an authenticated session.
+ * The URLs come from DataForSEO (mostly safe but still external), Search
+ * Console, or LLM responses (untrusted — a crafted prompt can coax a model
+ * into emitting `javascript:`/`data:` payloads). Without this filter, those
+ * links are clickable from inside an authenticated session.
  *
  * Returns the URL string unchanged if its protocol is `http:` or `https:`,
  * otherwise null. Callers should drop null entries before rendering.

@@ -10,6 +10,8 @@ type DomainTableExportAction = {
 };
 
 type Props = {
+  /** The scope's condition limit when saved filters exceed it, else null. */
+  overBudgetLimit: number | null;
   showFilters: boolean;
   onToggleFilters: () => void;
   activeFilterCount: number;
@@ -25,6 +27,7 @@ type Props = {
 };
 
 export function DomainTableTabSurface({
+  overBudgetLimit,
   showFilters,
   onToggleFilters,
   activeFilterCount,
@@ -40,6 +43,15 @@ export function DomainTableTabSurface({
 }: Props) {
   return (
     <>
+      {overBudgetLimit != null ? (
+        <div className="alert alert-warning mb-3">
+          <span>
+            Saved filters exceed this scope&apos;s {overBudgetLimit}-condition
+            limit and were not applied. Open Filters to trim them.
+          </span>
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-2 px-4 py-2 border-b border-base-300">
         <button
           className={`btn btn-ghost btn-sm gap-1.5 ${showFilters ? "btn-active" : ""}`}

@@ -6,7 +6,10 @@ import {
   Sheet,
   SlidersHorizontal,
 } from "lucide-react";
-import { sortBy } from "remeda";
+import {
+  lastTwelveMonths,
+  MONTH_SHORT_LABELS,
+} from "@/client/features/keywords/utils";
 import {
   AreaTrendChart,
   OverviewStats,
@@ -32,36 +35,13 @@ import {
   TableExportMenu,
 } from "@/client/components/table/TableBulkActionBar";
 
-const MONTH_SHORT_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-] as const;
-
 function formatTrendRangeLabel(trend: KeywordResearchRow["trend"]): string {
-  if (trend.length === 0) return "Last 12 available months";
+  const last12 = lastTwelveMonths(trend);
+  if (last12.length === 0) return "Last 12 available months";
 
-  const sorted = sortBy(trend, (item) => item.year * 100 + item.month);
-  const last12 = sorted.slice(-12);
-  const start = last12[0];
-  const end = last12[last12.length - 1];
-
-  const toLabel = (month: number, year: number) => {
-    const monthLabel = MONTH_SHORT_LABELS[month - 1] ?? `M${month}`;
-    return `${monthLabel} ${year}`;
-  };
-
-  const startLabel = toLabel(start.month, start.year);
-  const endLabel = toLabel(end.month, end.year);
+  const [startLabel, endLabel] = [last12[0], last12[last12.length - 1]].map(
+    (m) => `${MONTH_SHORT_LABELS[m.month - 1] ?? `M${m.month}`} ${m.year}`,
+  );
   return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 }
 

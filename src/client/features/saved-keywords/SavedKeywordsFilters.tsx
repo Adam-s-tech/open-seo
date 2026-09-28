@@ -10,7 +10,7 @@ export function SavedKeywordsFilters({
   activeFilterCount,
   showFilters,
   onToggleFilters,
-  onResetAllFilters,
+  onResetFilters,
   availableTags,
   selectedTagIds,
   busyTagIds,
@@ -23,7 +23,7 @@ export function SavedKeywordsFilters({
   activeFilterCount: number;
   showFilters: boolean;
   onToggleFilters: () => void;
-  onResetAllFilters: () => void;
+  onResetFilters: () => void;
   availableTags: SavedKeywordTagSummary[];
   selectedTagIds: string[];
   busyTagIds: Set<string>;
@@ -68,7 +68,7 @@ export function SavedKeywordsFilters({
         <SavedKeywordsFilterPanel
           form={filtersForm}
           activeFilterCount={activeFilterCount}
-          onReset={onResetAllFilters}
+          onReset={onResetFilters}
         />
       ) : null}
     </>

@@ -14,7 +14,7 @@ export function ScoreBadge({ value }: { value: number | null }) {
     <span
       className={`score-badge ${scoreTierClass(value)} inline-flex size-6 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums`}
     >
-      {value ?? "—"}
+      {value ?? "-"}
     </span>
   );
 }

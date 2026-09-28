@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { PlanOffer } from "@/client/features/billing/plan-offers";
-
-const SUPPORT_EMAIL = "ben@openseo.so";
+import { SUPPORT_EMAIL } from "@/client/lib/support";
 
 // Shared card for the full-page checkout screens (/subscribe, /yc). Callers
 // pass the CTA and any extra notes as children.

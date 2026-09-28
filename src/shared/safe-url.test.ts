@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeHostname, safeHttpUrl } from "./safeUrl";
+import { safeHostname, safeHttpUrl } from "./safe-url";
 
 describe("safeHttpUrl", () => {
   it.each(["http://example.com", "https://example.com/path?q=1#frag"])(

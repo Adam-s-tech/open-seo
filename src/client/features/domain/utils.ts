@@ -75,7 +75,8 @@ export function formatMetric(
   value: number | null | undefined,
   hasData: boolean | undefined,
 ) {
-  if (!hasData) return "Not enough data";
+  // The page's "Not enough data" banner explains the empty values.
+  if (!hasData) return "-";
   return formatRounded(value);
 }
 

@@ -251,16 +251,8 @@ export function KeywordsTab({
         }
       />
 
-      {filtersOverBudget ? (
-        <div className="alert alert-warning mb-3">
-          <span>
-            Saved filters exceed this scope&apos;s {maxConditions}-condition
-            limit and were not applied. Open Filters to trim them.
-          </span>
-        </div>
-      ) : null}
-
       <DomainTableTabSurface
+        overBudgetLimit={filtersOverBudget ? maxConditions : null}
         showFilters={showFilters}
         onToggleFilters={() => setShowFilters((prev) => !prev)}
         activeFilterCount={activeFilterCount}

@@ -18,8 +18,7 @@ import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection"
 import { normalizeAuthRedirect } from "@/lib/auth-redirect";
 import { useCanManageBilling } from "@/client/features/team/organizationQueries";
 import { AUTUMN_MANAGED_ACCESS_FEATURE_ID } from "@/shared/billing";
-
-const SUPPORT_EMAIL = "ben@openseo.so";
+import { SUPPORT_EMAIL } from "@/client/lib/support";
 
 const PLAN_FEATURES = [
   "Keyword research, backlinks, rank tracking, and site audits",
@@ -269,7 +268,11 @@ function SubscribePage() {
 
       <div className="text-center space-y-2">
         <p className="text-sm text-base-content/60">
-          Questions? Email {SUPPORT_EMAIL}.
+          Questions? Email{" "}
+          <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>
+          .
         </p>
         {isUpgradeFlow ? (
           <button

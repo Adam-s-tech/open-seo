@@ -277,7 +277,7 @@ function buildBaseColumns(
             {value != null ? (
               Math.round(value)
             ) : (
-              <span title="Spam score unknown">—</span>
+              <span title="Spam score unknown">-</span>
             )}
           </div>
         );
@@ -343,7 +343,7 @@ export function buildBacklinksColumns(
       const dr = domain ? (ratings[domain] ?? null) : null;
       return (
         <div className="text-right tabular-nums text-sm">
-          {dr == null ? "—" : formatDecimal(dr)}
+          {dr == null ? "-" : formatDecimal(dr)}
         </div>
       );
     }),

@@ -1,7 +1,6 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { sortBy } from "remeda";
 import {
   Area,
   AreaChart,
@@ -11,7 +10,11 @@ import {
   YAxis,
 } from "recharts";
 import type { MonthlySearch } from "@/types/keywords";
-import { formatCompactNumber } from "../utils";
+import {
+  formatCompactNumber,
+  lastTwelveMonths,
+  MONTH_SHORT_LABELS,
+} from "../utils";
 import {
   FloatingTooltip,
   useFloatingTooltip,
@@ -26,8 +29,7 @@ export type SortField =
 export type SortDir = "asc" | "desc";
 
 export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
-  const sorted = sortBy(trend, (item) => item.year * 100 + item.month);
-  const last12 = sorted.slice(-12);
+  const last12 = lastTwelveMonths(trend);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [chartWidth, setChartWidth] = useState(0);
 
@@ -51,25 +53,9 @@ export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
     };
   }, []);
 
-  const monthLabels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
   const data = last12.map((m) => ({
-    month: monthLabels[m.month - 1],
-    year: m.year,
+    month: MONTH_SHORT_LABELS[m.month - 1],
     searchVolume: m.searchVolume,
-    label: `${monthLabels[m.month - 1]} ${m.year}`,
   }));
 
   return (

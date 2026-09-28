@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { safeHttpUrl } from "@/shared/safe-url";
 
 export function formatUrlForDisplay(value: string): string {
   try {
@@ -21,10 +22,10 @@ export function resolveUrlHref(
 ): string | null {
   if (!value) return null;
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
-    return getSafeExternalUrl(value);
+    return safeHttpUrl(value);
   }
   if (!baseDomain) return null;
-  return getSafeExternalUrl(
+  return safeHttpUrl(
     `https://${baseDomain}${value.startsWith("/") ? value : `/${value}`}`,
   );
 }
@@ -51,15 +52,4 @@ export function ExternalUrlCell({
       <ExternalLink className="size-3 shrink-0" />
     </a>
   );
-}
-
-export function getSafeExternalUrl(value: string) {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-      ? parsed.toString()
-      : null;
-  } catch {
-    return null;
-  }
 }

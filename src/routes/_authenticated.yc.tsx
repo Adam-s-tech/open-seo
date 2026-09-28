@@ -20,8 +20,7 @@ import { captureClientEvent } from "@/client/lib/posthog";
 import { useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { BILLING_ROUTE } from "@/shared/billing";
-
-const SUPPORT_EMAIL = "ben@openseo.so";
+import { SUPPORT_EMAIL } from "@/client/lib/support";
 
 const PLAN_FEATURES = [
   "Keyword research, backlinks, rank tracking, and site audits",
@@ -197,7 +196,11 @@ function YcPlanPage() {
 
       <div className="text-center space-y-2">
         <p className="text-sm text-base-content/60">
-          Questions? Email {SUPPORT_EMAIL}.
+          Questions? Email{" "}
+          <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>
+          .
         </p>
         <Link
           to="/"

@@ -34,8 +34,16 @@ export function ReportTemplatesList({
         </thead>
         <tbody>
           {templates.map((template) => (
-            <tr key={template.id}>
-              <td className="font-medium">{template.name}</td>
+            <tr key={template.id} className="hover:bg-base-200">
+              <td>
+                <button
+                  type="button"
+                  className="link link-hover text-left font-medium"
+                  onClick={() => onEdit(template)}
+                >
+                  {template.name}
+                </button>
+              </td>
               <td className="max-w-[420px] text-base-content/70">
                 {template.description}
               </td>

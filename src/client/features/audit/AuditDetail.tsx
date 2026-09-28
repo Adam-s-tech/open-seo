@@ -14,8 +14,8 @@ import {
   formatStartedAt,
   HttpStatusBadge,
   StatusBadge,
-  SUPPORT_EMAIL,
 } from "@/client/features/audit/shared";
+import { SUPPORT_EMAIL } from "@/client/lib/support";
 
 export function AuditDetail({
   projectId,

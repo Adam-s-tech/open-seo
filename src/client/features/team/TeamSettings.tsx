@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { QueryError } from "@/client/components/QueryState";
@@ -18,6 +23,19 @@ import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient, useSession } from "@/lib/auth-client";
 import { hasOrgPermission } from "@/lib/org-permissions";
 import { getTeam, sendTeamInvitation } from "@/serverFunctions/organization";
+
+const RESEND_KEY = ["team", "resend-invitation"];
+const REMOVE_KEY = ["team", "remove-member"];
+const CANCEL_KEY = ["team", "cancel-invitation"];
+
+// Every in-flight call for one action, so each row stays disabled while its
+// own request runs even when another row starts the same action.
+function usePendingVariables(mutationKey: string[]) {
+  return useMutationState({
+    filters: { mutationKey, status: "pending" },
+    select: (mutation) => mutation.state.variables,
+  });
+}
 
 // The Organization tab of account settings: who has access to the active org.
 export function TeamSettings() {
@@ -42,6 +60,7 @@ export function TeamSettings() {
   // Same server call as inviting: for an already-pending address it re-mails
   // the same link with a refreshed expiry.
   const resendMutation = useMutation({
+    mutationKey: RESEND_KEY,
     mutationFn: (email: string) => sendTeamInvitation({ data: { email } }),
     onSuccess: () => {
       captureClientEvent("team:invitation_resend");
@@ -54,6 +73,7 @@ export function TeamSettings() {
   });
 
   const removeMemberMutation = useMutation({
+    mutationKey: REMOVE_KEY,
     mutationFn: async (memberId: string) => {
       const result = await authClient.organization.removeMember({
         memberIdOrEmail: memberId,
@@ -70,6 +90,7 @@ export function TeamSettings() {
   });
 
   const cancelInvitationMutation = useMutation({
+    mutationKey: CANCEL_KEY,
     mutationFn: async (invitationId: string) => {
       const result = await authClient.organization.cancelInvitation({
         invitationId,
@@ -86,6 +107,10 @@ export function TeamSettings() {
       void refreshTeam();
     },
   });
+
+  const pendingResends = usePendingVariables(RESEND_KEY);
+  const pendingRemovals = usePendingVariables(REMOVE_KEY);
+  const pendingCancels = usePendingVariables(CANCEL_KEY);
 
   const role = orgContextQuery.data?.role ?? "member";
   const canManageTeam = hasOrgPermission(role, { invitation: ["create"] });
@@ -152,7 +177,7 @@ export function TeamSettings() {
                   isSelf={member.userId === session?.user?.id}
                   canManageTeam={canManageTeam}
                   isOwner={isOwner}
-                  isRemoving={removeMemberMutation.isPending}
+                  isRemoving={pendingRemovals.includes(member.id)}
                   onRemove={() => removeMemberMutation.mutate(member.id)}
                   onTransferOwnership={() => setTransferTarget(member)}
                 />
@@ -162,8 +187,8 @@ export function TeamSettings() {
                   key={invitation.id}
                   invitation={invitation}
                   canManageTeam={canManageTeam}
-                  isResending={resendMutation.isPending}
-                  isCanceling={cancelInvitationMutation.isPending}
+                  isResending={pendingResends.includes(invitation.email)}
+                  isCanceling={pendingCancels.includes(invitation.id)}
                   onResend={() => resendMutation.mutate(invitation.email)}
                   onCancel={() =>
                     cancelInvitationMutation.mutate(invitation.id)

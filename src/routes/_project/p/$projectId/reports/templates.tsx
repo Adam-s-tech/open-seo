@@ -7,7 +7,10 @@ import { ConfirmDeleteModal } from "@/client/components/ConfirmDeleteModal";
 import { QueryState } from "@/client/components/QueryState";
 import { ReportTemplateForm } from "@/client/features/reports/ReportTemplateForm";
 import { ReportTemplatesList } from "@/client/features/reports/ReportTemplatesList";
-import { reportsQueryKey } from "@/client/features/reports/shared";
+import {
+  reportsQueryKey,
+  reportTemplatesQueryKey,
+} from "@/client/features/reports/shared";
 import { captureClientEvent } from "@/client/lib/posthog";
 import {
   deleteReportTemplate,
@@ -21,9 +24,6 @@ export const Route = createFileRoute(
   component: ReportTemplatesPage,
 });
 
-const templatesQueryKey = (projectId: string) =>
-  ["report-templates", projectId] as const;
-
 function ReportTemplatesPage() {
   const { projectId } = Route.useParams();
   const queryClient = useQueryClient();
@@ -34,13 +34,14 @@ function ReportTemplatesPage() {
   );
 
   const templatesQuery = useQuery({
-    queryKey: templatesQueryKey(projectId),
+    queryKey: reportTemplatesQueryKey(projectId),
     queryFn: () => listReportTemplates({ data: { projectId } }),
+    staleTime: 0,
   });
 
   const invalidate = () => {
     void queryClient.invalidateQueries({
-      queryKey: templatesQueryKey(projectId),
+      queryKey: reportTemplatesQueryKey(projectId),
     });
     // The reports list renders the template name in its Type column.
     void queryClient.invalidateQueries({

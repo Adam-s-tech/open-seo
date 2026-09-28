@@ -161,84 +161,74 @@ export function PagesTab({
     });
 
   return (
-    <>
-      {filtersOverBudget ? (
-        <div className="alert alert-warning mb-3">
-          <span>
-            Saved filters exceed this scope&apos;s {maxConditions}-condition
-            limit and were not applied. Open Filters to trim them.
-          </span>
-        </div>
-      ) : null}
-
-      <DomainTableTabSurface
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((prev) => !prev)}
-        activeFilterCount={activeFilterCount}
-        countLabel="pages"
-        totalCount={totalCount}
-        fallbackCount={rows.length}
-        isLoading={isLoading}
-        showTableLoading={showTableLoading}
-        exportActions={[
-          {
-            label: "Export to Sheets",
-            icon: <Sheet className="size-4" />,
-            onClick: () => exportAll("sheets"),
-          },
-          {
-            label: "Copy data (JSON)",
-            icon: <Copy className="size-4" />,
-            onClick: () => exportAll("copy-json"),
-          },
-          {
-            label: "Download CSV",
-            icon: <Download className="size-4" />,
-            onClick: () => exportAll("csv"),
-          },
-          {
-            label: "Download Excel",
-            icon: <FileSpreadsheet className="size-4" />,
-            onClick: () => exportAll("excel"),
-          },
-        ]}
-        filterPanel={
-          showFilters ? (
-            <DomainFilterPanel
-              activeFilterCount={activeFilterCount}
-              appliedFilters={restoredFilters}
-              fields={PAGE_FILTER_FIELDS}
-              textFields={PAGE_TEXT_FILTERS}
-              rangeFields={PAGE_RANGE_FILTERS}
-              countConditions={countPageFilterConditions}
-              maxConditions={maxConditions}
-              onApply={applyFilters}
-              onClear={resetFilters}
-            />
-          ) : null
-        }
-        pagination={
-          <TablePagination
-            page={routeState.page}
-            pageSize={routeState.pageSize}
-            pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
-            totalCount={totalCount}
-            hasNextPage={hasNextPage}
-            isLoading={isLoading}
-            onPageChange={onPageChange}
-            onPageSizeChange={onPageSizeChange}
-            renderPageButton={DomainPageLink}
+    <DomainTableTabSurface
+      overBudgetLimit={filtersOverBudget ? maxConditions : null}
+      showFilters={showFilters}
+      onToggleFilters={() => setShowFilters((prev) => !prev)}
+      activeFilterCount={activeFilterCount}
+      countLabel="pages"
+      totalCount={totalCount}
+      fallbackCount={rows.length}
+      isLoading={isLoading}
+      showTableLoading={showTableLoading}
+      exportActions={[
+        {
+          label: "Export to Sheets",
+          icon: <Sheet className="size-4" />,
+          onClick: () => exportAll("sheets"),
+        },
+        {
+          label: "Copy data (JSON)",
+          icon: <Copy className="size-4" />,
+          onClick: () => exportAll("copy-json"),
+        },
+        {
+          label: "Download CSV",
+          icon: <Download className="size-4" />,
+          onClick: () => exportAll("csv"),
+        },
+        {
+          label: "Download Excel",
+          icon: <FileSpreadsheet className="size-4" />,
+          onClick: () => exportAll("excel"),
+        },
+      ]}
+      filterPanel={
+        showFilters ? (
+          <DomainFilterPanel
+            activeFilterCount={activeFilterCount}
+            appliedFilters={restoredFilters}
+            fields={PAGE_FILTER_FIELDS}
+            textFields={PAGE_TEXT_FILTERS}
+            rangeFields={PAGE_RANGE_FILTERS}
+            countConditions={countPageFilterConditions}
+            maxConditions={maxConditions}
+            onApply={applyFilters}
+            onClear={resetFilters}
           />
-        }
-      >
-        <DomainPagesTable
-          domain={hostname}
-          rows={rows}
-          sortMode={routeState.sort}
-          currentSortOrder={routeState.order}
-          onSortClick={onSortClick}
+        ) : null
+      }
+      pagination={
+        <TablePagination
+          page={routeState.page}
+          pageSize={routeState.pageSize}
+          pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
+          totalCount={totalCount}
+          hasNextPage={hasNextPage}
+          isLoading={isLoading}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          renderPageButton={DomainPageLink}
         />
-      </DomainTableTabSurface>
-    </>
+      }
+    >
+      <DomainPagesTable
+        domain={hostname}
+        rows={rows}
+        sortMode={routeState.sort}
+        currentSortOrder={routeState.order}
+        onSortClick={onSortClick}
+      />
+    </DomainTableTabSurface>
   );
 }

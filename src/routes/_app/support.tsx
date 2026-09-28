@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SUPPORT_EMAIL } from "@/client/lib/support";
 
-const SUPPORT_EMAIL = "ben@openseo.so";
 const DISCORD_URL = "https://discord.gg/c9uGs3cFXr";
 const GITHUB_URL = "https://github.com/every-app/open-seo";
 

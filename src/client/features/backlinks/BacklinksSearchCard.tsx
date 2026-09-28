@@ -45,11 +45,9 @@ function getBacklinksValidationErrors(
 }
 
 export function BacklinksSearchCard({
-  errorMessage,
   initialValues,
   onSubmit,
 }: {
-  errorMessage: string | null;
   initialValues: SearchDraft;
   onSubmit: (values: SearchDraft) => void;
 }) {
@@ -142,12 +140,6 @@ export function BacklinksSearchCard({
             </form.Field>
           </div>
         </form>
-
-        {errorMessage ? (
-          <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
-            {errorMessage}
-          </div>
-        ) : null}
       </div>
     </div>
   );

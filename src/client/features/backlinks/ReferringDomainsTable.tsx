@@ -146,7 +146,7 @@ function buildReferringDomainColumns(domainRatings: DomainRatings | null) {
     cell: ({ row }) => {
       const domain = row.original.domain;
       const dr = domain ? (ratings[domain] ?? null) : null;
-      return dr == null ? "—" : formatDecimal(dr);
+      return dr == null ? "-" : formatDecimal(dr);
     },
   });
 

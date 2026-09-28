@@ -25,6 +25,6 @@ it("distinguishes zero from missing spam scores without changing boundary values
   const scores = $("tbody tr")
     .map((_, row) => $(row).find("td").eq(6).text())
     .get();
-  expect(scores).toEqual(["—", "—", "0", "39", "40"]);
+  expect(scores).toEqual(["-", "-", "0", "39", "40"]);
   expect($("[title='Spam score unknown']")).toHaveLength(2);
 });

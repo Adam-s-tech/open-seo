@@ -113,7 +113,6 @@ export function BacklinksPage({
         </div>
 
         <BacklinksSearchCard
-          errorMessage={data.overviewErrorMessage}
           initialValues={data.searchCardInitialValues}
           onSubmit={(values) => {
             searchTabs.openTab({ type: "backlinks", ...values });

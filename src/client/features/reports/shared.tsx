@@ -14,7 +14,7 @@ import {
 } from "@/serverFunctions/reports";
 import { sharePath } from "@/shared/report-share";
 
-// Query keys for both reports pages. staleTime is 0 wherever these are used:
+// Query keys for the reports and templates pages. staleTime is 0 wherever these are used:
 // the pages exist to inspect what an agent just wrote, so the app-wide
 // five-minute staleTime would show a pre-save list as current.
 export const reportsQueryKey = (projectId: string) =>
@@ -22,6 +22,9 @@ export const reportsQueryKey = (projectId: string) =>
 
 export const reportQueryKey = (projectId: string, reportId: string) =>
   ["report", projectId, reportId] as const;
+
+export const reportTemplatesQueryKey = (projectId: string) =>
+  ["report-templates", projectId] as const;
 
 /**
  * "Ben · Claude Code". The person is the half that means something (it comes

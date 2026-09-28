@@ -69,18 +69,26 @@ function SavedKeywordsPage() {
   const [committedFilterValues, setCommittedFilterValues] = useState(
     filters.values,
   );
+  const [committedTagIds, setCommittedTagIds] = useState(selectedTagIds);
 
+  // Field edits and tag toggles share one debounce, so a burst of changes
+  // sends one query.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setCommittedFilterValues(filters.values);
+      setCommittedTagIds(selectedTagIds);
       setPage(1);
     }, FILTER_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [filters.values]);
+  }, [filters.values, selectedTagIds]);
 
   const appliedFilters = useMemo(
     () => compileSavedKeywordsFilters(committedFilterValues),
     [committedFilterValues],
+  );
+  const visibleFilters = useMemo(
+    () => compileSavedKeywordsFilters(filters.values),
+    [filters.values],
   );
 
   const sortState = sorting[0];
@@ -90,7 +98,7 @@ function SavedKeywordsPage() {
       ? "desc"
       : "asc"
     : "desc";
-  const tagFilterKey = selectedTagIds.join("|");
+  const tagFilterKey = committedTagIds.join("|");
   const hasActiveFilters =
     filters.activeFilterCount > 0 || selectedTagIds.length > 0;
 
@@ -98,13 +106,13 @@ function SavedKeywordsPage() {
     () => ({
       projectId,
       ...appliedFilters,
-      tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+      tagIds: committedTagIds.length > 0 ? committedTagIds : undefined,
       page,
       pageSize,
       sort,
       order,
     }),
-    [appliedFilters, order, page, pageSize, projectId, selectedTagIds, sort],
+    [appliedFilters, committedTagIds, order, page, pageSize, projectId, sort],
   );
 
   const { data, isLoading, isFetching } = useQuery({
@@ -196,7 +204,9 @@ function SavedKeywordsPage() {
   const tagManage = useTagManage(projectId);
   const exporter = useSavedKeywordsExport({
     projectId,
-    appliedFilters,
+    // The visible filters, so an export started inside the debounce window
+    // still matches what the user picked.
+    appliedFilters: visibleFilters,
     selectedTagIds,
     sort,
     order,
@@ -214,12 +224,6 @@ function SavedKeywordsPage() {
     if (ok) {
       setSelectedTagIds((current) => current.filter((id) => id !== tagId));
     }
-  };
-
-  const handleClearAllFilters = () => {
-    filters.resetFilters();
-    setSelectedTagIds([]);
-    setPage(1);
   };
 
   return (
@@ -240,7 +244,7 @@ function SavedKeywordsPage() {
             activeFilterCount={filters.activeFilterCount}
             showFilters={showFilters}
             onToggleFilters={() => setShowFilters((v) => !v)}
-            onResetAllFilters={handleClearAllFilters}
+            onResetFilters={filters.resetFilters}
             availableTags={availableTags}
             selectedTagIds={selectedTagIds}
             busyTagIds={tagManage.busyTagIds}
@@ -250,12 +254,8 @@ function SavedKeywordsPage() {
                   ? current.filter((id) => id !== tagId)
                   : [...current, tagId],
               );
-              setPage(1);
             }}
-            onClearTagSelection={() => {
-              setSelectedTagIds([]);
-              setPage(1);
-            }}
+            onClearTagSelection={() => setSelectedTagIds([])}
             onUpdateTag={(input) => void tagManage.updateTag(input)}
             onDeleteTag={(tagId) => void handleDeleteTag(tagId)}
           />

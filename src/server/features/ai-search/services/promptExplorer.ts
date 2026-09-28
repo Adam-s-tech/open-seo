@@ -9,7 +9,7 @@ import {
   getCached,
   setCached,
 } from "@/server/lib/r2-cache";
-import { safeHostname, safeHttpUrl } from "@/server/features/ai-search/safeUrl";
+import { safeHostname, safeHttpUrl } from "@/shared/safe-url";
 import {
   promptExplorerModelResultSchema,
   type PromptExplorerCitation,

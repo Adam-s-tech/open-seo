@@ -127,6 +127,10 @@ export function SavedKeywordsTable({
     getRowId: (row) => row.id,
     enableRowSelection: true,
     manualSorting: true,
+    // The server sorts by one column, so there is always exactly one sort:
+    // a click flips its direction and shift+click does not add a second.
+    enableSortingRemoval: false,
+    enableMultiSort: false,
   });
 
   return (
