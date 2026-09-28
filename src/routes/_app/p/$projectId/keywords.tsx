@@ -11,6 +11,8 @@ import { keywordsSearchSchema } from "@/types/schemas/keywords";
 
 export const Route = createFileRoute("/_app/p/$projectId/keywords")({
   validateSearch: keywordsSearchSchema,
+  // The project switcher keeps this page; filter drafts must not follow.
+  remountDeps: ({ params }) => params.projectId,
   beforeLoad: ({ params, search }) => {
     const { normalized, changed } = normalizeLegacyKeywordSearch(search);
     if (!changed) return;

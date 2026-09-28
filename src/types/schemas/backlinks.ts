@@ -200,7 +200,7 @@ export const backlinksSearchSchema = z.object({
   includeSpam: z.boolean().optional().catch(undefined),
   target: z.string().optional(),
   scope: backlinksScopeParamSchema.optional().catch(undefined),
-  tab: backlinksTabSchema.optional(),
+  tab: backlinksTabSchema.optional().catch(undefined),
   page: z.coerce.number().int().positive().optional().catch(undefined),
   size: z.coerce
     .number()

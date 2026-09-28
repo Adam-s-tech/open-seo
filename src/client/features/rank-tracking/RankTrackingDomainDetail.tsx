@@ -19,10 +19,12 @@ import {
 } from "./RankTrackingHistoryMatrix";
 import { RankTrackingTableToolbar } from "./RankTrackingTableToolbar";
 import { exportRankTracking } from "./RankTrackingTableParts";
-import type {
-  RankTrackingConfig,
-  ComparePeriod,
-} from "@/types/schemas/rank-tracking";
+import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
+import {
+  rankTrackingDetailSearchSchema,
+  type ComparePeriod,
+  type RankTrackingDetailSearch,
+} from "@/types/schemas/rank-tracking-search";
 import { AddKeywordsPanel } from "./AddKeywordsPanel";
 import {
   FilterPanel,
@@ -35,6 +37,12 @@ import { CheckConfirmModal } from "./CheckConfirmModal";
 import { useMetricsRefresh } from "./useMetricsRefresh";
 import { useRankCheckTrigger } from "./useRankCheckTrigger";
 import { useRankRunPolling } from "./useRankRunPolling";
+import {
+  filterValuesFromSearch,
+  filterValuesToSearch,
+  normalizeFilterValues,
+} from "@/client/lib/filterSearchParams";
+import { useDebouncedDraft } from "@/client/hooks/useDebouncedDraft";
 
 function deviceVisibility(
   devices: RankTrackingConfig["devices"],
@@ -52,14 +60,26 @@ function deviceVisibility(
   };
 }
 
+function defaultComparePeriod(
+  interval: RankTrackingConfig["scheduleInterval"],
+): ComparePeriod {
+  if (interval === "daily") return "1d";
+  if (interval === "monthly") return "30d";
+  return "7d";
+}
+
 export function RankTrackingDomainDetail({
   config,
   projectId,
+  search,
+  onSearchChange,
   onBack,
   onEdit,
 }: {
   config: RankTrackingConfig;
   projectId: string;
+  search: RankTrackingDetailSearch;
+  onSearchChange: (update: Partial<RankTrackingDetailSearch>) => void;
   onBack: () => void;
   onEdit: () => void;
 }) {
@@ -67,18 +87,24 @@ export function RankTrackingDomainDetail({
   const queryClient = useQueryClient();
   const [showAddKeywords, setShowAddKeywords] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [comparePeriod, setComparePeriod] = useState<ComparePeriod>(
-    config.scheduleInterval === "daily"
-      ? "1d"
-      : config.scheduleInterval === "monthly"
-        ? "30d"
-        : "7d",
+  const filters = useMemo(
+    () => filterValuesFromSearch(search, EMPTY_FILTERS),
+    [search],
   );
-  const [activeDevice, setActiveDevice] = useState<"desktop" | "mobile">(
-    config.devices === "mobile" ? "mobile" : "desktop",
+  const setFilters = (next: Filters) =>
+    onSearchChange(filterValuesToSearch<RankTrackingDetailSearch>(next));
+  // Held here, not in the panel, so closing the panel keeps a pending edit.
+  const [filterDraft, setFilterDraft] = useDebouncedDraft(
+    filters,
+    setFilters,
+    (values) => normalizeFilterValues(values, EMPTY_FILTERS),
   );
-  const [viewMode, setViewMode] = useState<"table" | "history">("table");
+  const comparePeriod =
+    search.compare ?? defaultComparePeriod(config.scheduleInterval);
+  // A single-device config has only one device to show.
+  const activeDevice =
+    config.devices === "both" ? (search.device ?? "desktop") : config.devices;
+  const viewMode = search.view ?? "table";
 
   const { data: resultsData, isLoading: resultsLoading } = useQuery({
     queryKey: ["rankTrackingResults", projectId, config.id, comparePeriod],
@@ -179,6 +205,12 @@ export function RankTrackingDomainDetail({
   );
   const activeFilterCount = countActiveFilters(filters);
   const defaultSortId = showDesktop ? "desktopPosition" : "mobilePosition";
+  // A position sort for the hidden device falls back to the default.
+  const sortId =
+    (search.sort === "desktopPosition" && !showDesktop) ||
+    (search.sort === "mobilePosition" && !showMobile)
+      ? undefined
+      : search.sort;
   // Fall back to the table if history disappears (e.g. device switch).
   const effectiveViewMode = historyAvailable ? viewMode : "table";
 
@@ -232,9 +264,12 @@ export function RankTrackingDomainDetail({
           costEstimate={costEstimate}
           hasBothDevices={hasBothDevices}
           activeDevice={activeDevice}
-          onActiveDeviceChange={setActiveDevice}
+          onActiveDeviceChange={(device) =>
+            // The sort column is per device, so a device switch resets it.
+            onSearchChange({ device, sort: undefined, order: undefined })
+          }
           comparePeriod={comparePeriod}
-          onComparePeriodChange={setComparePeriod}
+          onComparePeriodChange={(compare) => onSearchChange({ compare })}
           onEdit={onEdit}
           onToggleAddKeywords={() => setShowAddKeywords((c) => !c)}
         />
@@ -268,7 +303,9 @@ export function RankTrackingDomainDetail({
           latestRun={latestRun}
           keywordCount={filtered.length}
           viewMode={effectiveViewMode}
-          onViewModeChange={setViewMode}
+          onViewModeChange={(view) =>
+            onSearchChange({ view: view === "history" ? view : undefined })
+          }
           historyAvailable={historyAvailable}
           onExport={() =>
             exportRankTracking({
@@ -310,8 +347,8 @@ export function RankTrackingDomainDetail({
         {/* Filters panel */}
         {showFilters && (
           <FilterPanel
-            filters={filters}
-            setFilters={setFilters}
+            draft={filterDraft}
+            setDraft={setFilterDraft}
             activeFilterCount={activeFilterCount}
             onReset={() => setFilters(EMPTY_FILTERS)}
           />
@@ -335,7 +372,19 @@ export function RankTrackingDomainDetail({
               resultsLoading={resultsLoading}
               showDesktop={showDesktop}
               showMobile={showMobile}
-              defaultSortId={defaultSortId}
+              sorting={
+                sortId
+                  ? [{ id: sortId, desc: search.order === "desc" }]
+                  : [{ id: defaultSortId, desc: false }]
+              }
+              onSortingChange={(sorting) => {
+                onSearchChange({
+                  sort: rankTrackingDetailSearchSchema.shape.sort.parse(
+                    sorting[0]?.id,
+                  ),
+                  order: sorting[0]?.desc ? "desc" : undefined,
+                });
+              }}
               domain={config.domain}
               configId={config.id}
               projectId={projectId}

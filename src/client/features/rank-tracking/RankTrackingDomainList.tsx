@@ -23,11 +23,12 @@ import {
   applyDomainListFilters,
   countActiveDomainListFilters,
   DomainListFilterBar,
-  EMPTY_DOMAIN_LIST_FILTERS,
   getDomainListFilterOptions,
   type DomainListFilters,
 } from "./RankTrackingFilters";
 import { Skeleton } from "@/client/components/Skeleton";
+import { useDebouncedDraft } from "@/client/hooks/useDebouncedDraft";
+import type { RankTrackingListSearch } from "@/types/schemas/rank-tracking-search";
 
 type ConfigSummary = Awaited<
   ReturnType<typeof getRankTrackingConfigSummaries>
@@ -40,31 +41,68 @@ const FILTER_BAR_MIN_DOMAINS = 6;
 
 export function RankTrackingDomainList({
   projectId,
+  search,
+  onSearchChange,
   onAddDomain,
 }: {
   projectId: string;
+  search: RankTrackingListSearch;
+  onSearchChange: (next: RankTrackingListSearch) => void;
   onAddDomain: () => void;
 }) {
   const queryClient = useQueryClient();
   const [archiveTarget, setArchiveTarget] = useState<ConfigSummary | null>(
     null,
   );
-  const [filters, setFilters] = useState<DomainListFilters>(
-    EMPTY_DOMAIN_LIST_FILTERS,
+  const [query, setQuery] = useDebouncedDraft(search.q ?? "", (q) =>
+    onSearchChange({ ...search, q: q || undefined }),
   );
+  const filters: DomainListFilters = {
+    query,
+    device: search.device ?? "all",
+    locationCode: search.loc ? String(search.loc) : "all",
+  };
+  const setFilters = (next: DomainListFilters) => {
+    setQuery(next.query);
+    if (
+      next.device === filters.device &&
+      next.locationCode === filters.locationCode
+    ) {
+      return;
+    }
+    // Carry the typed query too, so the navigation does not revert it.
+    onSearchChange({
+      q: next.query || undefined,
+      device: next.device === "all" ? undefined : next.device,
+      loc: next.locationCode === "all" ? undefined : Number(next.locationCode),
+    });
+  };
+  const clearFilters = () => {
+    setQuery("");
+    onSearchChange({});
+  };
   const { data: summaries, isPending } = useQuery({
     queryKey: ["rankTrackingConfigSummaries", projectId],
     queryFn: () => getRankTrackingConfigSummaries({ data: { projectId } }),
   });
   const allSummaries = useMemo(() => summaries ?? [], [summaries]);
-  const filteredSummaries = useMemo(
-    () => applyDomainListFilters(allSummaries, filters),
-    [allSummaries, filters],
-  );
-  const filterOptions = useMemo(
-    () => getDomainListFilterOptions(allSummaries),
-    [allSummaries],
-  );
+  const filteredSummaries = applyDomainListFilters(allSummaries, filters);
+  const filterOptions = useMemo(() => {
+    const options = getDomainListFilterOptions(allSummaries);
+    // A shared link can filter on a value no tracked domain has. Show it so
+    // the select matches the URL.
+    const { device, loc } = search;
+    if (device && !options.devices.some((o) => o.value === device)) {
+      options.devices.push({ value: device, label: devicesLabel(device) });
+    }
+    if (loc && !options.locations.some((o) => o.value === String(loc))) {
+      options.locations.push({
+        value: String(loc),
+        label: LOCATIONS[loc] ?? String(loc),
+      });
+    }
+    return options;
+  }, [allSummaries, search]);
   const activeFilterCount = countActiveDomainListFilters(filters);
 
   const archiveMutation = useMutation({
@@ -104,7 +142,7 @@ export function RankTrackingDomainList({
             options={filterOptions}
             activeFilterCount={activeFilterCount}
             onChange={setFilters}
-            onReset={() => setFilters(EMPTY_DOMAIN_LIST_FILTERS)}
+            onReset={clearFilters}
           />
         )}
         <div className="divide-y divide-base-300 border-t border-base-300">
@@ -142,10 +180,7 @@ export function RankTrackingDomainList({
                   Try clearing search or adjusting filters.
                 </p>
               </div>
-              <button
-                className="btn btn-ghost btn-xs"
-                onClick={() => setFilters(EMPTY_DOMAIN_LIST_FILTERS)}
-              >
+              <button className="btn btn-ghost btn-xs" onClick={clearFilters}>
                 Clear filters
               </button>
             </div>

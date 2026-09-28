@@ -102,6 +102,7 @@ export function BacklinksBody({
         getSubtitle={(item) => RESEARCH_SCOPE_LABELS[item.scope]}
         renderLink={(item, props) => (
           <Link
+            from="/p/$projectId/backlinks"
             to="/p/$projectId/backlinks"
             params={{ projectId }}
             search={(prev) => ({

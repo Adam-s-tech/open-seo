@@ -5,16 +5,19 @@ import { getRankTrackingConfigs } from "@/serverFunctions/rank-tracking";
 import { RankTrackingDomainDetail } from "@/client/features/rank-tracking/RankTrackingDomainDetail";
 import { PageLoading } from "@/client/components/Spinner";
 import { RankTrackingConfigModal } from "@/client/features/rank-tracking/RankTrackingConfigModal";
+import { rankTrackingDetailSearchSchema } from "@/types/schemas/rank-tracking-search";
 
 export const Route = createFileRoute(
   "/_app/p/$projectId/rank-tracking/$configId",
 )({
+  validateSearch: rankTrackingDetailSearchSchema,
   component: RankTrackingConfigRoute,
 });
 
 function RankTrackingConfigRoute() {
   const { projectId, configId } = Route.useParams();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const queryClient = useQueryClient();
   const [showConfigModal, setShowConfigModal] = useState(false);
 
@@ -63,6 +66,14 @@ function RankTrackingConfigRoute() {
       <RankTrackingDomainDetail
         config={config}
         projectId={projectId}
+        search={search}
+        onSearchChange={(update) => {
+          void navigate({
+            from: Route.fullPath,
+            search: (prev) => ({ ...prev, ...update }),
+            replace: true,
+          });
+        }}
         onBack={handleBack}
         onEdit={() => setShowConfigModal(true)}
       />

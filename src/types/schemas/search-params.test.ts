@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { promptExplorerSearchSchema } from "@/types/schemas/ai-search";
+import { backlinksSearchSchema } from "@/types/schemas/backlinks";
 import { domainSearchSchema } from "@/types/schemas/domain";
+import { rankTrackingDetailSearchSchema } from "@/types/schemas/rank-tracking-search";
 
 describe("search param boolean parsing", () => {
   it("parses explicit false values for domain search params", () => {
@@ -24,5 +27,25 @@ describe("search param boolean parsing", () => {
       size: undefined,
       loc: undefined,
     });
+  });
+});
+
+describe("table view search params", () => {
+  it("drops unknown values instead of failing the route", () => {
+    expect(backlinksSearchSchema.parse({ tab: "nope" }).tab).toBeUndefined();
+    expect(
+      promptExplorerSearchSchema.parse({
+        models: ["not-a-model"],
+        cc: "??",
+        web: "maybe",
+      }),
+    ).toEqual({ models: undefined, cc: undefined, web: undefined });
+  });
+
+  it("keeps a text filter that the router parsed as a number", () => {
+    // The router reads `?include=42` as the number 42.
+    expect(rankTrackingDetailSearchSchema.parse({ include: 42 }).include).toBe(
+      "42",
+    );
   });
 });

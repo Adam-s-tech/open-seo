@@ -8,19 +8,20 @@ type DomainListFilterOption = {
   label: string;
 };
 
+/** `draft` is the unapplied panel state; it reaches the URL after a pause. */
 export function FilterPanel({
-  filters,
-  setFilters,
+  draft,
+  setDraft,
   activeFilterCount,
   onReset,
 }: {
-  filters: Filters;
-  setFilters: (f: Filters) => void;
+  draft: Filters;
+  setDraft: (f: Filters) => void;
   activeFilterCount: number;
   onReset: () => void;
 }) {
   const update = (key: keyof Filters, value: string) =>
-    setFilters({ ...filters, [key]: value });
+    setDraft({ ...draft, [key]: value });
 
   return (
     <div className="shrink-0 border-b border-base-300 bg-gradient-to-b from-base-100 to-base-200/30 px-4 py-3 space-y-3">
@@ -50,7 +51,7 @@ export function FilterPanel({
           <input
             className="input input-bordered input-sm w-full bg-base-100"
             placeholder="e.g. seo, tool"
-            value={filters.include}
+            value={draft.include}
             onChange={(e) => update("include", e.target.value)}
           />
         </div>
@@ -61,7 +62,7 @@ export function FilterPanel({
           <input
             className="input input-bordered input-sm w-full bg-base-100"
             placeholder="e.g. free, cheap"
-            value={filters.exclude}
+            value={draft.exclude}
             onChange={(e) => update("exclude", e.target.value)}
           />
         </div>
@@ -69,15 +70,15 @@ export function FilterPanel({
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <RangeFilter
           title="Desktop position"
-          minValue={filters.minDesktopPos}
-          maxValue={filters.maxDesktopPos}
+          minValue={draft.minDesktopPos}
+          maxValue={draft.maxDesktopPos}
           onMinChange={(v) => update("minDesktopPos", v)}
           onMaxChange={(v) => update("maxDesktopPos", v)}
         />
         <RangeFilter
           title="Mobile position"
-          minValue={filters.minMobilePos}
-          maxValue={filters.maxMobilePos}
+          minValue={draft.minMobilePos}
+          maxValue={draft.maxMobilePos}
           onMinChange={(v) => update("minMobilePos", v)}
           onMaxChange={(v) => update("maxMobilePos", v)}
         />
@@ -85,22 +86,22 @@ export function FilterPanel({
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <RangeFilter
           title="Volume"
-          minValue={filters.minVolume}
-          maxValue={filters.maxVolume}
+          minValue={draft.minVolume}
+          maxValue={draft.maxVolume}
           onMinChange={(v) => update("minVolume", v)}
           onMaxChange={(v) => update("maxVolume", v)}
         />
         <RangeFilter
           title="Keyword difficulty"
-          minValue={filters.minKd}
-          maxValue={filters.maxKd}
+          minValue={draft.minKd}
+          maxValue={draft.maxKd}
           onMinChange={(v) => update("minKd", v)}
           onMaxChange={(v) => update("maxKd", v)}
         />
         <RangeFilter
           title="CPC"
-          minValue={filters.minCpc}
-          maxValue={filters.maxCpc}
+          minValue={draft.minCpc}
+          maxValue={draft.maxCpc}
           onMinChange={(v) => update("minCpc", v)}
           onMaxChange={(v) => update("maxCpc", v)}
         />

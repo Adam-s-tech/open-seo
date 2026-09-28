@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { TAG_COLOR_KEYS } from "@/shared/tag-colors";
-import { booleanSearchParamSchema } from "@/types/schemas/domain";
+import {
+  booleanSearchParamSchema,
+  optionalSearchNumberParam,
+  optionalSearchPositiveIntParam,
+  searchTextParam,
+} from "@/types/schemas/domain";
 
 const savedKeywordTagSchema = z.string().trim().min(1).max(64);
 const tagColorSchema = z.enum(TAG_COLOR_KEYS);
@@ -14,6 +19,11 @@ const savedKeywordSortFields = [
   "fetchedAt",
 ] as const;
 const sortDirs = ["asc", "desc"] as const;
+const savedKeywordPageSizeSchema = z.union([
+  z.literal(50),
+  z.literal(100),
+  z.literal(250),
+]);
 
 export const researchKeywordsSchema = z.object({
   projectId: z.string().min(1),
@@ -96,12 +106,36 @@ export const getSavedKeywordsSchema = z.object({
   tagIds: z.array(z.string().min(1)).max(50).optional(),
   tagNames: z.array(savedKeywordTagSchema).max(50).optional(),
   page: z.number().int().positive().default(1),
-  pageSize: z
-    .union([z.literal(50), z.literal(100), z.literal(250)])
-    .default(50),
+  pageSize: savedKeywordPageSizeSchema.default(50),
   sort: z.enum(savedKeywordSortFields).default("createdAt"),
   order: z.enum(sortDirs).default("desc"),
 });
+
+/**
+ * /p/$projectId/saved query params. `sort=createdAt` is the unsorted table:
+ * the server's insertion order.
+ */
+export const savedKeywordsSearchSchema = z.object({
+  include: searchTextParam,
+  exclude: searchTextParam,
+  minVol: optionalSearchNumberParam,
+  maxVol: optionalSearchNumberParam,
+  minCpc: optionalSearchNumberParam,
+  maxCpc: optionalSearchNumberParam,
+  minKd: optionalSearchNumberParam,
+  maxKd: optionalSearchNumberParam,
+  tags: z.array(z.string()).optional().catch(undefined),
+  sort: z.enum(savedKeywordSortFields).optional().catch(undefined),
+  order: z.enum(sortDirs).optional().catch(undefined),
+  page: optionalSearchPositiveIntParam,
+  size: z.coerce
+    .number()
+    .pipe(savedKeywordPageSizeSchema)
+    .optional()
+    .catch(undefined),
+});
+
+export type SavedKeywordsSearch = z.infer<typeof savedKeywordsSearchSchema>;
 
 export const exportSavedKeywordsSchema = getSavedKeywordsSchema.omit({
   page: true,

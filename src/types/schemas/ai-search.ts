@@ -299,13 +299,15 @@ export const promptExplorerSearchSchema = z.object({
     .optional()
     .transform((value) =>
       value === undefined ? undefined : Array.isArray(value) ? value : [value],
-    ),
+    )
+    .catch(undefined),
   web: z
     .union([z.boolean(), z.enum(["true", "false"])])
     .optional()
     .transform((value) =>
       value === undefined ? undefined : value === true || value === "true",
-    ),
-  cc: webSearchCountryCodeSchema.optional(),
+    )
+    .catch(undefined),
+  cc: webSearchCountryCodeSchema.optional().catch(undefined),
   hb: z.string().optional(),
 });

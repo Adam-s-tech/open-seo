@@ -3,6 +3,7 @@ import { z } from "zod";
 import { rankTrackingConfigs } from "@/db/schema";
 import { isSupportedLanguageCode } from "@/shared/keyword-locations";
 import { MAX_TRACKED_KEYWORD_LENGTH } from "@/shared/rank-tracking";
+import { comparePeriodSchema } from "@/types/schemas/rank-tracking-search";
 import { domainField } from "@/types/schemas/domain";
 
 // ---------------------------------------------------------------------------
@@ -127,9 +128,6 @@ export const triggerCheckSchema = z.object({
   configId: z.string().uuid(),
   keywordIds: z.array(z.string().uuid()).max(2000).optional(),
 });
-
-export const comparePeriodSchema = z.enum(["1d", "7d", "30d", "90d"]);
-export type ComparePeriod = z.infer<typeof comparePeriodSchema>;
 
 export const getLatestResultsSchema = z.object({
   projectId: z.string().uuid(),

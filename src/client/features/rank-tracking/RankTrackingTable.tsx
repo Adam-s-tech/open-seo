@@ -12,6 +12,7 @@ import {
   TableBulkExportMenu,
 } from "@/client/components/table/TableBulkActionBar";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { SortingState } from "@tanstack/react-table";
 import { removeTrackingKeywords } from "@/serverFunctions/rank-tracking";
 import type { RankTrackingRow } from "@/types/schemas/rank-tracking";
 import { useRankTrackingColumns } from "./RankTrackingColumns";
@@ -28,7 +29,8 @@ export function RankTrackingTable({
   resultsLoading,
   showDesktop,
   showMobile,
-  defaultSortId,
+  sorting,
+  onSortingChange,
   domain,
   configId,
   projectId,
@@ -42,7 +44,8 @@ export function RankTrackingTable({
   resultsLoading: boolean;
   showDesktop: boolean;
   showMobile: boolean;
-  defaultSortId: string;
+  sorting: SortingState;
+  onSortingChange: (sorting: SortingState) => void;
   domain: string;
   configId: string;
   projectId: string;
@@ -79,9 +82,13 @@ export function RankTrackingTable({
   const table = useAppTable({
     data: rows,
     columns,
-    initialState: {
-      sorting: [{ id: defaultSortId, desc: false }],
-    },
+    state: { sorting },
+    onSortingChange: (updater) =>
+      onSortingChange(
+        typeof updater === "function" ? updater(sorting) : updater,
+      ),
+    // The URL has no value for "unsorted", so a column stays sorted.
+    enableSortingRemoval: false,
     withSorting: true,
     getRowId: (row) => row.trackingKeywordId,
     enableRowSelection: true,

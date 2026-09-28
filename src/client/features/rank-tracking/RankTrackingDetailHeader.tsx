@@ -4,20 +4,11 @@ import { LOCATIONS } from "@/client/features/keywords/locations";
 import { devicesLabel, scheduleLabel } from "@/shared/rank-tracking";
 import { formatNextCheck } from "./scheduleTime";
 import { formatLocationLabel } from "@/shared/keyword-locations";
-import type {
-  ComparePeriod,
-  RankTrackingConfig,
-} from "@/types/schemas/rank-tracking";
-
-const COMPARE_PERIODS: ReadonlySet<string> = new Set([
-  "1d",
-  "7d",
-  "30d",
-  "90d",
-]);
-function isComparePeriod(v: string): v is ComparePeriod {
-  return COMPARE_PERIODS.has(v);
-}
+import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
+import {
+  comparePeriodSchema,
+  type ComparePeriod,
+} from "@/types/schemas/rank-tracking-search";
 
 export function RankTrackingDetailHeader({
   config,
@@ -90,8 +81,8 @@ export function RankTrackingDetailHeader({
           title="Comparison period"
           value={comparePeriod}
           onChange={(e) => {
-            if (isComparePeriod(e.target.value))
-              onComparePeriodChange(e.target.value);
+            const parsed = comparePeriodSchema.safeParse(e.target.value);
+            if (parsed.success) onComparePeriodChange(parsed.data);
           }}
         >
           <option value="1d">vs yesterday</option>
