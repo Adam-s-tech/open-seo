@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { TableExportMenu } from "@/client/components/table/TableBulkActionBar";
-import { TableLoadingRows } from "@/client/features/domain/components/TableLoadingRows";
+import { SkeletonTableRows } from "@/client/components/SkeletonPresets";
 
 type DomainTableExportAction = {
   label: string;
@@ -84,7 +84,7 @@ export function DomainTableTabSurface({
               : "transition-opacity"
           }
         >
-          {showTableLoading ? <TableLoadingRows /> : children}
+          {showTableLoading ? <SkeletonTableRows className="py-4" /> : children}
         </div>
       </div>
 

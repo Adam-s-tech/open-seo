@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/client/components/ui/button";
 import { saveCrawlerCredential } from "@/serverFunctions/crawlerAccess";
 import {
   isCrawlerAccessExpired,
@@ -111,13 +112,13 @@ export function CrawlerAccessForm({
         />
       </label>
 
-      <button
+      <Button
         type="submit"
-        className="btn btn-primary btn-sm"
-        disabled={!canSave || saveMutation.isPending}
+        pending={saveMutation.isPending}
+        disabled={!canSave}
       >
-        {saveMutation.isPending ? "Saving…" : "Save signature"}
-      </button>
+        Save signature
+      </Button>
     </form>
   );
 }

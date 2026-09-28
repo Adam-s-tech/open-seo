@@ -26,7 +26,7 @@ import {
   type BacklinksTab,
 } from "@/types/schemas/backlinks";
 import type { ResearchScope } from "@/shared/researchScope";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import { QueryError } from "@/client/components/QueryState";
 
 const BACKLINKS_RESULTS_TABS: Array<{

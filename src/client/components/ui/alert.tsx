@@ -3,13 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-lg border border-border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-card text-card-foreground",
+        info: "border-info/30 bg-info/10 *:[svg]:text-info",
+        success: "border-success/30 bg-success/10 *:[svg]:text-success",
+        warning:
+          "border-warning/40 bg-warning/15 *:[svg]:text-warning-foreground dark:*:[svg]:text-warning",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "border-destructive/30 bg-destructive/10 *:data-[slot=alert-title]:text-destructive *:[svg]:text-destructive",
+      },
+      /** A full-width strip with no side borders, for notices above the page content. */
+      banner: {
+        true: "rounded-none border-x-0 border-t-0 px-4 py-2.5 md:px-6",
       },
     },
     defaultVariants: {
@@ -21,13 +29,14 @@ const alertVariants = cva(
 function Alert({
   className,
   variant,
+  banner,
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div
       data-slot="alert"
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      className={cn(alertVariants({ variant, banner }), className)}
       {...props}
     />
   );

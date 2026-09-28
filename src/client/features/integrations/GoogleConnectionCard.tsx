@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Badge } from "@/client/components/ui/badge";
 import { CardShell } from "@/client/components/CardShell";
 import { PermissionHint } from "@/client/components/PermissionHint";
 import { GoogleConnectedState } from "@/client/features/integrations/GoogleConnectedState";
@@ -265,31 +266,15 @@ function ConnectionStatusPill({
   setupRequired: boolean;
 }) {
   return (
-    <span
-      className={[
-        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-        connected
-          ? "border-success/30 bg-success/10 text-success"
-          : setupRequired
-            ? "border-warning/30 bg-warning/10 text-warning"
-            : "border-base-300 bg-base-200 text-base-content/60",
-      ].join(" ")}
+    <Badge
+      variant={connected ? "success" : setupRequired ? "warning" : "outline"}
     >
-      <span
-        className={[
-          "size-1.5 rounded-full",
-          connected
-            ? "bg-success"
-            : setupRequired
-              ? "bg-warning"
-              : "bg-base-content/40",
-        ].join(" ")}
-      />
+      <span className="size-1.5 rounded-full bg-current" />
       {connected
         ? "Connected"
         : setupRequired
           ? "Setup required"
           : "Not connected"}
-    </span>
+    </Badge>
   );
 }

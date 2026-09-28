@@ -14,7 +14,7 @@ import {
   type BillingUsageEvent,
 } from "@/serverFunctions/billing";
 import { QueryState } from "@/client/components/QueryState";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 const BILLING_USAGE_FEATURE_IDS: string[] = [
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,

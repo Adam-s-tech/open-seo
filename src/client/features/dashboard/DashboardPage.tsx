@@ -15,7 +15,7 @@ import {
   getDashboardOverview,
   refreshDashboardBacklinkSnapshot,
 } from "@/serverFunctions/dashboard";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 export function DashboardPage({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();

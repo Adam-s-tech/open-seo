@@ -57,7 +57,7 @@ export function FreePlanBanner() {
 
   if (isOutOfCredits) {
     return (
-      <AppBanner variant="error">
+      <AppBanner variant="destructive">
         You&rsquo;ve used all your credits. {creditsActionLink} to continue
         using OpenSEO.
       </AppBanner>

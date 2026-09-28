@@ -22,7 +22,7 @@ import {
   formatSavedKeywordDate,
   formatSavedKeywordNumber,
 } from "./savedKeywordsUtils";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 const columnHelper = createColumnHelper<SavedKeywordRow>();
 

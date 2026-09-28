@@ -20,7 +20,7 @@ import {
   formatCtr,
 } from "@/client/features/search-performance/SearchPerformanceColumns";
 import { getGa4DashboardReport } from "@/serverFunctions/ga4";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 function formatTrendDay(date: string): string {
   // Construct in local time: Date.parse("2026-08-01") is UTC midnight, which

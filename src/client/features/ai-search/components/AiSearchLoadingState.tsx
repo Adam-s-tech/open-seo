@@ -1,4 +1,4 @@
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 export function AiSearchLoadingState() {
   return (

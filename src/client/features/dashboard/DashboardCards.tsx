@@ -1,4 +1,5 @@
 import { CardShell } from "@/client/components/CardShell";
+import { Button } from "@/client/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
@@ -23,7 +24,7 @@ import type {
   DashboardAuditSummary,
   DashboardBacklinkSummary,
 } from "@/server/features/dashboard/services/DashboardService";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 // Plain string-keyed view of the registry: issue types from the DB are not
 // statically guaranteed to be registry keys.
@@ -128,13 +129,12 @@ export function AuditHealthCard({
         <EmptyCardBody
           message="Crawl your site for broken links, missing tags and indexability problems."
           cta={
-            <Link
-              to="/p/$projectId/audit"
-              params={{ projectId }}
-              className="btn btn-primary btn-sm"
+            <Button
+              nativeButton={false}
+              render={<Link to="/p/$projectId/audit" params={{ projectId }} />}
             >
               Run an audit
-            </Link>
+            </Button>
           }
         />
       </CardShell>

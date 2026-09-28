@@ -26,7 +26,7 @@ import {
   getDomainListFilterOptions,
   type DomainListFilters,
 } from "./RankTrackingFilters";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import { useDebouncedDraft } from "@/client/hooks/useDebouncedDraft";
 import type { RankTrackingListSearch } from "@/types/schemas/rank-tracking-search";
 import { QueryError } from "@/client/components/QueryState";

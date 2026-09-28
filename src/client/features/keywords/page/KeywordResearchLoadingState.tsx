@@ -1,4 +1,4 @@
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 // Mirrors KeywordResearchResults: tabs and the table below md, the SERP panel
 // above the table from md, and side by side from xl.

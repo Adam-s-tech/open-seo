@@ -1,5 +1,5 @@
 import { ShieldAlert } from "lucide-react";
-import { Skeleton } from "@/client/components/Skeleton";
+import { Skeleton } from "@/client/components/ui/skeleton";
 
 export function BacklinksLoadingState() {
   return (

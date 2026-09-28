@@ -1,10 +1,5 @@
 import type { ReactNode } from "react";
-
-const variantClass = {
-  info: "alert-info",
-  warning: "alert-warning",
-  error: "alert-error",
-} as const;
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
 
 // The full-width notice strip above the page content in the app shell.
 export function AppBanner({
@@ -12,18 +7,16 @@ export function AppBanner({
   icon,
   children,
 }: {
-  variant: keyof typeof variantClass;
+  variant: "info" | "warning" | "destructive";
   icon?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="shrink-0 px-4 py-2.5 md:px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className={`alert text-sm ${variantClass[variant]}`}>
-          {icon}
-          <span>{children}</span>
-        </div>
-      </div>
-    </div>
+    <Alert variant={variant} banner className="shrink-0">
+      {icon}
+      <AlertDescription className="text-foreground">
+        {children}
+      </AlertDescription>
+    </Alert>
   );
 }

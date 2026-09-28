@@ -1,25 +1,29 @@
-import { Loader2 } from "lucide-react";
+import { cn } from "cn";
+import { Spinner as SpinnerIcon } from "@/client/components/ui/spinner";
 
+/** A loading indicator with an optional visible label, e.g. "Checking…". */
 export function Spinner({
   size = "md",
   label,
-  className = "",
+  className,
 }: {
   size?: "sm" | "md";
-  /** Shown beside the spinner, e.g. "Checking…". Screen readers get "Loading" without it. */
   label?: string;
   className?: string;
 }) {
   return (
     <span
-      role="status"
-      className={`inline-flex items-center gap-2 text-sm text-base-content/60 ${className}`}
+      className={cn(
+        "inline-flex items-center gap-2 text-sm text-muted-foreground",
+        className,
+      )}
     >
-      <Loader2
-        aria-hidden
-        className={`${size === "sm" ? "size-4" : "size-6"} shrink-0 animate-spin`}
+      {/* The icon is the status element, so it carries the label for screen readers. */}
+      <SpinnerIcon
+        aria-label={label ?? "Loading"}
+        className={size === "sm" ? "size-4" : "size-6"}
       />
-      {label ? <span>{label}</span> : <span className="sr-only">Loading</span>}
+      {label ? <span aria-hidden>{label}</span> : null}
     </span>
   );
 }

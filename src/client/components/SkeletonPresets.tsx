@@ -1,0 +1,62 @@
+import { cn } from "cn";
+import { Skeleton } from "@/client/components/ui/skeleton";
+
+// Loading layouts built from the shadcn Skeleton primitive.
+
+/** A row of stat cards: a small label over a large value. */
+export function SkeletonStatGrid({
+  count = 4,
+  className,
+}: {
+  count?: number;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn("grid grid-cols-2 gap-3 lg:grid-cols-4", className)}
+      aria-busy
+    >
+      {Array.from({ length: count }, (_, index) => (
+        <div
+          key={index}
+          className="space-y-2 rounded-lg border border-border bg-card p-4"
+        >
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-7 w-24" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Table body rows. The first column is twice as wide, for the row label. */
+export function SkeletonTableRows({
+  rows = 8,
+  columns = 5,
+  className,
+}: {
+  rows?: number;
+  columns?: number;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-3", className)} aria-busy>
+      {Array.from({ length: rows }, (_, row) => (
+        <div
+          key={row}
+          className="grid gap-3"
+          style={{
+            gridTemplateColumns: `repeat(${columns + 1}, minmax(0, 1fr))`,
+          }}
+        >
+          {Array.from({ length: columns }, (_cell, column) => (
+            <Skeleton
+              key={column}
+              className={cn("h-4", column === 0 && "col-span-2")}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
