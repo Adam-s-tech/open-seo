@@ -32,6 +32,7 @@
 ## Plugin versions
 
 - When a PR adds, edits, or removes an MCP tool (including its schema, description, or behavior), a shipped skill, or plugin configuration, bump the OpenSEO plugin version in the same PR. Internal-only skills, tests, and website-only changes do not require a bump.
+- A bump is routine and cheap, never a reason to hold back an MCP change. The plugin only points at the hosted MCP server, so tool changes reach users on deploy either way. When a fix applies to both the app and an MCP tool, ship it to both; the MCP should be as good as the app.
 - Keep `plugins/openseo/.codex-plugin/plugin.json`, `plugins/openseo/.claude-plugin/plugin.json`, and `plugins/openseo/.cursor-plugin/plugin.json` on the same version. Default to a patch bump unless the maintainer requests a minor or major bump.
 - Bump once per PR relative to `origin/main`, not once per edit or tool. If main advances the plugin version before merge, update the branch to a version newer than main. The app's `package.json` version follows its separate release process.
 - Run `pnpm sync-plugin-skills` after changing a shipped skill and include the updated plugin copy. Call out plugin version and instruction changes for maintainer review.
