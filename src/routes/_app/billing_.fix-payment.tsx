@@ -1,9 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
-import { useCanManageBilling } from "@/client/features/team/organizationQueries";
+import { useQuery } from "@tanstack/react-query";
+import {
+  organizationContextQueryOptions,
+  useCanManageBilling,
+} from "@/client/features/team/organizationQueries";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientError, captureClientEvent } from "@/client/lib/posthog";
 import { getBillingRouteState } from "@/client/features/billing/route-state";
@@ -37,11 +41,16 @@ function FixPaymentPage() {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkingTimedOut, setCheckingTimedOut] = useState(false);
+  const viewCaptured = useRef(false);
 
   const customerQuery = useCustomer({
     queryOptions: { enabled: Boolean(session?.user?.id) },
   });
   const canManageBilling = useCanManageBilling();
+  // The hook above reports true while the role loads (a UI choice); the
+  // telemetry waits for the real role.
+  const roleResolved =
+    useQuery(organizationContextQueryOptions()).data !== undefined;
 
   const routeState = getBillingRouteState({
     hasSession: Boolean(session?.user?.id),
@@ -79,6 +88,17 @@ function FixPaymentPage() {
     };
   }, [isChecking, refetchCustomer]);
 
+  // Funnel: viewed -> portal_opened -> returned -> payment_fixed. Each fires
+  // once per page load; `returned` is a full navigation back from Stripe.
+  useEffect(() => {
+    if (routeState !== "ready" || !roleResolved || viewCaptured.current) return;
+    viewCaptured.current = true;
+    captureClientEvent(
+      returned ? "billing:fix_payment_returned" : "billing:fix_payment_viewed",
+      { past_due: isPastDue, can_manage_billing: canManageBilling },
+    );
+  }, [routeState, roleResolved, returned, isPastDue, canManageBilling]);
+
   useEffect(() => {
     if (returned && routeState === "ready" && !isPastDue) {
       captureClientEvent("billing:payment_fixed");
@@ -88,6 +108,7 @@ function FixPaymentPage() {
   async function openPortal() {
     setError(null);
     setIsOpeningPortal(true);
+    captureClientEvent("billing:fix_payment_portal_opened");
     try {
       const returnUrl = new URL(window.location.href);
       returnUrl.searchParams.set("returned", "true");

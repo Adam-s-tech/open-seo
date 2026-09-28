@@ -8,6 +8,7 @@ import {
   updateLoopsContact,
 } from "@/server/email/loops-client";
 import { sha256Hex } from "@/server/lib/audit/ids";
+import { captureServerEvent } from "@/server/lib/posthog";
 import { getOptionalEnvValue } from "@/server/lib/runtime-env";
 import type { BillingCustomerStatusSnapshot } from "./customer-status-model";
 import type { BillingLifecycleEvent } from "./lifecycle-events";
@@ -45,11 +46,26 @@ export async function syncBillingStatusToLoops({
   };
 
   for (const contact of contacts) {
+    // Properties first: the Loops workflows filter on `billingState` before
+    // sending, so the contact must already read past_due/active when the
+    // event arrives.
+    await updateLoopsContact({
+      apiKey,
+      payload: {
+        email: contact.email,
+        userId: contact.userId,
+        userGroup: "app-user",
+        ...getContactNameParts(contact.name),
+        ...billingProperties,
+      },
+      logContext,
+    });
+
     const canManageBilling = hasOrgPermission(contact.role, {
       billing: ["manage"],
     });
     for (const event of canManageBilling ? events : []) {
-      await sendLoopsEvent({
+      const { duplicate } = await sendLoopsEvent({
         apiKey,
         idempotencyKey: `${event.name}:${await sha256Hex(
           `${snapshot.organizationId}:${contact.userId}:${previousSyncedAt}`,
@@ -62,19 +78,18 @@ export async function syncBillingStatusToLoops({
         },
         logContext,
       });
+      // Top of the fix-payment funnel, joined in PostHog with the page's
+      // viewed/portal_opened/returned/payment_fixed events. A webhook retry
+      // that Loops deduplicated sent no email, so it does not count.
+      if (event.name === "payment_failed" && !duplicate) {
+        await captureServerEvent({
+          distinctId: contact.userId,
+          event: "billing:payment_failed_email_sent",
+          organizationId: snapshot.organizationId,
+          properties: { plan_id: event.planId },
+        });
+      }
     }
-
-    await updateLoopsContact({
-      apiKey,
-      payload: {
-        email: contact.email,
-        userId: contact.userId,
-        userGroup: "app-user",
-        ...getContactNameParts(contact.name),
-        ...billingProperties,
-      },
-      logContext,
-    });
   }
 }
 

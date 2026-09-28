@@ -48,7 +48,8 @@ type LoopsEventPayload = {
 
 /** Sends a Loops event, which triggers any workflow listening for it. Loops
  *  honours the idempotency key for 24 hours and answers a replay with 409,
- *  which is a success here: the email was already queued. */
+ *  which is a success here: the email was already queued. Returns whether
+ *  this call was such a replay. */
 export async function sendLoopsEvent({
   apiKey,
   payload,
@@ -60,7 +61,7 @@ export async function sendLoopsEvent({
   idempotencyKey: string;
   logContext?: Record<string, unknown>;
 }) {
-  await loopsRequest({
+  const status = await loopsRequest({
     apiKey,
     method: "POST",
     url: LOOPS_EVENT_SEND_URL,
@@ -70,6 +71,7 @@ export async function sendLoopsEvent({
     label: "send Loops event",
     logContext: { ...logContext, eventName: payload.eventName },
   });
+  return { duplicate: status === 409 };
 }
 
 async function loopsRequest({
@@ -103,7 +105,7 @@ async function loopsRequest({
   });
 
   if (response.ok || okStatuses.includes(response.status)) {
-    return;
+    return response.status;
   }
 
   const errorPayload = await response.json().catch(() => null);
