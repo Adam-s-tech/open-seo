@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { HeaderHelpLabel } from "./HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 
 type SortableColumn = {
   getIsSorted: () => false | "asc" | "desc";
@@ -32,7 +32,7 @@ export function SortableHeader({
       aria-label={`Sort by ${label}`}
       aria-pressed={!!sorted}
     >
-      {helpText ? <HeaderHelpLabel label={label} helpText={helpText} /> : label}
+      {helpText ? <HelpLabel label={label} helpText={helpText} /> : label}
       {sorted === "asc" ? (
         <ArrowUp className="size-3 shrink-0" />
       ) : sorted === "desc" ? (

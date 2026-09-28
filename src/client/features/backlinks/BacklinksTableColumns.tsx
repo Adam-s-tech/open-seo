@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronRight } from "lucide-react";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 import { SafeExternalLink } from "@/client/components/SafeExternalLink";
 import type { BacklinksRow } from "./backlinksPageTypes";
 import type { BacklinksRowsSortField } from "@/types/schemas/backlinks";
@@ -156,9 +156,7 @@ function buildBaseColumns(
     {
       id: "source",
       enableSorting: false,
-      header: () => (
-        <HeaderHelpLabel label="Source" helpText="Page linking to you" />
-      ),
+      header: () => <HelpLabel label="Source" helpText="Page linking to you" />,
       size: 250,
       minSize: 180,
       cell: ({ row }) => (
@@ -169,7 +167,7 @@ function buildBaseColumns(
       id: "target",
       enableSorting: false,
       header: () => (
-        <HeaderHelpLabel label="Target" helpText="Destination on your site" />
+        <HelpLabel label="Target" helpText="Destination on your site" />
       ),
       size: 220,
       minSize: 150,
@@ -187,7 +185,7 @@ function buildBaseColumns(
       id: "anchor",
       enableSorting: false,
       header: () => (
-        <HeaderHelpLabel label="Anchor" helpText="Text or format of the link" />
+        <HelpLabel label="Anchor" helpText="Text or format of the link" />
       ),
       size: 150,
       minSize: 100,
@@ -204,7 +202,7 @@ function buildBaseColumns(
       id: "flags",
       enableSorting: false,
       header: () => (
-        <HeaderHelpLabel
+        <HelpLabel
           label="Flags"
           helpText="Special backlink attributes, such as lost, broken, nofollow, or multiple links from the same source."
         />
@@ -330,7 +328,7 @@ export function buildBacklinksColumns(
     enableSorting: false,
     header: () => (
       <span className="flex w-full justify-end">
-        <HeaderHelpLabel
+        <HelpLabel
           label="Ahrefs DR"
           helpText="Ahrefs Domain Rating (0-100) for the linking domain."
         />

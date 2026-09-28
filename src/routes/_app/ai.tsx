@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/client/components/ui/tabs";
 import { ArrowUpRight, ShieldAlert } from "lucide-react";
 import { getAuthMode } from "@/lib/auth-mode";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -42,7 +47,6 @@ function AiPage() {
   const origin = window.location.origin;
   const mcpUrl = `${origin}/mcp`;
   const prompt = getAgentSetupPrompt(origin);
-  const [tab, setTab] = useState<"setup" | "skills">("setup");
 
   return (
     <div className="h-full overflow-auto bg-base-100 px-4 py-12 md:px-6 md:py-16 pb-24 md:pb-12">
@@ -53,28 +57,12 @@ function AiPage() {
           already use. Set it up once, then ask it anything.
         </p>
 
-        <div role="tablist" className="tabs tabs-border mt-8 w-fit">
-          {(
-            [
-              ["setup", "Set up your agent"],
-              ["skills", "Skills"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              className={`tab ${tab === id ? "tab-active" : ""}`}
-              onClick={() => setTab(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {tab === "setup" ? (
-          <>
+        <Tabs defaultValue="setup" className="mt-8">
+          <TabsList variant="line">
+            <TabsTrigger value="setup">Set up your agent</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
+          </TabsList>
+          <TabsContent value="setup">
             <div className="mt-6 space-y-5">
               <section className="rounded-xl border border-base-300 p-5 sm:p-6">
                 <h2 className="text-base font-semibold">Set up your agent</h2>
@@ -174,33 +162,34 @@ function AiPage() {
                 onCopy={() => captureClientEvent("mcp:setup_url_copy")}
               />
             </div>
-          </>
-        ) : (
-          <section className="mt-6">
-            <p className="text-sm text-base-content/60">
-              The setup prompt installs these. Run one by name when you want a
-              full report instead of a quick answer.
-            </p>
-            <ul className="mt-5 space-y-3 text-sm sm:space-y-2">
-              {SKILLS.map(([name, blurb]) => (
-                <li
-                  key={name}
-                  className="flex flex-col gap-0.5 sm:flex-row sm:gap-3"
-                >
-                  <a
-                    href={`https://openseo.so/docs/skills/${name}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 font-mono text-[13px] text-base-content underline decoration-base-content/25 underline-offset-4 hover:decoration-base-content sm:w-48"
+          </TabsContent>
+          <TabsContent value="skills">
+            <section className="mt-6">
+              <p className="text-sm text-base-content/60">
+                The setup prompt installs these. Run one by name when you want a
+                full report instead of a quick answer.
+              </p>
+              <ul className="mt-5 space-y-3 text-sm sm:space-y-2">
+                {SKILLS.map(([name, blurb]) => (
+                  <li
+                    key={name}
+                    className="flex flex-col gap-0.5 sm:flex-row sm:gap-3"
                   >
-                    /{name}
-                  </a>
-                  <span className="text-base-content/60">{blurb}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+                    <a
+                      href={`https://openseo.so/docs/skills/${name}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 font-mono text-[13px] text-base-content underline decoration-base-content/25 underline-offset-4 hover:decoration-base-content sm:w-48"
+                    >
+                      /{name}
+                    </a>
+                    <span className="text-base-content/60">{blurb}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

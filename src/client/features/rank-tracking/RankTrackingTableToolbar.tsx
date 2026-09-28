@@ -1,6 +1,7 @@
 import { CalendarDays, Loader2, SlidersHorizontal, Table } from "lucide-react";
 import { SegmentedToggle } from "@/client/components/SegmentedToggle";
-import { ExportMenu, MoreMenu } from "./ToolbarMenus";
+import { ExportMenu } from "@/client/components/ExportMenu";
+import { MoreMenu } from "./ToolbarMenus";
 
 export function RankTrackingTableToolbar({
   showFilters,
@@ -13,8 +14,6 @@ export function RankTrackingTableToolbar({
   onViewModeChange,
   historyAvailable,
   onExport,
-  onExportToSheets,
-  onCopyKeywords,
   onCheckNow,
   onRefreshMetrics,
   metricsRefreshing,
@@ -35,9 +34,7 @@ export function RankTrackingTableToolbar({
   viewMode: "table" | "history";
   onViewModeChange: (v: "table" | "history") => void;
   historyAvailable: boolean;
-  onExport: () => void;
-  onExportToSheets: () => void;
-  onCopyKeywords: () => void;
+  onExport: (action: "sheets" | "csv" | "copy-list") => void;
   onCheckNow: () => void;
   onRefreshMetrics: () => void;
   metricsRefreshing: boolean;
@@ -110,10 +107,10 @@ export function RankTrackingTableToolbar({
       <div className="flex-1" />
 
       <ExportMenu
+        actions={["sheets", "csv", "copy-list"]}
+        copyListLabel="Copy keywords"
         onExport={onExport}
-        onExportToSheets={onExportToSheets}
-        onCopyKeywords={onCopyKeywords}
-        hasData={hasData}
+        disabled={!hasData}
       />
 
       {/* Both actions need a paid plan; free users get the page's upgrade

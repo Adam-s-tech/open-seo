@@ -1,4 +1,5 @@
 import * as React from "react";
+import { InlineConfirm } from "@/client/components/InlineConfirm";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { QueryState } from "@/client/components/QueryState";
@@ -12,7 +13,6 @@ import {
 import { CompetitorsSection } from "./CompetitorsSection";
 import { KeyPagesSection } from "./KeyPagesSection";
 import {
-  ConfirmDeleteButton,
   EmptyState,
   FormActions,
   listClass,
@@ -269,7 +269,7 @@ function CustomSections({
                     >
                       <Pencil className="size-3.5" />
                     </button>
-                    <ConfirmDeleteButton
+                    <InlineConfirm
                       label={`Delete ${custom.title ?? custom.slug}`}
                       pending={update.isPending}
                       onConfirm={() =>
@@ -374,7 +374,7 @@ function ResearchLog({
                 </div>
               </div>
               <RowActions>
-                <ConfirmDeleteButton
+                <InlineConfirm
                   label={`Delete log entry from ${entry.entryDate}`}
                   pending={update.isPending}
                   onConfirm={() =>

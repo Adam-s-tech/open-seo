@@ -1,5 +1,4 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { createPortal } from "react-dom";
 import { Area, AreaChart } from "recharts";
 import {
   ChartGrid,
@@ -19,9 +18,10 @@ import {
   MONTH_SHORT_LABELS,
 } from "../utils";
 import {
-  FloatingTooltip,
-  useFloatingTooltip,
-} from "@/client/components/FloatingTooltip";
+  Tooltip as HelpTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/client/components/ui/tooltip";
 
 export type SortField =
   | "keyword"
@@ -110,26 +110,8 @@ export function SortHeader({
   className?: string;
 }) {
   const isActive = field === current;
-  const tooltip = useFloatingTooltip<HTMLButtonElement>({
-    enabled: !!helpText,
-  });
-
-  return (
-    <button
-      ref={tooltip.triggerRef}
-      className={`inline-flex items-center gap-0.5 hover:text-primary transition-colors cursor-pointer select-none ${className ?? ""}`}
-      onClick={() => onToggle(field)}
-      onMouseEnter={tooltip.scheduleOpen}
-      onMouseLeave={tooltip.close}
-      onFocus={tooltip.scheduleOpen}
-      onBlur={tooltip.close}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") tooltip.close();
-      }}
-      aria-describedby={
-        tooltip.isOpen && helpText ? tooltip.tooltipId : undefined
-      }
-    >
+  const content = (
+    <>
       {label}
       {isActive &&
         (dir === "asc" ? (
@@ -137,14 +119,27 @@ export function SortHeader({
         ) : (
           <ChevronDown className="size-3" />
         ))}
-      {tooltip.isOpen && helpText && typeof document !== "undefined"
-        ? createPortal(
-            <FloatingTooltip id={tooltip.tooltipId} position={tooltip.position}>
-              {helpText}
-            </FloatingTooltip>,
-            document.body,
-          )
-        : null}
-    </button>
+    </>
+  );
+  const buttonClassName = `inline-flex items-center gap-0.5 hover:text-primary transition-colors cursor-pointer select-none ${className ?? ""}`;
+
+  if (!helpText) {
+    return (
+      <button className={buttonClassName} onClick={() => onToggle(field)}>
+        {content}
+      </button>
+    );
+  }
+  return (
+    <HelpTooltip>
+      <TooltipTrigger
+        delay={150}
+        className={buttonClassName}
+        onClick={() => onToggle(field)}
+      >
+        {content}
+      </TooltipTrigger>
+      <TooltipContent>{helpText}</TooltipContent>
+    </HelpTooltip>
   );
 }

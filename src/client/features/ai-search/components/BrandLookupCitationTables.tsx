@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { AppDataTable } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 import { numericNullsLast } from "@/client/components/table/nullSafeSort";
 import {
   formatCount,
@@ -28,7 +28,7 @@ function HeaderWithHelp({
 }) {
   return (
     <span className="uppercase tracking-wider">
-      <HeaderHelpLabel label={label} helpText={helpText} />
+      <HelpLabel label={label} helpText={helpText} />
     </span>
   );
 }

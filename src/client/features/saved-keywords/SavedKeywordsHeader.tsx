@@ -1,14 +1,14 @@
 import { useState } from "react";
-import {
-  ChevronDown,
-  Download,
-  FileDown,
-  Loader2,
-  RefreshCw,
-  Sheet,
-} from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 import { ConfirmDialog } from "@/client/components/ConfirmDialog";
-import { closeDropdown } from "@/client/lib/dropdown";
+import { ExportMenu } from "@/client/components/ExportMenu";
+import { Button } from "@/client/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/client/components/ui/dropdown-menu";
 
 export function SavedKeywordsHeader({
   totalCount,
@@ -39,92 +39,54 @@ export function SavedKeywordsHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="dropdown dropdown-end">
-          <button
-            type="button"
-            tabIndex={0}
-            disabled={disabled || metricsRefreshing}
-            aria-haspopup="menu"
-            className={`btn btn-ghost btn-sm gap-1.5 ${disabled || metricsRefreshing ? "btn-disabled" : ""}`}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={disabled || metricsRefreshing}
+              />
+            }
           >
             <RefreshCw
-              className={`size-4 ${metricsRefreshing ? "animate-spin" : ""}`}
+              data-icon="inline-start"
+              className={metricsRefreshing ? "animate-spin" : ""}
             />
             {metricsRefreshing ? "Updating..." : "Actions"}
-            <ChevronDown className="size-3 opacity-60" />
-          </button>
-          <ul
-            tabIndex={0}
-            role="menu"
-            className="dropdown-content menu z-10 w-64 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
-          >
-            <li>
-              <button
-                type="button"
-                onClick={() => {
-                  closeDropdown();
-                  setConfirmingRefresh(true);
-                }}
-                disabled={disabled || metricsRefreshing}
-              >
-                <RefreshCw className="size-4" />
-                <span className="flex flex-col items-start">
-                  <span>Update keyword stats</span>
-                  <span className="text-xs text-base-content/50">
-                    Volume, difficulty &amp; CPC
-                  </span>
+            <ChevronDown data-icon="inline-end" className="opacity-60" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuItem onClick={() => setConfirmingRefresh(true)}>
+              <RefreshCw />
+              <span className="flex flex-col">
+                <span>Update keyword stats</span>
+                <span className="text-xs text-muted-foreground">
+                  Volume, difficulty &amp; CPC
                 </span>
-              </button>
-            </li>
-          </ul>
-        </div>
+              </span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        <div className="dropdown dropdown-end">
-          <button
-            type="button"
-            tabIndex={0}
-            disabled={disabled}
-            aria-haspopup="menu"
-            className={`btn btn-ghost btn-sm gap-1.5 ${disabled ? "btn-disabled" : ""}`}
-          >
-            {exporting != null ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Download className="size-4" />
-            )}
-            Export
-            <ChevronDown className="size-3 opacity-60" />
-          </button>
-          <ul
-            tabIndex={0}
-            role="menu"
-            className="dropdown-content menu z-10 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
-          >
-            <li>
-              <button
-                type="button"
-                onClick={onExportSheets}
-                disabled={disabled}
-              >
-                <Sheet className="size-4" />
-                Export to Sheets
-              </button>
-            </li>
-            <li>
-              <button type="button" onClick={onExportCsv} disabled={disabled}>
-                <FileDown className="size-4" />
-                Export CSV
-              </button>
-            </li>
-          </ul>
-        </div>
+        <ExportMenu
+          actions={["sheets", "csv"]}
+          busy={exporting != null}
+          disabled={disabled}
+          onExport={(action) =>
+            action === "sheets" ? onExportSheets() : onExportCsv()
+          }
+        />
       </div>
 
       {confirmingRefresh ? (
         <ConfirmDialog
           title="Update keyword stats?"
           confirmLabel="Update stats"
-          onConfirm={onRefreshMetrics}
+          onConfirm={() => {
+            setConfirmingRefresh(false);
+            onRefreshMetrics();
+          }}
           onClose={() => setConfirmingRefresh(false)}
         >
           This fetches new volume, difficulty, and CPC for every saved keyword

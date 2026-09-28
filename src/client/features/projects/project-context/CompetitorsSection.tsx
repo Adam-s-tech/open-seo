@@ -1,8 +1,8 @@
 import * as React from "react";
+import { InlineConfirm } from "@/client/components/InlineConfirm";
 import { Pencil, Plus } from "lucide-react";
 import type { ProjectContextUpdate } from "@/types/schemas/projectContext";
 import {
-  ConfirmDeleteButton,
   EmptyState,
   FormActions,
   listClass,
@@ -132,7 +132,7 @@ export function CompetitorsSection({
                   >
                     <Pencil className="size-3.5" />
                   </button>
-                  <ConfirmDeleteButton
+                  <InlineConfirm
                     label={`Remove ${competitor.domain}`}
                     pending={update.isPending}
                     onConfirm={() =>

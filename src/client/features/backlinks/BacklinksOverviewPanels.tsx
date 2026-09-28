@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
 import { RESEARCH_SCOPE_LABELS } from "@/shared/researchScope";
-import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 import {
   BacklinksNewLostChart,
   BacklinksTrendChart,
@@ -113,10 +113,7 @@ function SummaryStatsGrid({
           {summaryStats.map((item) => (
             <div key={item.label}>
               <div className="text-xs uppercase tracking-wide text-base-content/55">
-                <HeaderHelpLabel
-                  label={item.label}
-                  helpText={item.description}
-                />
+                <HelpLabel label={item.label} helpText={item.description} />
               </div>
               <p className="text-2xl font-semibold">{item.value}</p>
             </div>

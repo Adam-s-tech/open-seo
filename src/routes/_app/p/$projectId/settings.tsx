@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { NavTab, NavTabs } from "@/client/components/NavTabs";
 import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
@@ -36,25 +37,18 @@ function ProjectSettingsLayout() {
               {project?.name ?? " "}
             </p>
           </div>
-          <div role="tablist" className="tabs tabs-border">
+          <NavTabs label="Project settings sections">
             {tabs.map((tab) => (
-              <Link
+              <NavTab
                 key={tab.to}
-                role="tab"
                 to={tab.to}
                 params={{ projectId }}
                 activeOptions={{ exact: tab.exact ?? false }}
-                className="tab"
-                activeProps={{
-                  className: "tab-active",
-                  "aria-selected": true,
-                }}
-                inactiveProps={{ "aria-selected": false }}
               >
                 {tab.label}
-              </Link>
+              </NavTab>
             ))}
-          </div>
+          </NavTabs>
         </div>
 
         <Outlet />

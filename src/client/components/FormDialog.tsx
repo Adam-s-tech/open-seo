@@ -1,7 +1,17 @@
-import { useId, type ReactNode } from "react";
-import { Modal } from "@/client/components/Modal";
+import type { ReactNode } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
 
-/** A small settings-style dialog: title, labelled rows, right-aligned actions. */
+/**
+ * A small settings-style dialog: title, labelled rows, right-aligned actions.
+ * Render it only while it is open. Escape, the close button and a backdrop
+ * click call `onClose`.
+ */
 export function FormDialog({
   title,
   onClose,
@@ -9,18 +19,24 @@ export function FormDialog({
   children,
 }: {
   title: string;
-  onClose?: () => void;
+  onClose: () => void;
   actions: ReactNode;
   children: ReactNode;
 }) {
-  const titleId = useId();
   return (
-    <Modal maxWidth="max-w-md" onClose={onClose} labelledBy={titleId}>
-      <h3 id={titleId} className="text-lg font-semibold">
-        {title}
-      </h3>
-      {children}
-      <div className="flex justify-end gap-2 pt-2">{actions}</div>
-    </Modal>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {children}
+        <DialogFooter>{actions}</DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

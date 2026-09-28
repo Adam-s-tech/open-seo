@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { PortalMenu } from "@/client/components/PortalMenu";
+import { RowActionsMenu } from "@/client/components/RowActionsMenu";
+import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import { formatRelativeTime } from "@/client/lib/relative-time";
 import type { ReportTemplate } from "@/types/schemas/report-templates";
 
@@ -51,35 +52,19 @@ export function ReportTemplatesList({
                 {formatRelativeTime(template.updatedAt)}
               </td>
               <td className="w-10 text-right">
-                <PortalMenu ariaLabel={`Actions for ${template.name}`}>
-                  {(close) => (
-                    <>
-                      <li>
-                        <button
-                          onClick={() => {
-                            close();
-                            onEdit(template);
-                          }}
-                        >
-                          <Pencil className="size-3.5" />
-                          Edit
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          className="text-error"
-                          onClick={() => {
-                            close();
-                            onDelete(template);
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                          Delete
-                        </button>
-                      </li>
-                    </>
-                  )}
-                </PortalMenu>
+                <RowActionsMenu label={`Actions for ${template.name}`}>
+                  <DropdownMenuItem onClick={() => onEdit(template)}>
+                    <Pencil />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(template)}
+                  >
+                    <Trash2 />
+                    Delete
+                  </DropdownMenuItem>
+                </RowActionsMenu>
               </td>
             </tr>
           ))}

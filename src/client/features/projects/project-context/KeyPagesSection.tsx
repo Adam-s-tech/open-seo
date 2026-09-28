@@ -1,4 +1,5 @@
 import * as React from "react";
+import { InlineConfirm } from "@/client/components/InlineConfirm";
 import { Pencil, Plus } from "lucide-react";
 import {
   KEY_PAGE_ROLES,
@@ -6,7 +7,6 @@ import {
   type ProjectContextUpdate,
 } from "@/types/schemas/projectContext";
 import {
-  ConfirmDeleteButton,
   EmptyState,
   FormActions,
   listClass,
@@ -142,7 +142,7 @@ export function KeyPagesSection({
                   >
                     <Pencil className="size-3.5" />
                   </button>
-                  <ConfirmDeleteButton
+                  <InlineConfirm
                     label={`Remove ${page.url}`}
                     pending={update.isPending}
                     onConfirm={() =>

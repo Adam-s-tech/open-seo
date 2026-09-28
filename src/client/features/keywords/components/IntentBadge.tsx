@@ -1,9 +1,9 @@
-import { createPortal } from "react-dom";
 import type { KeywordIntent } from "@/types/keywords";
 import {
-  FloatingTooltip,
-  useFloatingTooltip,
-} from "@/client/components/FloatingTooltip";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/client/components/ui/tooltip";
 
 const COLORS: Record<KeywordIntent, string> = {
   informational: "border-info/30 bg-info/15 text-info",
@@ -62,34 +62,22 @@ const DESCRIPTIONS: Record<
 };
 
 export function IntentBadge({ intent }: { intent: KeywordIntent }) {
-  const tooltip = useFloatingTooltip<HTMLSpanElement>({ delayMs: 0 });
   const details = DESCRIPTIONS[intent];
 
   return (
-    <span
-      ref={tooltip.triggerRef}
-      className={`inline-flex h-6 min-w-11 cursor-help items-center justify-center rounded-full border px-2 text-xs font-semibold leading-none ${COLORS[intent]}`}
-      tabIndex={0}
-      aria-label={`${details.label} search intent`}
-      aria-describedby={tooltip.isOpen ? tooltip.tooltipId : undefined}
-      onMouseEnter={tooltip.open}
-      onMouseLeave={tooltip.close}
-      onFocus={tooltip.open}
-      onBlur={tooltip.close}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") tooltip.close();
-      }}
-    >
-      {SHORT_LABELS[intent]}
-      {tooltip.isOpen && typeof document !== "undefined"
-        ? createPortal(
-            <FloatingTooltip id={tooltip.tooltipId} position={tooltip.position}>
-              <span className="block font-semibold">{details.label}</span>
-              <span className="mt-1 block">{details.description}</span>
-            </FloatingTooltip>,
-            document.body,
-          )
-        : null}
-    </span>
+    <Tooltip>
+      <TooltipTrigger
+        delay={0}
+        render={<span tabIndex={0} />}
+        className={`inline-flex h-6 min-w-11 cursor-help items-center justify-center rounded-full border px-2 text-xs font-semibold leading-none ${COLORS[intent]}`}
+        aria-label={`${details.label} search intent`}
+      >
+        {SHORT_LABELS[intent]}
+      </TooltipTrigger>
+      <TooltipContent className="flex-col items-start gap-1">
+        <span className="font-semibold">{details.label}</span>
+        <span>{details.description}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 }

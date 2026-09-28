@@ -3,7 +3,18 @@ import { QueryState } from "@/client/components/QueryState";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { PortalMenu } from "@/client/components/PortalMenu";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
+import { RowActionsMenu } from "@/client/components/RowActionsMenu";
+import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import { CopyButton } from "@/client/features/ai-mcp/SetupControls";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
@@ -16,6 +27,9 @@ export function ApiKeySettings() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<{ id: string; name: string } | null>(
+    null,
+  );
 
   const mcpUrl =
     typeof window === "undefined"
@@ -65,6 +79,7 @@ export function ApiKeySettings() {
     onSuccess: () => {
       captureClientEvent("mcp:api_key_revoked");
       toast.success("API key revoked");
+      setRevoking(null);
       void queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
     },
   });
@@ -147,34 +162,22 @@ export function ApiKeySettings() {
                           : "Never"}
                       </td>
                       <td>
-                        <PortalMenu
-                          ariaLabel={`Actions for ${key.name || "API key"}`}
+                        <RowActionsMenu
+                          label={`Actions for ${key.name || "API key"}`}
                         >
-                          {(close) => (
-                            <li>
-                              <button
-                                className="text-error"
-                                disabled={
-                                  revokeMutation.isPending &&
-                                  revokeMutation.variables === key.id
-                                }
-                                onClick={() => {
-                                  close();
-                                  if (
-                                    window.confirm(
-                                      `Revoke "${key.name || "Unnamed key"}"? Clients using it will stop working.`,
-                                    )
-                                  ) {
-                                    revokeMutation.mutate(key.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="size-3.5" />
-                                Revoke key
-                              </button>
-                            </li>
-                          )}
-                        </PortalMenu>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() =>
+                              setRevoking({
+                                id: key.id,
+                                name: key.name || "Unnamed key",
+                              })
+                            }
+                          >
+                            <Trash2 />
+                            Revoke key
+                          </DropdownMenuItem>
+                        </RowActionsMenu>
                       </td>
                     </tr>
                   ))}
@@ -185,91 +188,98 @@ export function ApiKeySettings() {
         }
       </QueryState>
 
-      {isCreateOpen ? (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-md">
-            {createdKey ? (
-              <>
-                <h3 className="text-lg font-bold">Copy your new API key</h3>
-                <p className="mt-2 text-sm text-base-content/60">
+      {revoking ? (
+        <ConfirmDialog
+          title={`Revoke \u201c${revoking.name}\u201d?`}
+          confirmLabel="Revoke key"
+          destructive
+          pending={revokeMutation.isPending}
+          onClose={() => setRevoking(null)}
+          onConfirm={() => revokeMutation.mutate(revoking.id)}
+        >
+          Clients using it will stop working.
+        </ConfirmDialog>
+      ) : null}
+
+      <Dialog
+        open={isCreateOpen}
+        // The key is shown once, so only Done closes the reveal step. Escape
+        // and an outside click close the name step.
+        onOpenChange={(open) => {
+          if (!open && createdKey == null) closeCreateModal();
+        }}
+      >
+        <DialogContent showCloseButton={false} className="sm:max-w-md">
+          {createdKey ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Copy your new API key</DialogTitle>
+                <DialogDescription>
                   It won't be shown again. Send it as{" "}
                   <span className="font-mono text-xs">
                     Authorization: Bearer
                   </span>{" "}
                   to <span className="font-mono text-xs">{mcpUrl}</span>.
-                </p>
-                <div className="mt-4 flex items-center gap-2">
-                  <code
-                    className="min-w-0 flex-1 overflow-x-auto rounded bg-base-200 px-2.5 py-2 font-mono text-xs"
-                    data-ph-mask
-                  >
-                    {createdKey}
-                  </code>
-                  <CopyButton
-                    value={createdKey}
-                    successMessage="API key copied"
-                    iconOnly
-                  />
-                </div>
-                <div className="modal-action">
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={closeCreateModal}
-                  >
-                    Done
-                  </button>
-                </div>
-              </>
-            ) : (
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  if (name.trim()) createMutation.mutate(name.trim());
-                }}
-              >
-                <h3 className="text-lg font-bold">Create API key</h3>
-                <label className="form-control mt-4 w-full">
-                  <span className="label-text pb-1 text-xs text-base-content/60">
-                    Name
-                  </span>
-                  <input
-                    className="input input-sm input-bordered w-full"
-                    placeholder="Claude Code on laptop"
-                    value={name}
-                    maxLength={MAX_KEY_NAME_LENGTH}
-                    onChange={(event) => setName(event.currentTarget.value)}
-                    required
-                    autoFocus
-                  />
-                </label>
-                <div className="modal-action">
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={closeCreateModal}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-sm"
-                    disabled={createMutation.isPending || !name.trim()}
-                  >
-                    {createMutation.isPending ? "Creating…" : "Create"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-          {/* No backdrop close on the reveal step: the key is shown once. */}
-          {createdKey ? (
-            <div className="modal-backdrop" />
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-2">
+                <code
+                  className="min-w-0 flex-1 overflow-x-auto rounded bg-base-200 px-2.5 py-2 font-mono text-xs"
+                  data-ph-mask
+                >
+                  {createdKey}
+                </code>
+                <CopyButton
+                  value={createdKey}
+                  successMessage="API key copied"
+                  iconOnly
+                />
+              </div>
+              <DialogFooter>
+                <Button onClick={closeCreateModal}>Done</Button>
+              </DialogFooter>
+            </>
           ) : (
-            <div className="modal-backdrop" onClick={closeCreateModal} />
+            <form
+              className="grid gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (name.trim()) createMutation.mutate(name.trim());
+              }}
+            >
+              <DialogHeader>
+                <DialogTitle>Create API key</DialogTitle>
+              </DialogHeader>
+              <label className="form-control w-full">
+                <span className="label-text pb-1 text-xs text-base-content/60">
+                  Name
+                </span>
+                <input
+                  className="input input-sm input-bordered w-full"
+                  placeholder="Claude Code on laptop"
+                  value={name}
+                  maxLength={MAX_KEY_NAME_LENGTH}
+                  onChange={(event) => setName(event.currentTarget.value)}
+                  required
+                  autoFocus
+                />
+              </label>
+              <DialogFooter>
+                <Button variant="ghost" onClick={closeCreateModal}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  pending={createMutation.isPending}
+                  disabled={!name.trim()}
+                >
+                  Create
+                </Button>
+              </DialogFooter>
+            </form>
           )}
-        </div>
-      ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

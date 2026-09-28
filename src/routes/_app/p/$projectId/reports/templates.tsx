@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronLeft, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { ConfirmDeleteModal } from "@/client/components/ConfirmDeleteModal";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
 import { QueryState } from "@/client/components/QueryState";
 import { ReportTemplateForm } from "@/client/features/reports/ReportTemplateForm";
 import { ReportTemplatesList } from "@/client/features/reports/ReportTemplatesList";
@@ -118,14 +118,16 @@ function ReportTemplatesPage() {
       ) : null}
 
       {pendingDelete ? (
-        <ConfirmDeleteModal
+        <ConfirmDialog
           title={`Delete \u201c${pendingDelete.name}\u201d?`}
-          detail="Reports already written from it are not affected."
           confirmLabel="Delete template"
-          isPending={deleteMutation.isPending}
+          destructive
+          pending={deleteMutation.isPending}
           onClose={() => setPendingDelete(null)}
           onConfirm={() => deleteMutation.mutate(pendingDelete.id)}
-        />
+        >
+          Reports already written from it are not affected.
+        </ConfirmDialog>
       ) : null}
     </div>
   );

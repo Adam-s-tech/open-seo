@@ -2,7 +2,7 @@ import { formatRelativeTime } from "@/client/lib/relative-time";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
-import { ConfirmDeleteModal } from "@/client/components/ConfirmDeleteModal";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
 import { Modal } from "@/client/components/Modal";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -78,14 +78,16 @@ export function DeleteReportModal({
   onConfirm: () => void;
 }) {
   return (
-    <ConfirmDeleteModal
+    <ConfirmDialog
       title={`Delete \u201c${title}\u201d?`}
-      detail="This cannot be undone."
       confirmLabel="Delete report"
-      isPending={isPending}
+      destructive
+      pending={isPending}
       onClose={onClose}
       onConfirm={onConfirm}
-    />
+    >
+      This cannot be undone.
+    </ConfirmDialog>
   );
 }
 

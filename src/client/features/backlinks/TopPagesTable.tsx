@@ -6,7 +6,7 @@ import {
   useAppTable,
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 import { EmptyTableState } from "./BacklinksPageStates";
 import type { TopPageRow } from "./backlinksPageTypes";
 import type { TopPagesSortField } from "@/types/schemas/backlinks";
@@ -21,7 +21,7 @@ const columns = [
     id: "page",
     enableSorting: false,
     header: () => (
-      <HeaderHelpLabel
+      <HelpLabel
         label="Page"
         helpText="Page on the target site receiving backlinks."
       />

@@ -1,7 +1,6 @@
 import { formatRelativeTime } from "@/client/lib/relative-time";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateProjectContext } from "@/serverFunctions/projectContext";
 import type { getProjectContext } from "@/serverFunctions/projectContext";
@@ -96,59 +95,6 @@ export const listClass =
 /** Row actions and footer buttons shared by the inline competitor/page forms. */
 export function RowActions({ children }: { children: ReactNode }) {
   return <div className="flex shrink-0 items-center gap-1">{children}</div>;
-}
-
-/**
- * Two-step delete: the trash icon swaps to an explicit Remove/Cancel pair, so
- * a stray click can't destroy anything and no native confirm dialog is needed.
- */
-export function ConfirmDeleteButton({
-  label,
-  pending,
-  onConfirm,
-}: {
-  label: string;
-  pending: boolean;
-  onConfirm: () => void;
-}) {
-  const [confirming, setConfirming] = useState(false);
-
-  if (confirming) {
-    return (
-      <>
-        <button
-          type="button"
-          className="btn btn-error btn-xs"
-          disabled={pending}
-          onClick={() => {
-            setConfirming(false);
-            onConfirm();
-          }}
-        >
-          Remove
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost btn-xs"
-          onClick={() => setConfirming(false)}
-        >
-          Cancel
-        </button>
-      </>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className="btn btn-ghost btn-xs text-error"
-      aria-label={label}
-      disabled={pending}
-      onClick={() => setConfirming(true)}
-    >
-      <Trash2 className="size-3.5" />
-    </button>
-  );
 }
 
 export function FormActions({

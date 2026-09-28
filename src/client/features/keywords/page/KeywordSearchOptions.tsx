@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { FormDialog } from "@/client/components/FormDialog";
+import { Button } from "@/client/components/ui/button";
 import {
   Field,
   FieldContent,
@@ -66,15 +67,7 @@ export function KeywordSearchOptions({ controller }: Props) {
               <FormDialog
                 title="Search options"
                 onClose={() => setOpen(false)}
-                actions={
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                }
+                actions={<Button onClick={() => setOpen(false)}>Done</Button>}
               >
                 <controlsForm.AppField name="resultLimit">
                   {(field) => (

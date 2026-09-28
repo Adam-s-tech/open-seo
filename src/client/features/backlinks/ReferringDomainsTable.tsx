@@ -7,7 +7,7 @@ import {
   useAppTable,
 } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
-import { HeaderHelpLabel } from "@/client/components/table/HeaderHelpLabel";
+import { HelpLabel } from "@/client/components/HelpLabel";
 import { EmptyTableState } from "./BacklinksPageStates";
 import type { ReferringDomainRow } from "./backlinksPageTypes";
 import type { ReferringDomainsSortField } from "@/types/schemas/backlinks";
@@ -138,7 +138,7 @@ function buildReferringDomainColumns(domainRatings: DomainRatings | null) {
   const drColumn = columnHelper.display({
     id: "ahrefsDr",
     header: () => (
-      <HeaderHelpLabel
+      <HelpLabel
         label="Ahrefs DR"
         helpText="Ahrefs Domain Rating (0-100) for this referring domain."
       />

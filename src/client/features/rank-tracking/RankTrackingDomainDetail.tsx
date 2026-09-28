@@ -325,9 +325,8 @@ export function RankTrackingDomainDetail({
             onSearchChange({ view: view === "history" ? view : undefined })
           }
           historyAvailable={historyAvailable}
-          onExport={() => exportFiltered("csv")}
-          onExportToSheets={() => exportFiltered("sheets")}
-          onCopyKeywords={() => {
+          onExport={(action) => {
+            if (action !== "copy-list") return exportFiltered(action);
             void navigator.clipboard.writeText(
               filtered.map((r) => r.keyword).join("\n"),
             );
