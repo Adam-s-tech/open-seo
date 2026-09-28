@@ -7,6 +7,7 @@ import {
   sendLoopsEvent,
   updateLoopsContact,
 } from "@/server/email/loops-client";
+import { sha256Hex } from "@/server/lib/audit/ids";
 import { getOptionalEnvValue } from "@/server/lib/runtime-env";
 import type { BillingCustomerStatusSnapshot } from "./customer-status-model";
 import type { BillingLifecycleEvent } from "./lifecycle-events";
@@ -18,7 +19,8 @@ import { getBillingLoopsContactProperties } from "./loops-contact-properties";
  *
  *  Each event's idempotency key is the event, organization, recipient and the
  *  previous snapshot's timestamp, which is stable across webhook retries, so a
- *  retried send lands in Loops's 24-hour dedup window. */
+ *  retried send lands in Loops's 24-hour dedup window. Loops caps the key at
+ *  100 characters and the raw parts exceed that, so they are hashed. */
 export async function syncBillingStatusToLoops({
   snapshot,
   events,
@@ -49,7 +51,9 @@ export async function syncBillingStatusToLoops({
     for (const event of canManageBilling ? events : []) {
       await sendLoopsEvent({
         apiKey,
-        idempotencyKey: `${event.name}:${snapshot.organizationId}:${contact.userId}:${previousSyncedAt}`,
+        idempotencyKey: `${event.name}:${await sha256Hex(
+          `${snapshot.organizationId}:${contact.userId}:${previousSyncedAt}`,
+        )}`,
         payload: {
           email: contact.email,
           userId: contact.userId,
