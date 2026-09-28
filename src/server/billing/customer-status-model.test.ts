@@ -16,7 +16,22 @@ describe("deriveBillingCustomerStatusSnapshot", () => {
         isPaying: true,
         paidPlanId: "yc-plan",
         paidPlanStatus: "active",
+        pastDue: false,
+        canceledAt: null,
       },
+    },
+    {
+      name: "lifecycle fields come off the paid subscription",
+      flags: paidFlags("base-plan"),
+      subscriptions: [
+        {
+          planId: "base-plan",
+          status: "active",
+          pastDue: true,
+          canceledAt: 1_790_000_000_000,
+        },
+      ],
+      expected: { pastDue: true, canceledAt: 1_790_000_000_000 },
     },
     {
       name: "no paid entitlement stays queryable but not paying",

@@ -10,10 +10,13 @@ describe("getBillingLoopsContactProperties", () => {
       getBillingLoopsContactProperties({
         paidPlanId: null,
         paidPlanStatus: null,
+        pastDue: false,
+        canceledAt: null,
       }),
     ).toEqual({
       billingPlanId: LOOPS_BILLING_PLAN_NONE,
       billingPlanStatus: LOOPS_BILLING_PLAN_NONE,
+      billingState: "none",
     });
   });
 });

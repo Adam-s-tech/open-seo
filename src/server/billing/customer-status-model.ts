@@ -1,32 +1,49 @@
+import { z } from "zod";
 import { AUTUMN_PAID_PLAN_FEATURE_ID } from "@/shared/billing";
 
-// The subset of the Autumn SDK's `Customer` we read. The SDK already validates
-// and returns camelCase, so we type against it structurally instead of
-// re-parsing; everything else is preserved verbatim in `customerJson`.
-type AutumnSubscriptionInput = {
-  planId?: string | null;
-  status?: string | null;
-};
+// The subset of the Autumn SDK's `Customer` we read, in the SDK's camelCase.
+// The same schema parses a fresh SDK object and a `customerJson` row written
+// by an earlier sync; everything else passes through into `customerJson`.
+const autumnSubscriptionSchema = z
+  .object({
+    planId: z.string().nullish(),
+    status: z.string().nullish(),
+    pastDue: z.boolean().nullish(),
+    canceledAt: z.number().nullish(),
+  })
+  .passthrough();
 
-type AutumnCustomerInput = {
-  id?: string | null;
-  subscriptions?: AutumnSubscriptionInput[];
-  flags?: Record<string, { planId?: string | null } | undefined>;
-  [key: string]: unknown;
-};
+const autumnCustomerSchema = z
+  .object({
+    id: z.string().nullish(),
+    subscriptions: z.array(autumnSubscriptionSchema).optional(),
+    flags: z
+      .record(
+        z.string(),
+        z.object({ planId: z.string().nullish() }).passthrough().optional(),
+      )
+      .optional(),
+  })
+  .passthrough();
 
 export type BillingCustomerStatusSnapshot = {
   organizationId: string;
   isPaying: boolean;
   paidPlanId: string | null;
   paidPlanStatus: string | null;
+  // Lifecycle detail read from the paid subscription. Not stored as columns:
+  // the previous snapshot is rebuilt from `customerJson`, so these stay
+  // derivable without widening the table.
+  pastDue: boolean;
+  canceledAt: number | null;
   customerJson: string;
   syncedAt: string;
 };
 
 export function deriveBillingCustomerStatusSnapshot(
-  customer: AutumnCustomerInput,
+  input: unknown,
 ): BillingCustomerStatusSnapshot {
+  const customer = autumnCustomerSchema.parse(input);
   const organizationId = customer.id;
   if (!organizationId) {
     throw new Error("Autumn customer is missing an id");
@@ -46,6 +63,8 @@ export function deriveBillingCustomerStatusSnapshot(
     isPaying: subscription?.status === "active",
     paidPlanId,
     paidPlanStatus: subscription?.status ?? null,
+    pastDue: subscription?.pastDue === true,
+    canceledAt: subscription?.canceledAt ?? null,
     // Full payload kept verbatim — query rarely-used fields via json_extract.
     customerJson: JSON.stringify(customer),
     syncedAt: new Date().toISOString(),
@@ -55,7 +74,7 @@ export function deriveBillingCustomerStatusSnapshot(
 // Prefer the active row; fall back to any row for the plan so a past-due or
 // scheduled state is still recorded.
 function selectSubscription(
-  subscriptions: AutumnSubscriptionInput[],
+  subscriptions: z.infer<typeof autumnSubscriptionSchema>[],
   planId: string,
 ) {
   const rows = subscriptions.filter((s) => s.planId === planId);
