@@ -124,6 +124,7 @@ export function TableBulkExportMenu({
 export function TableExportMenu({
   actions,
   buttonClassName = "btn btn-sm gap-1",
+  labelClassName,
   menuClassName = "dropdown-content z-10 menu p-2 shadow-lg bg-base-100 border border-base-300 rounded-box w-56",
 }: {
   actions: Array<{
@@ -133,13 +134,20 @@ export function TableExportMenu({
     disabled?: boolean;
   }>;
   buttonClassName?: string;
+  /** Lets narrow toolbars hide the text and keep the icon. */
+  labelClassName?: string;
   menuClassName?: string;
 }) {
   return (
     <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className={buttonClassName}>
+      <div
+        tabIndex={0}
+        role="button"
+        aria-label="Export"
+        className={buttonClassName}
+      >
         <Download className="size-4" />
-        Export
+        <span className={labelClassName}>Export</span>
         <ChevronDown className="size-3 opacity-60" />
       </div>
       <ul tabIndex={0} className={menuClassName}>

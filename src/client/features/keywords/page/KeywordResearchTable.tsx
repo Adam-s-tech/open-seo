@@ -36,7 +36,7 @@ type Props = {
 
 const keywordColumnHelper = createColumnHelper<KeywordResearchDisplayRow>();
 
-export function KeywordResearchDesktopTable({
+export function KeywordResearchTable({
   filteredRows,
   overviewKeyword,
   selectedRows,

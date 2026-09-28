@@ -1,11 +1,21 @@
 import { Skeleton } from "@/client/components/Skeleton";
 
+// Mirrors KeywordResearchResults: tabs and the table below md, the SERP panel
+// above the table from md, and side by side from xl.
 export function KeywordResearchLoadingState() {
   return (
-    <div className="flex-1 w-full">
-      <div className="hidden md:flex h-full gap-4">
-        <div className="flex-1 flex flex-col min-w-0 gap-2">
-          <div className="rounded-xl border border-base-300 bg-base-100 p-4">
+    <div className="flex-1 w-full flex flex-col">
+      <div className="md:hidden flex border-b border-base-300 mb-4">
+        <div className="flex-1 py-2.5">
+          <Skeleton className="h-4 w-28 mx-auto" />
+        </div>
+        <div className="flex-1 py-2.5">
+          <Skeleton className="h-4 w-24 mx-auto" />
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col xl:flex-row gap-4">
+        <div className="order-2 xl:order-1 flex flex-col min-w-0 gap-2 xl:basis-3/5">
+          <div className="hidden md:block rounded-xl border border-base-300 bg-base-100 p-4">
             <Skeleton className="h-5 w-56" />
           </div>
           <div className="flex-1 rounded-xl border border-base-300 bg-base-100 overflow-hidden">
@@ -30,7 +40,7 @@ export function KeywordResearchLoadingState() {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col min-w-0 gap-2">
+        <div className="hidden md:flex order-1 xl:order-2 flex-col min-w-0 gap-2 xl:basis-2/5">
           <div className="rounded-xl border border-base-300 bg-base-100 p-4 space-y-3">
             <Skeleton className="h-4 w-36" />
             <Skeleton className="h-56 w-full" />
@@ -45,28 +55,6 @@ export function KeywordResearchLoadingState() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      <div className="md:hidden space-y-3">
-        <div className="rounded-xl border border-base-300 bg-base-100 p-4 space-y-3">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-2/3" />
-        </div>
-        <div className="rounded-xl border border-base-300 bg-base-100 p-4 space-y-2">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div
-              key={index}
-              className="space-y-2 rounded-lg border border-base-300 p-3"
-            >
-              <Skeleton className="h-4 w-9/12" />
-              <div className="grid grid-cols-3 gap-2">
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-full" />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
