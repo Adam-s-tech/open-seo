@@ -1,34 +1,33 @@
 import { useAggregateEvents } from "autumn-js/react";
-import { useEffect, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart } from "recharts";
 import {
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
   AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
   autumnSeoDataCreditsToUsd,
 } from "@/shared/billing";
 import { QueryError } from "@/client/components/QueryState";
+import {
+  ChartGrid,
+  ChartXAxis,
+  ChartYAxis,
+} from "@/client/components/ChartAxes";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/client/components/ui/chart";
 
 const BILLING_USAGE_FEATURE_IDS: string[] = [
   AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
   AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
 ];
 
+const chartConfig = {
+  credits: { label: "Usage", color: "#7c3aed" },
+} satisfies ChartConfig;
+
 export function BillingUsageChart() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [chartWidth, setChartWidth] = useState(0);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const update = () => setChartWidth(el.clientWidth);
-    update();
-
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   const eventsQuery = useAggregateEvents({
     featureId: BILLING_USAGE_FEATURE_IDS,
     range: "30d",
@@ -58,7 +57,7 @@ export function BillingUsageChart() {
         ${totalSpend.toFixed(2)}
       </div>
 
-      <div ref={containerRef} className="w-full h-32 min-w-0">
+      <div className="w-full h-32 min-w-0">
         {eventsQuery.isLoading ? null : eventsQuery.list === undefined &&
           eventsQuery.isError ? (
           <QueryError
@@ -73,73 +72,39 @@ export function BillingUsageChart() {
               No usage recorded yet
             </span>
           </div>
-        ) : chartWidth > 0 ? (
-          <BarChart
-            width={chartWidth}
-            height={128}
-            data={chartData}
-            margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="currentColor"
-              opacity={0.06}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatShortDate}
-              tick={{ fontSize: 10, fill: "#888" }}
-              tickLine={false}
-              axisLine={false}
-              minTickGap={40}
-            />
-            <YAxis
-              tickFormatter={formatUsdAxis}
-              tick={{ fontSize: 10, fill: "#888" }}
-              tickLine={false}
-              axisLine={false}
-              width={44}
-            />
-            <Tooltip
-              content={<UsageTooltip />}
-              cursor={{ fill: "rgba(150,150,150,0.1)" }}
-            />
-            <Bar
-              dataKey="credits"
-              fill="#7c3aed"
-              radius={[2, 2, 0, 0]}
-              maxBarSize={12}
-            />
-          </BarChart>
-        ) : null}
+        ) : (
+          <ChartContainer config={chartConfig} className="h-full">
+            <BarChart
+              data={chartData}
+              margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+            >
+              <ChartGrid />
+              <ChartXAxis
+                dataKey="date"
+                tickFormatter={formatShortDate}
+                minTickGap={40}
+              />
+              <ChartYAxis tickFormatter={formatUsdAxis} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(label: unknown) =>
+                      typeof label === "number" ? formatShortDate(label) : ""
+                    }
+                    valueFormatter={(value) => `$${Number(value).toFixed(2)}`}
+                  />
+                }
+              />
+              <Bar
+                dataKey="credits"
+                fill="var(--color-credits)"
+                radius={[2, 2, 0, 0]}
+                maxBarSize={12}
+              />
+            </BarChart>
+          </ChartContainer>
+        )}
       </div>
-    </div>
-  );
-}
-
-function UsageTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-  label?: number;
-}) {
-  if (!active || !payload?.length || label == null) return null;
-
-  return (
-    <div className="rounded-md border border-base-300 bg-base-100 px-3 py-2 shadow-sm">
-      <p className="text-xs text-base-content/60">
-        {new Date(label).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })}
-      </p>
-      <p className="text-sm font-medium tabular-nums">
-        ${payload[0].value.toFixed(2)}
-      </p>
     </div>
   );
 }

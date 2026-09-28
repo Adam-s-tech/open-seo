@@ -1,16 +1,16 @@
-// Stock shadcn output. The stacked OpenSEO PR makes this file pass the
-// project's lint rules and removes this line.
-// oxlint-disable eslint/no-shadow, typescript/no-unsafe-type-assertion, typescript/no-unnecessary-type-arguments, typescript/restrict-template-expressions, typescript/no-unsafe-assignment, typescript/no-unsafe-member-access, typescript/no-unsafe-argument
 import * as React from "react";
 import { cn } from "cn";
 import * as RechartsPrimitive from "recharts";
-import type { TooltipValueType } from "recharts";
+import type { TooltipPayloadEntry, TooltipValueType } from "recharts";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const;
+const THEMES = { light: "", dark: "[data-theme=openseo-dark]" } as const;
+
+// A series with no color or theme takes the next color of the unified
+// --chart-* palette, so new charts get theme-aware colors by default.
+const PALETTE_SIZE = 5;
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const;
-type TooltipNameType = number | string;
 
 export type ChartConfig = Record<
   string,
@@ -65,7 +65,7 @@ function ChartContainer({
         data-slot="chart"
         data-chart={chartId}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+          "flex w-full min-w-0 justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-(--trend-axis-color) [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-(--trend-grid-color) [&_.recharts-curve.recharts-tooltip-cursor]:stroke-(--trend-grid-color) [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-foreground/5 [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
           className,
         )}
         {...props}
@@ -82,33 +82,30 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color,
-  );
+  const entries = Object.entries(config);
 
-  if (!colorConfig.length) {
+  if (!entries.length) {
     return null;
   }
+
+  const themeRule = (theme: keyof typeof THEMES) => `
+${THEMES[theme]} [data-chart=${id}] {
+${entries
+  .map(([key, itemConfig], index) => {
+    const color =
+      itemConfig.theme?.[theme] ??
+      itemConfig.color ??
+      `var(--chart-${(index % PALETTE_SIZE) + 1})`;
+    return `  --color-${key}: ${color};`;
+  })
+  .join("\n")}
+}
+`;
 
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
-          .join("\n"),
+        __html: `${themeRule("light")}\n${themeRule("dark")}`,
       }}
     />
   );
@@ -127,6 +124,7 @@ function ChartTooltipContent({
   labelFormatter,
   labelClassName,
   formatter,
+  valueFormatter = formatTooltipValue,
   color,
   nameKey,
   labelKey,
@@ -137,11 +135,13 @@ function ChartTooltipContent({
     indicator?: "line" | "dot" | "dashed";
     nameKey?: string;
     labelKey?: string;
+    /** Formats the value of one row and keeps its indicator and name. */
+    valueFormatter?: (
+      value: TooltipValueType,
+      item: TooltipPayloadEntry,
+    ) => React.ReactNode;
   } & Omit<
-    RechartsPrimitive.DefaultTooltipContentProps<
-      TooltipValueType,
-      TooltipNameType
-    >,
+    RechartsPrimitive.DefaultTooltipContentProps,
     "accessibilityLayer"
   >) {
   const { config } = useChart();
@@ -152,7 +152,7 @@ function ChartTooltipContent({
     }
 
     const [item] = payload;
-    const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`;
+    const key = labelKey ?? payloadKey(item, "dataKey") ?? "value";
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === "string"
@@ -162,7 +162,7 @@ function ChartTooltipContent({
     if (labelFormatter) {
       return (
         <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(typeof label === "number" ? label : value, payload)}
         </div>
       );
     }
@@ -191,7 +191,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+        "grid min-w-32 items-start gap-1.5 rounded-lg border border-(--trend-tooltip-border) bg-(--trend-tooltip-bg) px-2.5 py-1.5 text-xs text-foreground shadow-[0_8px_24px_var(--trend-tooltip-shadow)]",
         className,
       )}
     >
@@ -200,9 +200,10 @@ function ChartTooltipContent({
         {payload
           .filter((item) => item.type !== "none")
           .map((item, index) => {
-            const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`;
+            const key = nameKey ?? payloadKey(item, "name") ?? "value";
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color ?? item.payload?.fill ?? item.color;
+            const indicatorColor =
+              color ?? readString(item.payload, "fill") ?? item.color;
 
             return (
               <div
@@ -212,8 +213,8 @@ function ChartTooltipContent({
                   indicator === "dot" && "items-center",
                 )}
               >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                {formatter && item.value !== undefined && item.name ? (
+                  formatter(item.value, item.name, item, index, payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -231,18 +232,16 @@ function ChartTooltipContent({
                               "my-0.5": nestLabel && indicator === "dashed",
                             },
                           )}
-                          style={
-                            {
-                              "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as React.CSSProperties
-                          }
+                          style={{
+                            ["--color-bg" as string]: indicatorColor,
+                            ["--color-border" as string]: indicatorColor,
+                          }}
                         />
                       )
                     )}
                     <div
                       className={cn(
-                        "flex flex-1 justify-between leading-none",
+                        "flex flex-1 justify-between gap-4 leading-none",
                         nestLabel ? "items-end" : "items-center",
                       )}
                     >
@@ -253,10 +252,8 @@ function ChartTooltipContent({
                         </span>
                       </div>
                       {item.value != null && (
-                        <span className="font-mono font-medium text-foreground tabular-nums">
-                          {typeof item.value === "number"
-                            ? item.value.toLocaleString()
-                            : String(item.value)}
+                        <span className="font-medium text-foreground tabular-nums">
+                          {valueFormatter(item.value, item)}
                         </span>
                       )}
                     </div>
@@ -268,6 +265,10 @@ function ChartTooltipContent({
       </div>
     </div>
   );
+}
+
+function formatTooltipValue(value: TooltipValueType) {
+  return typeof value === "number" ? value.toLocaleString() : String(value);
 }
 
 const ChartLegend = RechartsPrimitive.Legend;
@@ -299,7 +300,7 @@ function ChartLegendContent({
       {payload
         .filter((item) => item.type !== "none")
         .map((item, index) => {
-          const key = `${nameKey ?? item.dataKey ?? "value"}`;
+          const key = nameKey ?? payloadKey(item, "dataKey") ?? "value";
           const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
           return (
@@ -327,38 +328,34 @@ function ChartLegendContent({
   );
 }
 
+/** Reads a string or number field of a Recharts payload as a config key. */
+function payloadKey(item: unknown, field: "dataKey" | "name") {
+  const value = readField(item, field);
+  return typeof value === "string" || typeof value === "number"
+    ? String(value)
+    : undefined;
+}
+
+function readField(value: unknown, field: string): unknown {
+  return typeof value === "object" && value !== null && field in value
+    ? Reflect.get(value, field)
+    : undefined;
+}
+
+function readString(value: unknown, field: string) {
+  const fieldValue = readField(value, field);
+  return typeof fieldValue === "string" ? fieldValue : undefined;
+}
+
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,
   key: string,
 ) {
-  if (typeof payload !== "object" || payload === null) {
-    return undefined;
-  }
-
-  const payloadPayload =
-    "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
-      ? payload.payload
-      : undefined;
-
-  let configLabelKey: string = key;
-
-  if (
-    key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
-  ) {
-    configLabelKey = payload[key as keyof typeof payload] as string;
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
-  ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string;
-  }
+  const configLabelKey =
+    readString(payload, key) ??
+    readString(readField(payload, "payload"), key) ??
+    key;
 
   return configLabelKey in config ? config[configLabelKey] : config[key];
 }

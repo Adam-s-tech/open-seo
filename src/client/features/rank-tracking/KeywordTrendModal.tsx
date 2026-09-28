@@ -176,14 +176,25 @@ export function KeywordTrendModal({
                 series={series}
                 serpDepth={serpDepth}
                 showBottomBand
-                renderTooltip={(label, entries) => (
-                  <ChartTooltip
-                    label={label}
-                    entries={entries}
-                    serpDepth={serpDepth}
-                    bottomBandKeys={bottomBandKeys}
-                  />
-                )}
+                valueFormatter={(value, item) => {
+                  // The payload is the chart row, typed `any` upstream.
+                  const row: unknown = item.payload;
+                  const checkedAt =
+                    typeof row === "object" &&
+                    row !== null &&
+                    "checkedAt" in row
+                      ? row.checkedAt
+                      : undefined;
+                  return typeof checkedAt === "number" &&
+                    typeof item.dataKey === "string" &&
+                    bottomBandKeys.has(`${checkedAt}:${item.dataKey}`) ? (
+                    <span className="font-normal text-muted-foreground">
+                      Not in top {serpDepth}
+                    </span>
+                  ) : (
+                    String(value)
+                  );
+                }}
               />
 
               <div className="flex items-center justify-end gap-2">
@@ -293,49 +304,6 @@ function EmptyState({ count }: { count: number }) {
       {count === 0
         ? "No history yet — run a check to start tracking position over time."
         : "Only 1 check so far — the trend chart fills in after the next check."}
-    </div>
-  );
-}
-
-function ChartTooltip({
-  label,
-  entries,
-  serpDepth,
-  bottomBandKeys,
-}: {
-  label: number;
-  entries: Array<{ dataKey?: string | number; value: number | null }>;
-  serpDepth: number;
-  bottomBandKeys: Set<string>;
-}) {
-  return (
-    <div className="rounded-md border border-base-300 bg-base-100 px-3 py-2 shadow-sm space-y-0.5">
-      <p className="text-xs text-base-content/60">
-        {new Date(label).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </p>
-      {entries.map((e) => {
-        const device =
-          e.dataKey === "desktop" || e.dataKey === "mobile"
-            ? DEVICE_STYLE[e.dataKey].label
-            : String(e.dataKey ?? "");
-        const inBottomBand = bottomBandKeys.has(`${label}:${e.dataKey}`);
-        return (
-          <p key={String(e.dataKey)} className="text-sm font-medium">
-            {device}:{" "}
-            {inBottomBand ? (
-              <span className="text-base-content/60">
-                Not in top {serpDepth}
-              </span>
-            ) : (
-              e.value
-            )}
-          </p>
-        );
-      })}
     </div>
   );
 }

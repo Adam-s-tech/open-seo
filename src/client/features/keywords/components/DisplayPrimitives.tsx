@@ -1,14 +1,17 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Area, AreaChart } from "recharts";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+  ChartGrid,
+  ChartXAxis,
+  ChartYAxis,
+} from "@/client/components/ChartAxes";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/client/components/ui/chart";
 import type { MonthlySearch } from "@/types/keywords";
 import {
   formatCompactNumber,
@@ -28,30 +31,13 @@ export type SortField =
   | "keywordDifficulty";
 export type SortDir = "asc" | "desc";
 
+const trendChartConfig = {
+  searchVolume: { label: "Search volume", color: "var(--color-primary)" },
+} satisfies ChartConfig;
+
 export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
   const last12 = lastTwelveMonths(trend);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [chartWidth, setChartWidth] = useState(0);
-
   if (last12.length === 0) return null;
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const update = () => {
-      setChartWidth(container.clientWidth);
-    };
-
-    update();
-
-    const observer = new ResizeObserver(update);
-    observer.observe(container);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const data = last12.map((m) => ({
     month: MONTH_SHORT_LABELS[m.month - 1],
@@ -59,77 +45,50 @@ export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
   }));
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-[210px] min-w-0"
+    <ChartContainer
+      config={trendChartConfig}
+      className="h-[210px]"
       aria-label="Search trend chart"
     >
-      {chartWidth > 0 ? (
-        <AreaChart
-          width={chartWidth}
-          height={210}
-          data={data}
-          margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
-          accessibilityLayer
-        >
-          <defs>
-            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="0%"
-                stopColor="var(--color-primary)"
-                stopOpacity="var(--trend-fill-start-opacity)"
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--color-primary)"
-                stopOpacity="var(--trend-fill-end-opacity)"
-              />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            stroke="var(--trend-grid-color)"
-            strokeDasharray="2 4"
-            vertical={true}
-            horizontal={true}
-          />
-          <XAxis
-            dataKey="month"
-            tick={{ fill: "var(--trend-axis-color)", fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tickFormatter={(value: number | string) =>
-              formatCompactNumber(Number(value))
-            }
-            tick={{ fill: "var(--trend-axis-color)", fontSize: 11 }}
-            width={44}
-            axisLine={false}
-            tickLine={false}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--trend-tooltip-bg)",
-              border: "1px solid var(--trend-tooltip-border)",
-              borderRadius: "10px",
-              boxShadow: "0 8px 24px var(--trend-tooltip-shadow)",
-              color: "var(--color-base-content)",
-            }}
-          />
-          <Area
-            type="monotone"
-            dataKey="searchVolume"
-            name="Search volume"
-            stroke="var(--color-primary)"
-            strokeWidth={2}
-            fill="url(#trendGrad)"
-            isAnimationActive={false}
-            dot={{ r: 3, fill: "var(--color-primary)", strokeWidth: 0 }}
-            activeDot={{ r: 5, fill: "var(--color-primary)" }}
-          />
-        </AreaChart>
-      ) : null}
-    </div>
+      <AreaChart
+        data={data}
+        margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
+        accessibilityLayer
+      >
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="0%"
+              stopColor="var(--color-searchVolume)"
+              stopOpacity="var(--trend-fill-start-opacity)"
+            />
+            <stop
+              offset="100%"
+              stopColor="var(--color-searchVolume)"
+              stopOpacity="var(--trend-fill-end-opacity)"
+            />
+          </linearGradient>
+        </defs>
+        <ChartGrid />
+        <ChartXAxis dataKey="month" minTickGap={5} />
+        <ChartYAxis
+          tickFormatter={(value: number | string) =>
+            formatCompactNumber(Number(value))
+          }
+        />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Area
+          type="monotone"
+          dataKey="searchVolume"
+          stroke="var(--color-searchVolume)"
+          strokeWidth={2}
+          fill="url(#trendGrad)"
+          isAnimationActive={false}
+          dot={{ r: 3, fill: "var(--color-searchVolume)", strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: "var(--color-searchVolume)" }}
+        />
+      </AreaChart>
+    </ChartContainer>
   );
 }
 

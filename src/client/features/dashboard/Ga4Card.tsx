@@ -1,14 +1,7 @@
 import { CardShell } from "@/client/components/CardShell";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import {
   moreDetailsClass,
   PercentDelta,
@@ -21,6 +14,16 @@ import {
 } from "@/client/features/search-performance/SearchPerformanceColumns";
 import { getGa4DashboardReport } from "@/serverFunctions/ga4";
 import { Skeleton } from "@/client/components/ui/skeleton";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/client/components/ui/chart";
+
+const sessionsChartConfig = {
+  sessions: { label: "Sessions", color: "var(--color-primary)" },
+} satisfies ChartConfig;
 
 function formatTrendDay(date: string): string {
   // Construct in local time: Date.parse("2026-08-01") is UTC midnight, which
@@ -43,28 +46,6 @@ function statDelta(current: number | null, previous: number | null) {
   return current !== null && previous !== null ? (
     <PercentDelta current={current} previous={previous} />
   ) : undefined;
-}
-
-function SessionsTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-  label?: string;
-}) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-md border border-base-300 bg-base-100 px-3 py-2 shadow-sm">
-      <p className="text-xs text-base-content/60">
-        {label ? formatTrendDay(label) : ""}
-      </p>
-      <p className="text-sm font-medium tabular-nums">
-        {formatCount(payload[0].value)} sessions
-      </p>
-    </div>
-  );
 }
 
 export function Ga4Card({
@@ -153,29 +134,33 @@ export function Ga4Card({
               )}
             />
           </div>
-          <div className="h-24">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={report.trend}
-                margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
-              >
-                <XAxis dataKey="date" hide />
-                <YAxis hide domain={[0, "auto"]} />
-                <Tooltip
-                  content={<SessionsTooltip />}
-                  cursor={{ stroke: "currentColor", strokeOpacity: 0.2 }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="sessions"
-                  stroke="var(--color-primary)"
-                  strokeWidth={2}
-                  fill="var(--color-primary)"
-                  fillOpacity={0.08}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartContainer config={sessionsChartConfig} className="h-24">
+            <AreaChart
+              data={report.trend}
+              margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+            >
+              <XAxis dataKey="date" hide />
+              <YAxis hide domain={[0, "auto"]} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(label: unknown) =>
+                      typeof label === "string" ? formatTrendDay(label) : ""
+                    }
+                    valueFormatter={(value) => formatCount(Number(value))}
+                  />
+                }
+              />
+              <Area
+                type="monotone"
+                dataKey="sessions"
+                stroke="var(--color-sessions)"
+                strokeWidth={2}
+                fill="var(--color-sessions)"
+                fillOpacity={0.08}
+              />
+            </AreaChart>
+          </ChartContainer>
         </div>
       )}
     </CardShell>

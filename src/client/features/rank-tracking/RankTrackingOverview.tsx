@@ -1,21 +1,24 @@
 import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import type { TooltipContentProps } from "recharts";
+import { Area, AreaChart } from "recharts";
 import { getRankConfigTrend } from "@/serverFunctions/rank-tracking";
 import { QueryState } from "@/client/components/QueryState";
 import {
-  formatDateTick,
+  ChartGrid,
+  ChartXAxis,
+  ChartYAxis,
+} from "@/client/components/ChartAxes";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/client/components/ui/chart";
+import {
+  formatDateLabel,
+  TIME_AXIS,
   TrendRangeToggle,
-  useChartWidth,
 } from "./RankTrackingTrendChart";
 
 const BUCKETS = [
@@ -24,6 +27,10 @@ const BUCKETS = [
   { key: "top11to20", label: "11–20", color: "#f59e0b" },
   { key: "notRanking", label: "Not in top 20", color: "#6b7280" },
 ] as const;
+
+const chartConfig: ChartConfig = Object.fromEntries(
+  BUCKETS.map((b) => [b.key, { label: b.label, color: b.color }]),
+);
 
 export function RankTrackingOverview({
   device,
@@ -56,8 +63,6 @@ export function RankTrackingOverview({
       })),
     [trend],
   );
-
-  const { containerRef, width } = useChartWidth();
 
   return (
     <div className="px-4 pt-4 pb-4">
@@ -99,116 +104,37 @@ export function RankTrackingOverview({
                   : "Only 1 check so far — the trend fills in after the next check."}
               </div>
             ) : (
-              <div
-                ref={containerRef}
-                className="w-full min-w-0"
-                style={{ height: 220 }}
-              >
-                {width > 0 ? (
-                  <AreaChart
-                    width={width}
-                    height={220}
-                    data={chartData}
-                    margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="currentColor"
-                      opacity={0.1}
-                      vertical={false}
+              <ChartContainer config={chartConfig} className="h-[220px]">
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+                >
+                  <ChartGrid />
+                  <ChartXAxis {...TIME_AXIS} />
+                  <ChartYAxis allowDecimals={false} width={28} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent labelFormatter={formatDateLabel} />
+                    }
+                  />
+                  {BUCKETS.map((b) => (
+                    <Area
+                      key={b.key}
+                      type="monotone"
+                      dataKey={b.key}
+                      stackId="positions"
+                      stroke={`var(--color-${b.key})`}
+                      fill={`var(--color-${b.key})`}
+                      fillOpacity={0.7}
+                      isAnimationActive={false}
                     />
-                    <XAxis
-                      dataKey="checkedAt"
-                      type="number"
-                      scale="time"
-                      domain={["dataMin", "dataMax"]}
-                      tickFormatter={formatDateTick}
-                      tick={{ fontSize: 10, fill: "#888" }}
-                      tickLine={false}
-                      axisLine={false}
-                      minTickGap={32}
-                    />
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fontSize: 10, fill: "#888" }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={28}
-                    />
-                    <Tooltip
-                      content={(props: TooltipContentProps) => {
-                        const { active, payload, label } = props;
-                        if (
-                          !active ||
-                          !payload?.length ||
-                          typeof label !== "number"
-                        ) {
-                          return null;
-                        }
-                        const byKey = new Map(
-                          payload.map((p) => [
-                            String(p.dataKey),
-                            typeof p.value === "number" ? p.value : 0,
-                          ]),
-                        );
-                        return (
-                          <DistributionTooltip label={label} byKey={byKey} />
-                        );
-                      }}
-                      cursor={{ stroke: "rgba(150,150,150,0.3)" }}
-                    />
-                    {BUCKETS.map((b) => (
-                      <Area
-                        key={b.key}
-                        type="monotone"
-                        dataKey={b.key}
-                        name={b.label}
-                        stackId="positions"
-                        stroke={b.color}
-                        fill={b.color}
-                        fillOpacity={0.7}
-                        isAnimationActive={false}
-                      />
-                    ))}
-                  </AreaChart>
-                ) : null}
-              </div>
+                  ))}
+                </AreaChart>
+              </ChartContainer>
             )
           }
         </QueryState>
       </div>
-    </div>
-  );
-}
-
-function DistributionTooltip({
-  label,
-  byKey,
-}: {
-  label: number;
-  byKey: Map<string, number>;
-}) {
-  return (
-    <div className="rounded-md border border-base-300 bg-base-100 px-3 py-2 shadow-sm space-y-0.5">
-      <p className="text-xs text-base-content/60">
-        {new Date(label).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </p>
-      {BUCKETS.map((b) => (
-        <p key={b.key} className="text-xs flex items-center gap-1.5">
-          <span
-            className="size-2 rounded-sm"
-            style={{ backgroundColor: b.color }}
-          />
-          <span className="text-base-content/60">{b.label}:</span>
-          <span className="font-medium tabular-nums">
-            {byKey.get(b.key) ?? 0}
-          </span>
-        </p>
-      ))}
     </div>
   );
 }
