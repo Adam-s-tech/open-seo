@@ -167,6 +167,7 @@ export function RankTrackingDomainDetail({
 
   const rows = resultsData?.rows;
   const run = resultsData?.run;
+  const trackedKeywordCount = costEstimate?.keywordCount ?? rows?.length ?? 0;
   const hasBothDevices = config.devices === "both";
   const { showDesktop, showMobile } = deviceVisibility(
     config.devices,
@@ -296,11 +297,11 @@ export function RankTrackingDomainDetail({
             toast.success("Keywords copied to clipboard");
           }}
           onCheckNow={() => {
-            const count = costEstimate?.keywordCount ?? rows?.length ?? 0;
-            if (count > 0) requestCheck(count);
+            if (trackedKeywordCount > 0) requestCheck(trackedKeywordCount);
           }}
           onRefreshMetrics={refreshMetrics}
           metricsRefreshing={metricsRefreshing}
+          trackedKeywordCount={trackedKeywordCount}
           checkBusy={isBusy}
           checkDisabled={planStatus !== "paid"}
           hasData={filtered.length > 0}

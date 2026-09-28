@@ -18,6 +18,7 @@ export function RankTrackingTableToolbar({
   onCheckNow,
   onRefreshMetrics,
   metricsRefreshing,
+  trackedKeywordCount,
   checkBusy,
   checkDisabled,
   hasData,
@@ -40,6 +41,7 @@ export function RankTrackingTableToolbar({
   onCheckNow: () => void;
   onRefreshMetrics: () => void;
   metricsRefreshing: boolean;
+  trackedKeywordCount: number;
   checkBusy: boolean;
   checkDisabled: boolean;
   hasData: boolean;
@@ -120,6 +122,7 @@ export function RankTrackingTableToolbar({
         checkDisabled={checkDisabled}
         onRefreshMetrics={onRefreshMetrics}
         metricsRefreshing={metricsRefreshing}
+        trackedKeywordCount={trackedKeywordCount}
         hasData={hasData}
       />
     </div>

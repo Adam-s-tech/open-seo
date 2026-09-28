@@ -159,6 +159,10 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
       );
       return;
     }
+    if (form.models.length === 0) {
+      setValidationError("Select at least one model");
+      return;
+    }
     setValidationError(null);
     onSubmit({
       ...form,

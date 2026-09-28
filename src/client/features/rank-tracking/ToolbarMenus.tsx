@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Sheet,
 } from "lucide-react";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
 
 function ToolbarMenu({
   label,
@@ -91,6 +92,7 @@ export function MoreMenu({
   checkDisabled,
   onRefreshMetrics,
   metricsRefreshing,
+  trackedKeywordCount,
   hasData,
 }: {
   onCheckNow: () => void;
@@ -98,34 +100,51 @@ export function MoreMenu({
   checkDisabled: boolean;
   onRefreshMetrics: () => void;
   metricsRefreshing: boolean;
+  trackedKeywordCount: number;
   hasData: boolean;
 }) {
+  const [confirmingRefresh, setConfirmingRefresh] = useState(false);
   return (
-    <ToolbarMenu
-      icon={<MoreHorizontal className="size-4" />}
-      title="More actions"
-    >
-      {!checkDisabled && (
-        <MenuItem
-          icon={<Play className="size-3.5" />}
-          label={checkBusy ? "Running..." : "Check rankings"}
-          description="Fetch current Google positions"
-          onClick={onCheckNow}
-          disabled={checkBusy}
-        />
-      )}
-      <MenuItem
-        icon={
-          <RefreshCw
-            className={`size-3.5 ${metricsRefreshing ? "animate-spin" : ""}`}
+    <>
+      <ToolbarMenu
+        icon={<MoreHorizontal className="size-4" />}
+        title="More actions"
+      >
+        {!checkDisabled && (
+          <MenuItem
+            icon={<Play className="size-3.5" />}
+            label={checkBusy ? "Running..." : "Check rankings"}
+            description="Fetch current Google positions"
+            onClick={onCheckNow}
+            disabled={checkBusy}
           />
-        }
-        label={metricsRefreshing ? "Refreshing..." : "Update keyword stats"}
-        description="Volume, difficulty & CPC — not rankings"
-        onClick={onRefreshMetrics}
-        disabled={metricsRefreshing || !hasData}
-      />
-    </ToolbarMenu>
+        )}
+        <MenuItem
+          icon={
+            <RefreshCw
+              className={`size-3.5 ${metricsRefreshing ? "animate-spin" : ""}`}
+            />
+          }
+          label={metricsRefreshing ? "Refreshing..." : "Update keyword stats"}
+          description="Volume, difficulty & CPC — not rankings"
+          onClick={() => setConfirmingRefresh(true)}
+          disabled={metricsRefreshing || !hasData}
+        />
+      </ToolbarMenu>
+      {confirmingRefresh ? (
+        <ConfirmDialog
+          title="Update keyword stats?"
+          confirmLabel="Update stats"
+          onConfirm={onRefreshMetrics}
+          onClose={() => setConfirmingRefresh(false)}
+        >
+          This fetches new volume, difficulty, and CPC for all{" "}
+          {trackedKeywordCount} tracked keyword
+          {trackedKeywordCount !== 1 ? "s" : ""}. Each keyword uses credits.
+          Rankings do not change.
+        </ConfirmDialog>
+      ) : null}
+    </>
   );
 }
 

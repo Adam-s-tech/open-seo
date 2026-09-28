@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ChevronDown,
   Download,
@@ -6,6 +7,8 @@ import {
   RefreshCw,
   Sheet,
 } from "lucide-react";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { closeDropdown } from "@/client/lib/dropdown";
 
 export function SavedKeywordsHeader({
   totalCount,
@@ -22,6 +25,7 @@ export function SavedKeywordsHeader({
   onExportSheets: () => void;
   onRefreshMetrics: () => void;
 }) {
+  const [confirmingRefresh, setConfirmingRefresh] = useState(false);
   const disabled = totalCount === 0 || exporting != null;
 
   return (
@@ -57,7 +61,10 @@ export function SavedKeywordsHeader({
             <li>
               <button
                 type="button"
-                onClick={onRefreshMetrics}
+                onClick={() => {
+                  closeDropdown();
+                  setConfirmingRefresh(true);
+                }}
                 disabled={disabled || metricsRefreshing}
               >
                 <RefreshCw className="size-4" />
@@ -112,6 +119,18 @@ export function SavedKeywordsHeader({
           </ul>
         </div>
       </div>
+
+      {confirmingRefresh ? (
+        <ConfirmDialog
+          title="Update keyword stats?"
+          confirmLabel="Update stats"
+          onConfirm={onRefreshMetrics}
+          onClose={() => setConfirmingRefresh(false)}
+        >
+          This fetches new volume, difficulty, and CPC for every saved keyword
+          in this project. Each keyword uses credits.
+        </ConfirmDialog>
+      ) : null}
     </div>
   );
 }
