@@ -242,10 +242,13 @@ body {
   overflow: hidden;
 }
 
-/* Prevent Safari mobile from zooming on input focus (requires 16px minimum) */
-input,
-textarea,
-select {
+/* Prevent Safari mobile from zooming on input focus (requires 16px minimum).
+   This rule is outside a layer, so it beats every utility. shadcn controls
+   (the ones with data-slot) are left out: they are 16px below md and 14px
+   from md up through their own utilities. */
+input:not([data-slot]),
+textarea:not([data-slot]),
+select:not([data-slot]) {
   @apply text-base;
 }
 

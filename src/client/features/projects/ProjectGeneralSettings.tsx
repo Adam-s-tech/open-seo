@@ -3,6 +3,9 @@ import { projectsQueryOptions } from "@/client/features/projects/projectQueries"
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { z } from "zod";
+import { revalidateLogic } from "@tanstack/react-form";
+import { useAppForm } from "@/client/components/form/useAppForm";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { ProjectMarketFields } from "@/client/features/projects/ProjectMarketFields";
 import {
@@ -37,23 +40,23 @@ export function ProjectGeneralSettings({ projectId }: { projectId: string }) {
   );
 }
 
+const generalSchema = z.object({
+  name: z.string().trim().min(1, "Enter a project name."),
+  domain: z.string(),
+  market: z.object({ locationCode: z.number(), languageCode: z.string() }),
+});
+
 function GeneralSection({ project }: { project: ProjectSummary }) {
   const queryClient = useQueryClient();
-  const [name, setName] = React.useState(project.name);
-  const [domain, setDomain] = React.useState(project.domain ?? "");
-  const [market, setMarket] = React.useState({
-    locationCode: project.locationCode,
-    languageCode: project.languageCode,
-  });
 
   const updateMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (values: z.infer<typeof generalSchema>) =>
       updateProject({
         data: {
           projectId: project.id,
-          name: name.trim(),
-          domain: domain.trim() || undefined,
-          ...market,
+          name: values.name.trim(),
+          domain: values.domain.trim() || undefined,
+          ...values.market,
         },
       }),
     onSuccess: async () => {
@@ -64,69 +67,80 @@ function GeneralSection({ project }: { project: ProjectSummary }) {
     },
   });
 
-  const isDirty =
-    name.trim() !== project.name ||
-    (domain.trim() || "") !== (project.domain ?? "") ||
-    market.locationCode !== project.locationCode ||
-    market.languageCode !== project.languageCode;
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (updateMutation.isPending) return;
-    if (!name.trim()) {
-      toast.error("Project name is required");
-      return;
-    }
-    updateMutation.mutate();
-  };
+  const form = useAppForm({
+    defaultValues: {
+      name: project.name,
+      domain: project.domain ?? "",
+      market: {
+        locationCode: project.locationCode,
+        languageCode: project.languageCode,
+      },
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: generalSchema },
+    onSubmit: async ({ value, formApi }) => {
+      await updateMutation.mutateAsync(value);
+      // The saved values are the new baseline, so Save disables again. An edit
+      // made while the save ran replaces the values object, and then the form
+      // keeps that edit and Save stays on.
+      if (formApi.state.values === value) formApi.reset(value);
+    },
+  });
 
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-medium text-base-content/50">General</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium">Name</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            maxLength={120}
-            className="input input-bordered w-full"
-          />
-        </label>
+      <form.AppForm>
+        <form.Form className="flex flex-col gap-4">
+          <form.AppField name="name">
+            {(field) => (
+              <field.TextField label="Name" maxLength={120} required />
+            )}
+          </form.AppField>
 
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium">
-            Domain <span className="text-base-content/50">(optional)</span>
-          </span>
-          <input
-            type="text"
-            value={domain}
-            onChange={(event) => setDomain(event.target.value)}
-            placeholder="example.com"
-            maxLength={255}
-            className="input input-bordered w-full"
-          />
-        </label>
+          <form.AppField name="domain">
+            {(field) => (
+              <field.TextField
+                label={
+                  <>
+                    Domain{" "}
+                    <span className="font-normal text-muted-foreground">
+                      (optional)
+                    </span>
+                  </>
+                }
+                placeholder="example.com"
+                maxLength={255}
+              />
+            )}
+          </form.AppField>
 
-        <div className="flex flex-col gap-1.5">
-          <ProjectMarketFields value={market} onChange={setMarket} />
-          <span className="text-xs text-base-content/50">
-            Keyword, SERP, and domain data uses this country and language unless
-            a call asks for a different one.
-          </span>
-        </div>
+          <div className="flex flex-col gap-1.5">
+            <form.Field name="market">
+              {(field) => (
+                <ProjectMarketFields
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                />
+              )}
+            </form.Field>
+            <span className="text-xs text-base-content/50">
+              Keyword, SERP, and domain data uses this country and language
+              unless a call asks for a different one.
+            </span>
+          </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={updateMutation.isPending || !isDirty}
-          >
-            Save changes
-          </button>
-        </div>
-      </form>
+          <div className="flex justify-end">
+            <form.Subscribe selector={(state) => state.isDefaultValue}>
+              {(isDefaultValue) => (
+                <form.SubmitButton disabled={isDefaultValue}>
+                  Save changes
+                </form.SubmitButton>
+              )}
+            </form.Subscribe>
+          </div>
+        </form.Form>
+      </form.AppForm>
     </section>
   );
 }

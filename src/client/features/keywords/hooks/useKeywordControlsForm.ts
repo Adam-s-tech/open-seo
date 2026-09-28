@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "@tanstack/react-form";
+import { useAppForm } from "@/client/components/form/useAppForm";
 import {
   createFormValidationErrors,
   shouldValidateFieldOnChange,
@@ -62,7 +62,7 @@ export function useKeywordControlsForm(
   input: UseKeywordControlsFormInput,
   onSubmit: (value: KeywordControlsValues) => void,
 ) {
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: {
       keyword: input.keywordInput,
       locationCode: input.locationCode,

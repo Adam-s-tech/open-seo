@@ -63,6 +63,11 @@ function ComboboxInput({
       <ComboboxPrimitive.Input
         render={<InputGroupInput disabled={disabled} />}
         {...props}
+        onKeyDown={(event) => {
+          // Enter picks the highlighted item. It never submits the form.
+          if (event.key === "Enter") event.preventDefault();
+          props.onKeyDown?.(event);
+        }}
       />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
@@ -70,6 +75,8 @@ function ComboboxInput({
             size="icon-xs"
             variant="ghost"
             render={<ComboboxTrigger />}
+            // The input opens the list, so the chevron is not a Tab stop.
+            tabIndex={-1}
             data-slot="input-group-button"
             className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
             disabled={disabled}

@@ -1,17 +1,35 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { DialogField, FormDialog } from "@/client/components/FormDialog";
+import { FormDialog } from "@/client/components/FormDialog";
 import {
-  isResultLimit,
-  normalizeKeywordMode,
-} from "@/client/features/keywords/keywordSearchParams";
-import { RESULT_LIMITS } from "@/client/features/keywords/keywordResearchTypes";
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+} from "@/client/components/ui/field";
+import { Switch } from "@/client/components/ui/switch";
+import {
+  RESULT_LIMITS,
+  type KeywordMode,
+} from "@/client/features/keywords/keywordResearchTypes";
 import { isLabsLocationCode } from "@/client/features/keywords/locations";
 import type { KeywordResearchControllerState } from "./types";
 
 type Props = {
   controller: KeywordResearchControllerState;
 };
+
+const RESULT_ITEMS = RESULT_LIMITS.map((limit) => ({
+  value: limit,
+  label: `${limit} results`,
+}));
+
+const MODE_ITEMS: { value: KeywordMode; label: string }[] = [
+  { value: "auto", label: "Auto" },
+  { value: "suggestions", label: "Phrase match" },
+  { value: "ideas", label: "Category ideas" },
+  { value: "related", label: "People also search for" },
+];
 
 const GOOGLE_ADS_ONLY_NOTE =
   "Not available for countries served from Google Ads data.";
@@ -58,51 +76,22 @@ export function KeywordSearchOptions({ controller }: Props) {
                   </button>
                 }
               >
-                <controlsForm.Field name="resultLimit">
+                <controlsForm.AppField name="resultLimit">
                   {(field) => (
-                    <DialogField label="Results">
-                      <select
-                        className="select select-bordered w-full"
-                        value={field.state.value}
-                        onChange={(event) => {
-                          const next = Number(event.target.value);
-                          field.handleChange(isResultLimit(next) ? next : 150);
-                        }}
-                      >
-                        {RESULT_LIMITS.map((limit) => (
-                          <option key={limit} value={limit}>
-                            {limit} results
-                          </option>
-                        ))}
-                      </select>
-                    </DialogField>
+                    <field.SelectField label="Results" items={RESULT_ITEMS} />
                   )}
-                </controlsForm.Field>
+                </controlsForm.AppField>
 
-                <controlsForm.Field name="mode">
+                <controlsForm.AppField name="mode">
                   {(field) => (
-                    <DialogField
+                    <field.SelectField
                       label="Keyword source"
-                      help={labs ? undefined : GOOGLE_ADS_ONLY_NOTE}
-                    >
-                      <select
-                        className="select select-bordered w-full"
-                        value={field.state.value}
-                        disabled={!labs}
-                        onChange={(event) =>
-                          field.handleChange(
-                            normalizeKeywordMode(event.target.value),
-                          )
-                        }
-                      >
-                        <option value="auto">Auto</option>
-                        <option value="suggestions">Phrase match</option>
-                        <option value="ideas">Category ideas</option>
-                        <option value="related">People also search for</option>
-                      </select>
-                    </DialogField>
+                      description={labs ? undefined : GOOGLE_ADS_ONLY_NOTE}
+                      items={MODE_ITEMS}
+                      disabled={!labs}
+                    />
                   )}
-                </controlsForm.Field>
+                </controlsForm.AppField>
 
                 <controlsForm.Field name="clickstream">
                   {(field) => (
@@ -152,28 +141,23 @@ function ToggleRow({
   disabled: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const id = useId();
+
   return (
-    <label
-      className={`flex items-start justify-between gap-4 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-    >
-      <span className="flex flex-col gap-0.5">
-        <span
-          className={`text-sm font-medium ${disabled ? "text-base-content/40" : ""}`}
-        >
-          {label}
-        </span>
+    <Field orientation="horizontal" data-disabled={disabled}>
+      <FieldContent>
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
         {help ? (
-          <span className="text-xs text-base-content/60">{help}</span>
+          <FieldDescription id={`${id}-description`}>{help}</FieldDescription>
         ) : null}
-      </span>
-      <input
-        type="checkbox"
-        role="switch"
-        className="toggle toggle-sm toggle-primary mt-0.5 shrink-0"
+      </FieldContent>
+      <Switch
+        id={id}
+        aria-describedby={help ? `${id}-description` : undefined}
         checked={checked}
         disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
+        onCheckedChange={onChange}
       />
-    </label>
+    </Field>
   );
 }

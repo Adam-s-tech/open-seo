@@ -24,23 +24,3 @@ export function FormDialog({
     </Modal>
   );
 }
-
-export function DialogField({
-  label,
-  help,
-  children,
-}: {
-  label: string;
-  help?: string;
-  children: ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium">{label}</span>
-      {children}
-      {help ? (
-        <span className="text-xs text-base-content/60">{help}</span>
-      ) : null}
-    </label>
-  );
-}
