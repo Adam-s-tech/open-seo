@@ -76,19 +76,29 @@ function OnboardingFlow({
   const goToStep = (next: number) =>
     void navigate({ to: "/onboarding", search: { step: clampStep(next) } });
 
-  const handleNext = () => {
+  // Wait for the save before moving on, so a failure toast shows on the step
+  // the user can retry instead of on the next one.
+  const handleNext = async () => {
+    try {
+      await saveMutation.mutateAsync({});
+    } catch {
+      return;
+    }
     if (step === 0) {
       captureClientEvent("onboarding:interests_selected", {
         interests: answers.selectedInterests,
         interest_other: answers.interestOther.trim() || undefined,
       });
     }
-    saveMutation.mutate({});
     goToStep(step + 1);
   };
 
-  const handleSkip = () => {
-    saveMutation.mutate({});
+  const handleSkip = async () => {
+    try {
+      await saveMutation.mutateAsync({});
+    } catch {
+      return;
+    }
     captureClientEvent("onboarding:step_skipped", { step });
     goToStep(step + 1);
   };

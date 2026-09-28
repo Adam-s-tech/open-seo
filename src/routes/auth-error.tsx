@@ -5,7 +5,6 @@ import { googleAuthErrorCopy } from "@/client/features/integrations/googleAuthEr
 
 const authErrorSearchSchema = z.object({
   error: z.string().optional(),
-  error_description: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth-error")({

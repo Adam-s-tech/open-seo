@@ -39,6 +39,16 @@ describe("getSubscribeRouteState", () => {
     );
   });
 
+  it("keeps finalizing after a failed poll", () => {
+    expect(
+      getSubscribeRouteState({
+        ...base,
+        checkoutCompleted: true,
+        isCustomerError: true,
+      }),
+    ).toBe("finalizing");
+  });
+
   it("lets the user through once the finalizing window runs out", () => {
     expect(
       getSubscribeRouteState({

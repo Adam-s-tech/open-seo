@@ -39,7 +39,9 @@ export function getSubscribeRouteState(args: {
     return "redirectToApp" as const;
   }
 
-  if (args.isCustomerError) {
+  // A failed poll while finalizing keeps polling: the error screen would stop
+  // the poll and park a just-paid user on "Billing unavailable".
+  if (args.isCustomerError && !args.checkoutCompleted) {
     return "error" as const;
   }
 

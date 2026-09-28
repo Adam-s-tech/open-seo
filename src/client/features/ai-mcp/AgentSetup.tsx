@@ -43,7 +43,7 @@ export function AgentSetup({
           className="btn btn-ghost btn-sm gap-2"
           onClick={onComplete}
         >
-          Skip for now <ArrowRight className="size-4" />
+          Finish <ArrowRight className="size-4" />
         </button>
       </div>
     </fieldset>

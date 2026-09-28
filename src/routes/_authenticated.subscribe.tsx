@@ -98,8 +98,8 @@ function SubscribePage() {
   }, [refetchCustomer, isFinalizing]);
 
   // Armed once on landing with checkout=success (not on the finalizing state,
-  // which a transient poll error can leave and re-enter) so the deadline is a
-  // hard bound from arrival.
+  // which a refetch with no cached data can leave for "loading" and re-enter)
+  // so the deadline is a hard bound from arrival.
   useEffect(() => {
     if (!checkoutCompleted || finalizingTimedOut) return;
     const timeout = setTimeout(

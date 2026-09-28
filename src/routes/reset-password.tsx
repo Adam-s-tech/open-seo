@@ -123,7 +123,10 @@ function ResetPasswordPage() {
         if (result.error) {
           formApi.setErrorMap({
             onSubmit: {
-              form: "This reset link is no longer valid. Request a new one and try again.",
+              form:
+                result.error.code === "INVALID_TOKEN" || !result.error.message
+                  ? "This reset link is no longer valid. Request a new one and try again."
+                  : result.error.message,
               fields: {},
             },
           });

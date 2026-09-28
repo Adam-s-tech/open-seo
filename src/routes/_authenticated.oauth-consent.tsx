@@ -23,7 +23,9 @@ const SCOPES = [
 
 function OAuthConsentPage() {
   const { data: session } = useSession();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    "authorize" | "cancel" | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,39 +34,39 @@ function OAuthConsentPage() {
 
   async function respond(accept: boolean) {
     setError(null);
-    setIsSubmitting(true);
+    setPendingAction(accept ? "authorize" : "cancel");
     if (!accept) {
       captureClientEvent("mcp:consent_denied");
     }
 
-    const response = await fetch("/api/oauth/consent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        accept,
-        query: window.location.search,
-      }),
-    });
-    const data: {
-      redirectTo?: string;
-      error?: string;
-    } = await response.json();
+    try {
+      const response = await fetch("/api/oauth/consent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accept,
+          query: window.location.search,
+        }),
+      });
+      const data: {
+        redirectTo?: string;
+        error?: string;
+      } = await response.json();
 
-    if (!response.ok) {
-      setError(data.error ?? "Unable to complete authorization.");
-      setIsSubmitting(false);
-      return;
+      if (!response.ok) {
+        setError(data.error ?? "Unable to complete authorization.");
+      } else if (data.redirectTo) {
+        window.location.assign(data.redirectTo);
+        return;
+      } else {
+        setError("Authorization response did not include a redirect URL.");
+      }
+    } catch {
+      setError("We couldn't reach OpenSEO. Please try again.");
     }
-
-    if (data.redirectTo) {
-      window.location.assign(data.redirectTo);
-      return;
-    }
-
-    setError("Authorization response did not include a redirect URL.");
-    setIsSubmitting(false);
+    setPendingAction(null);
   }
 
   return (
@@ -121,18 +123,18 @@ function OAuthConsentPage() {
         <button
           type="button"
           className="btn btn-ghost flex-1"
-          disabled={isSubmitting}
+          disabled={pendingAction !== null}
           onClick={() => void respond(false)}
         >
-          Cancel
+          {pendingAction === "cancel" ? "Canceling..." : "Cancel"}
         </button>
         <button
           type="button"
           className="btn btn-primary flex-1"
-          disabled={isSubmitting}
+          disabled={pendingAction !== null}
           onClick={() => void respond(true)}
         >
-          {isSubmitting ? "Authorizing..." : "Authorize"}
+          {pendingAction === "authorize" ? "Authorizing..." : "Authorize"}
         </button>
       </div>
 

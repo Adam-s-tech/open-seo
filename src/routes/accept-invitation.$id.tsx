@@ -72,7 +72,9 @@ function InvitationCard({
   invitationId: string;
   userEmail: string;
 }) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    "accept" | "decline" | null
+  >(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [declined, setDeclined] = useState(false);
 
@@ -92,7 +94,7 @@ function InvitationCard({
 
   async function handleAccept() {
     setActionError(null);
-    setIsSubmitting(true);
+    setPendingAction("accept");
     try {
       const accepted = await authClient.organization.acceptInvitation({
         invitationId,
@@ -101,7 +103,7 @@ function InvitationCard({
         setActionError(
           accepted.error.message || "We couldn't accept the invitation.",
         );
-        setIsSubmitting(false);
+        setPendingAction(null);
         return;
       }
 
@@ -117,13 +119,13 @@ function InvitationCard({
       window.location.assign("/");
     } catch {
       setActionError("We couldn't accept the invitation. Please try again.");
-      setIsSubmitting(false);
+      setPendingAction(null);
     }
   }
 
   async function handleDecline() {
     setActionError(null);
-    setIsSubmitting(true);
+    setPendingAction("decline");
     try {
       const result = await authClient.organization.rejectInvitation({
         invitationId,
@@ -132,14 +134,14 @@ function InvitationCard({
         setActionError(
           result.error.message || "We couldn't decline the invitation.",
         );
-        setIsSubmitting(false);
+        setPendingAction(null);
         return;
       }
       captureClientEvent("team:invitation_decline");
       setDeclined(true);
     } catch {
       setActionError("We couldn't decline the invitation. Please try again.");
-      setIsSubmitting(false);
+      setPendingAction(null);
     }
   }
 
@@ -222,18 +224,18 @@ function InvitationCard({
         <button
           type="button"
           className="btn btn-soft w-full"
-          disabled={isSubmitting}
+          disabled={pendingAction !== null}
           onClick={() => void handleAccept()}
         >
-          {isSubmitting ? "Joining..." : "Accept invitation"}
+          {pendingAction === "accept" ? "Joining..." : "Accept invitation"}
         </button>
         <button
           type="button"
           className="btn btn-ghost w-full"
-          disabled={isSubmitting}
+          disabled={pendingAction !== null}
           onClick={() => void handleDecline()}
         >
-          Decline
+          {pendingAction === "decline" ? "Declining..." : "Decline"}
         </button>
       </div>
     </AuthPageCard>

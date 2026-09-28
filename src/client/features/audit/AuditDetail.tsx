@@ -81,10 +81,12 @@ export function AuditDetail({
     : 0;
   const failedWithResults = isFailed && partialPageCount > 0;
   // Wait for the results fetch before choosing between the "partial results"
-  // banner and the zero-page support CTA, so the CTA doesn't flash first.
-  const showSupportCta =
-    (isFailed && resultsQuery.isSuccess && !failedWithResults) ||
-    (isComplete && status.pagesCrawled <= 1);
+  // banner and the zero-page banner, so the zero-page banner doesn't flash.
+  const failedWithoutResults =
+    isFailed && resultsQuery.isSuccess && !failedWithResults;
+  // A completed crawl that reached one page or none was blocked by the site.
+  // A failed audit stopped on our side, so it gets the error code instead.
+  const showBlockedCta = isComplete && status.pagesCrawled <= 1;
 
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
@@ -112,10 +114,34 @@ export function AuditDetail({
           />
         )}
 
-        {showSupportCta && (
-          <div
-            className={isFailed ? "alert alert-error" : "alert alert-warning"}
-          >
+        {failedWithoutResults && (
+          <div className="alert alert-error">
+            <AlertCircle className="size-5" />
+            <div className="space-y-1">
+              <p className="font-medium">
+                This audit stopped before it crawled any pages.
+              </p>
+              <p>
+                Run a new audit to try again, or email{" "}
+                <a
+                  className="link link-primary"
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                >
+                  {SUPPORT_EMAIL}
+                </a>{" "}
+                if this keeps happening.
+              </p>
+              {status.errorCode ? (
+                <p className="font-mono text-xs opacity-70">
+                  Code: {status.errorCode}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        )}
+
+        {showBlockedCta && (
+          <div className="alert alert-warning">
             <AlertCircle className="size-5" />
             <div className="space-y-1">
               <p className="font-medium">
