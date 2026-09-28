@@ -43,7 +43,7 @@ beforeEach(() => {
     INSERT INTO member VALUES ('member-a', 'org-a');
   `);
   state.database.exec(
-    readFileSync("drizzle/0046_plain_the_watchers.sql", "utf8"),
+    readFileSync("drizzle/sqlite/0046_plain_the_watchers.sql", "utf8"),
   );
 });
 

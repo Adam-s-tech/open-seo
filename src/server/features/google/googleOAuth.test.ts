@@ -60,14 +60,14 @@ beforeAll(async () => {
   );
   await client.executeMultiple(
     migrationStatements(
-      "drizzle/0003_light_sage.sql",
+      "drizzle/sqlite/0003_light_sage.sql",
       (sql) =>
         sql.includes("CREATE TABLE `account`") ||
         sql.includes("CREATE TABLE `verification`"),
     ),
   );
   await client.executeMultiple(
-    migrationStatements("drizzle/0050_famous_crystal.sql", (sql) =>
+    migrationStatements("drizzle/sqlite/0050_famous_crystal.sql", (sql) =>
       sql.includes("CREATE UNIQUE INDEX"),
     ),
   );

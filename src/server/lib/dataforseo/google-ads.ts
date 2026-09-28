@@ -8,7 +8,7 @@ import {
 } from "@/server/lib/dataforseo/envelope";
 
 // Google Ads keyword data for countries DataForSEO Labs doesn't cover (see
-// specs/0004-keyword-data-source-routing.md). Flat-priced per request; items
+// docs/maintainers/specs/0004-keyword-data-source-routing.md). Flat-priced per request; items
 // carry volume / CPC / competition but no keyword difficulty or intent.
 export interface AdsKeywordItem {
   keyword?: string | null;

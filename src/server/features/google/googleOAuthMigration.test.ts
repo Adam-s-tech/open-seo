@@ -47,7 +47,7 @@ it("keeps one refreshable grant per user and Google identity without changing pr
     `);
 
     const migration = readFileSync(
-      "drizzle/0050_famous_crystal.sql",
+      "drizzle/sqlite/0050_famous_crystal.sql",
       "utf8",
     ).replaceAll("--> statement-breakpoint", "");
     await client.executeMultiple(migration);

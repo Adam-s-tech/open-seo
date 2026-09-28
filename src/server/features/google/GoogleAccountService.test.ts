@@ -43,7 +43,7 @@ beforeAll(async () => {
     INSERT INTO projects (id, archived) VALUES ('p1',0), ('p2',1), ('p3',0), ('p4',0);
   `);
   const authMigration = readFileSync(
-    "drizzle/0003_light_sage.sql",
+    "drizzle/sqlite/0003_light_sage.sql",
     "utf8",
   ).split("--> statement-breakpoint");
   await client.executeMultiple(
@@ -56,8 +56,8 @@ beforeAll(async () => {
       .join("\n"),
   );
   for (const file of [
-    "drizzle/0019_true_absorbing_man.sql",
-    "drizzle/0039_ga4_connections.sql",
+    "drizzle/sqlite/0019_true_absorbing_man.sql",
+    "drizzle/sqlite/0039_ga4_connections.sql",
   ]) {
     await client.executeMultiple(
       readFileSync(file, "utf8")

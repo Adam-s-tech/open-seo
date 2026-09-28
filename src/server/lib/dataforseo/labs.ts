@@ -164,7 +164,7 @@ export async function fetchRelatedKeywords(input: {
       depth: input.depth ?? 3,
       ignore_synonyms: input.ignoreSynonyms ?? false,
       // Clickstream-refined volumes DOUBLE the request cost, so they are
-      // opt-in — see specs/0004-keyword-data-source-routing.md.
+      // opt-in — see docs/maintainers/specs/0004-keyword-data-source-routing.md.
       include_clickstream_data: input.includeClickstreamData ?? false,
       include_serp_info: false,
     },

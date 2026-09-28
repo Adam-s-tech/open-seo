@@ -15,8 +15,8 @@ with a per-test verdict when the maintainer asks to prune the whole suite; see
 [Campaign mode](#campaign-mode). Optimize for confidence, not deletion count.
 Land one coherent batch per PR; continue broad audits as separate follow-ups.
 
-The repository's own rules live in the "Testing" section of `CLAUDE.md`. This
-skill is the procedure for applying them; when the two disagree, `CLAUDE.md`
+The repository's own rules live in the "Testing" section of `AGENTS.md`. This
+skill is the procedure for applying them; when the two disagree, `AGENTS.md`
 wins and this file needs an update.
 
 ## Authoring gate
@@ -52,7 +52,7 @@ replay it at every layer it crosses.
 The shared checklist for both modes. The authoring gate rejects a new test that
 matches one; audits hunt for existing tests that do.
 
-Repo-specific (each is a `CLAUDE.md` rule):
+Repo-specific (each is a `AGENTS.md` rule):
 
 - per-test `await import()` or `vi.resetModules()` without a comment explaining
   which module-level state must reset;
@@ -127,7 +127,7 @@ file:
    per file: test name, DELETE / MERGE / KEEP, one-line evidence naming the
    code change that would fail it or the test that already owns it. The
    report also lists test-only production seams (with callers checked in
-   `src/`, `scripts/`, `badseo/`, `web/`), test support that becomes unused,
+   `src/`, `scripts/`, `tests/badseo/`, `web/`), test support that becomes unused,
    whole files to delete, and a "risky calls" section. Reviewers do not edit.
 2. **Apply, per slice.** One applier per slice re-verifies each DELETE and
    MERGE against the source before acting, keeps anything whose evidence does
@@ -177,7 +177,7 @@ ready for deletion:
 - exact test name and location;
 - what failure it can actually detect;
 - non-test callers of the covered production or support seam, including
-  `scripts/`, `badseo/`, and `web/` (a profiling script is still a caller);
+  `scripts/`, `tests/badseo/`, and `web/` (a profiling script is still a caller);
 - stronger remaining owner-boundary proof, or why no proof is needed;
 - relevant history and the reason the test or seam exists;
 - production or test-support deletion unlocked;
