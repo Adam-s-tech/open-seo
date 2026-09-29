@@ -3,6 +3,14 @@ import { Check, Database, KeyRound, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { captureClientEvent } from "@/client/lib/posthog";
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
+import { Button } from "@/client/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/client/components/ui/card";
 
 export const Route = createFileRoute("/_authenticated/oauth-consent")({
   component: OAuthConsentPage,
@@ -70,77 +78,83 @@ function OAuthConsentPage() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-base-300 bg-base-100 p-8 shadow-sm">
-      <div className="flex flex-col items-center text-center">
+    <Card className="w-full max-w-md">
+      <CardHeader className="flex flex-col items-center text-center">
         <img
           src="/transparent-logo.png"
           alt="OpenSEO"
           className="size-10 rounded-lg"
         />
-        <h1 className="mt-5 text-xl font-semibold">Authorize MCP access</h1>
-        <p className="mt-2 text-sm text-base-content/70">
+        <CardTitle className="mt-5 text-xl">
+          <h1>Authorize MCP access</h1>
+        </CardTitle>
+        <p className="mt-2 text-sm text-muted-foreground">
           An MCP client is requesting access to your OpenSEO workspace.
         </p>
-      </div>
+      </CardHeader>
+      <CardContent>
+        {/* _authenticated only renders this page with a signed-in user. */}
+        <div className="mt-6 flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm">
+          <div className="flex size-7 items-center justify-center rounded-full bg-muted">
+            <User className="size-4" />
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-muted-foreground">Signed in as</div>
+            <div className="font-medium">{session?.user.email}</div>
+          </div>
+        </div>
 
-      {/* _authenticated only renders this page with a signed-in user. */}
-      <div className="mt-6 flex items-center gap-3 rounded-lg border border-base-300 bg-base-200/50 px-3 py-2 text-sm">
-        <div className="flex size-7 items-center justify-center rounded-full bg-base-300">
-          <User className="size-4" />
-        </div>
-        <div className="flex-1">
-          <div className="text-xs text-base-content/60">Signed in as</div>
-          <div className="font-medium">{session?.user.email}</div>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <div className="text-xs font-medium uppercase tracking-wide text-base-content/60">
-          This will allow it to
-        </div>
-        <ul className="mt-3 space-y-3">
-          {SCOPES.map((scope) => (
-            <li key={scope.label} className="flex gap-3">
-              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-              <div>
-                <div className="text-sm font-medium">{scope.label}</div>
-                <div className="text-xs text-base-content/60">
-                  {scope.description}
+        <div className="mt-6">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            This will allow it to
+          </div>
+          <ul className="mt-3 space-y-3">
+            {SCOPES.map((scope) => (
+              <li key={scope.label} className="flex gap-3">
+                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                <div>
+                  <div className="text-sm font-medium">{scope.label}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {scope.description}
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {error ? (
-        <div className="mt-6 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
-          {error}
+              </li>
+            ))}
+          </ul>
         </div>
-      ) : null}
 
-      <div className="mt-8 flex gap-2">
-        <button
-          type="button"
-          className="btn btn-ghost flex-1"
-          disabled={pendingAction !== null}
-          onClick={() => void respond(false)}
-        >
-          {pendingAction === "cancel" ? "Canceling..." : "Cancel"}
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary flex-1"
-          disabled={pendingAction !== null}
-          onClick={() => void respond(true)}
-        >
-          {pendingAction === "authorize" ? "Authorizing..." : "Authorize"}
-        </button>
-      </div>
+        {error ? (
+          <Alert variant="destructive" className="mt-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
 
-      <p className="mt-6 text-center text-xs text-base-content/50">
-        You can revoke access at any time in Settings.
-      </p>
-    </div>
+        <div className="mt-8 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1"
+            pending={pendingAction === "cancel"}
+            disabled={pendingAction !== null}
+            onClick={() => void respond(false)}
+          >
+            {pendingAction === "cancel" ? "Canceling..." : "Cancel"}
+          </Button>
+          <Button
+            type="button"
+            className="flex-1"
+            pending={pendingAction === "authorize"}
+            disabled={pendingAction !== null}
+            onClick={() => void respond(true)}
+          >
+            {pendingAction === "authorize" ? "Authorizing..." : "Authorize"}
+          </Button>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          You can revoke access at any time in Settings.
+        </p>
+      </CardContent>
+    </Card>
   );
 }

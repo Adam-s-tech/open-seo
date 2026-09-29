@@ -1,4 +1,13 @@
 import { z } from "zod";
+import { Button } from "@/client/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/client/components/ui/card";
 import {
   getCurrentAuthRedirect,
   getOAuthSignedQuery,
@@ -41,24 +50,26 @@ export function AuthMethodChooser({
 }) {
   return (
     <div className="space-y-3">
-      <button
+      <Button
         type="button"
-        className="btn w-full border border-black/10 bg-white text-neutral-900 hover:border-black/20 hover:bg-neutral-50 disabled:bg-white disabled:text-neutral-500 disabled:opacity-70"
+        variant="outline"
+        className="w-full !bg-white !text-neutral-900 hover:!bg-neutral-50"
         onClick={onContinueWithGoogle}
         disabled={disabled || isBusy}
       >
         <GoogleLogo />
         {isBusy ? "Opening Google..." : googleLabel}
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
-        className="btn w-full"
+        variant="secondary"
+        className="w-full"
         onClick={onContinueWithEmail}
         disabled={disabled || isBusy}
       >
         {emailLabel}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -98,25 +109,29 @@ export function AuthPageCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-xs space-y-6">
-      <div className="text-center space-y-3">
+    <Card className="w-full max-w-xs">
+      <CardHeader className="text-center space-y-3">
         <img
           src="/transparent-logo.png"
           alt="OpenSEO"
           className="mx-auto size-10 rounded-lg"
         />
         <div>
-          <h1 className="text-xl font-semibold">{title}</h1>
+          <CardTitle className="text-xl">
+            <h1>{title}</h1>
+          </CardTitle>
           {helperText ? (
-            <p className="text-sm text-base-content/60 mt-1">{helperText}</p>
+            <CardDescription className="mt-1">{helperText}</CardDescription>
           ) : null}
         </div>
-      </div>
+      </CardHeader>
 
-      {children}
+      <CardContent className="space-y-4">{children}</CardContent>
 
-      {footer ? <div className="text-center">{footer}</div> : null}
-    </div>
+      {footer ? (
+        <CardFooter className="justify-center text-center">{footer}</CardFooter>
+      ) : null}
+    </Card>
   );
 }
 
@@ -126,7 +141,7 @@ export function AuthPageShell({ children }: { children: React.ReactNode }) {
     // auto-margin child centers when it fits but stays fully reachable (top and
     // bottom) when it's taller than the viewport. Plain `justify-center` clips
     // the overflow with no way to scroll to it.
-    <div className="h-[100dvh] flex flex-col items-center overflow-y-auto p-4 bg-base-200">
+    <div className="flex h-[100dvh] flex-col items-center overflow-y-auto bg-background p-4">
       <div className="m-auto flex w-full flex-col items-center">{children}</div>
     </div>
   );

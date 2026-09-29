@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { Button } from "@/client/components/ui/button";
 import { AuthPageCard, AuthPageShell } from "@/client/features/auth/AuthPage";
 import { googleAuthErrorCopy } from "@/client/features/integrations/googleAuthErrorCopy";
 
@@ -30,15 +31,20 @@ function AuthErrorPage() {
         helperText={copy.description}
         footer={
           error ? (
-            <p className="font-mono text-xs text-base-content/40">
+            <p className="font-mono text-xs text-muted-foreground">
               Code: {error}
             </p>
           ) : undefined
         }
       >
-        <Link to="/" className="btn btn-soft w-full">
+        <Button
+          nativeButton={false}
+          render={<Link to="/" />}
+          variant="secondary"
+          className="w-full"
+        >
           Back to OpenSEO
-        </Link>
+        </Button>
       </AuthPageCard>
     </AuthPageShell>
   );

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   AuthPageShell,
   authRedirectSearchSchema,
@@ -18,8 +18,13 @@ function AuthPageLayout() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
+  const [hasResolvedSession, setHasResolvedSession] = useState(false);
   const isHostedMode = isHostedClientAuthMode();
   const redirectTo = getCurrentAuthRedirect(search.redirect);
+
+  useEffect(() => {
+    if (!isPending) setHasResolvedSession(true);
+  }, [isPending]);
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -40,7 +45,10 @@ function AuthPageLayout() {
   }, [navigate, redirectTo, session?.user?.id]);
 
   // Loading the session, or handing a signed-in user off to the destination.
-  if (isHostedMode && (isPending || session?.user?.id)) {
+  if (
+    isHostedMode &&
+    ((isPending && !hasResolvedSession) || session?.user?.id)
+  ) {
     return <PageLoading fullScreen />;
   }
 
