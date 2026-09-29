@@ -27,6 +27,8 @@ export function DashboardPage({ projectId }: { projectId: string }) {
   const overviewQuery = useQuery({
     queryKey: ["dashboardOverview", projectId],
     queryFn: () => getDashboardOverview({ data: { projectId } }),
+    refetchInterval: (query) =>
+      query.state.data?.audit?.status === "running" ? 3000 : false,
   });
 
   const activation = activationQuery.data;

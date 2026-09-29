@@ -11,6 +11,13 @@ import { CopyButton } from "@/client/components/CopyButton";
 import { CreateProjectModal } from "@/client/features/projects/CreateProjectModal";
 import { InviteTeammateModal } from "@/client/features/team/InviteTeammateModal";
 import { PermissionHint } from "@/client/components/PermissionHint";
+import { Button } from "@/client/components/ui/button";
+import { Input } from "@/client/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/client/components/ui/collapsible";
 import { organizationContextQueryOptions } from "@/client/features/team/organizationQueries";
 import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -122,7 +129,7 @@ export function DashboardSetupAction({
   if (step === "mcp")
     return (
       <div className="max-w-2xl space-y-4">
-        <p className="text-sm leading-relaxed text-base-content/65">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           {AGENT_SETUP_DESCRIPTION}
         </p>
         <AgentSetupPanel
@@ -148,11 +155,11 @@ export function DashboardSetupAction({
     );
   if (!canManage)
     return org.isPending ? (
-      <p className="text-sm text-base-content/65">
+      <p className="text-sm text-muted-foreground">
         Checking workspace permissions…
       </p>
     ) : org.isError ? (
-      <p className="text-sm text-base-content/65">
+      <p className="text-sm text-muted-foreground">
         {getStandardErrorMessage(org.error)}
       </p>
     ) : (
@@ -161,30 +168,29 @@ export function DashboardSetupAction({
   if (step === "project")
     return (
       <div className="space-y-4">
-        <p className="text-sm leading-relaxed text-base-content/65">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Keep each website’s research, rankings, and connections in its own
           project. Use the project switcher in the sidebar → New project
           anytime.
         </p>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => setShowModal(true)}
-        >
+        <Button size="sm" onClick={() => setShowModal(true)}>
           Create another project
-        </button>
-        <details className="rounded-lg border border-base-300 p-4">
-          <summary className="cursor-pointer text-sm font-medium">
+        </Button>
+        <Collapsible className="rounded-lg border border-border p-4">
+          <CollapsibleTrigger className="cursor-pointer text-sm font-medium">
             Have a list of websites? Let your agent set them up.
-          </summary>
-          <div className="mt-3 space-y-3">
-            <p className="text-sm text-base-content/65">
-              <Link to="/ai" className="link">
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              <Link
+                to="/ai"
+                className="text-primary underline-offset-4 hover:underline"
+              >
                 Connect your agent
               </Link>
               , then paste this prompt with your list of websites.
             </p>
-            <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-base-content/65">
+            <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-muted-foreground">
               {projectPrompt}
             </pre>
             <CopyButton
@@ -192,8 +198,8 @@ export function DashboardSetupAction({
               label="Copy project prompt"
               successMessage="Project prompt copied"
             />
-          </div>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
         {showModal && (
           <CreateProjectModal onClose={() => setShowModal(false)} />
         )}
@@ -201,17 +207,13 @@ export function DashboardSetupAction({
     );
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-relaxed text-base-content/65">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         Bring a teammate into your workspace to share projects, research, and
         results.
       </p>
-      <button
-        type="button"
-        className="btn btn-primary btn-sm"
-        onClick={() => setShowModal(true)}
-      >
+      <Button size="sm" onClick={() => setShowModal(true)}>
         Invite a teammate
-      </button>
+      </Button>
       {showModal && (
         <InviteTeammateModal
           onClose={() => setShowModal(false)}
@@ -271,7 +273,7 @@ function StepInputForm({
         void form.handleSubmit();
       }}
     >
-      <p className="text-sm leading-relaxed text-base-content/65">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
       <form.Field
@@ -288,18 +290,17 @@ function StepInputForm({
         {(field) => (
           <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium">{label}</span>
-            <input
+            <Input
               type="text"
               maxLength={255}
               placeholder={placeholder}
-              className="input input-bordered w-full"
               value={field.state.value}
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
               aria-invalid={field.state.meta.errors.length > 0}
             />
             {field.state.meta.errors.length > 0 && (
-              <span className="text-xs text-error">
+              <span className="text-xs text-destructive">
                 {field.state.meta.errors.join(", ")}
               </span>
             )}
@@ -308,13 +309,9 @@ function StepInputForm({
       </form.Field>
       <form.Subscribe selector={(state) => state.canSubmit}>
         {(canSubmit) => (
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={!canSubmit || pending}
-          >
+          <Button type="submit" size="sm" disabled={!canSubmit || pending}>
             {submitLabel}
-          </button>
+          </Button>
         )}
       </form.Subscribe>
     </form>

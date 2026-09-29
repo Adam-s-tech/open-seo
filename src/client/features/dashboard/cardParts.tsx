@@ -1,4 +1,21 @@
+import { buttonVariants } from "@/client/components/ui/button";
+import { Skeleton } from "@/client/components/ui/skeleton";
+
 // Shared building blocks for the dashboard cards.
+export function StatGridSkeleton({
+  tileClassName = "h-20",
+}: {
+  tileClassName?: string;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3" aria-busy>
+      {Array.from({ length: 4 }, (_, i) => (
+        <Skeleton key={i} className={tileClassName} />
+      ))}
+    </div>
+  );
+}
+
 export function EmptyCardBody({
   message,
   cta,
@@ -8,13 +25,16 @@ export function EmptyCardBody({
 }) {
   return (
     <div className="flex flex-col items-start gap-3">
-      <p className="text-sm text-base-content/70">{message}</p>
+      <p className="text-sm text-muted-foreground">{message}</p>
       {cta}
     </div>
   );
 }
 
-export const moreDetailsClass = "btn btn-ghost btn-xs";
+export const moreDetailsClass = buttonVariants({
+  variant: "ghost",
+  size: "xs",
+});
 
 export function newLost(value: number | null): string {
   return value === null ? "—" : String(value);

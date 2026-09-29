@@ -17,13 +17,13 @@ import {
   formatDay,
   moreDetailsClass,
   newLost,
+  StatGridSkeleton,
 } from "@/client/features/dashboard/cardParts";
 import { StatTile } from "@/client/components/StatTile";
 import type {
   DashboardAuditSummary,
   DashboardBacklinkSummary,
 } from "@/server/features/dashboard/services/DashboardService";
-import { Skeleton } from "@/client/components/ui/skeleton";
 
 // Plain string-keyed view of the registry: issue types from the DB are not
 // statically guaranteed to be registry keys.
@@ -73,15 +73,11 @@ export function GscCard({
       }
     >
       {reportQuery.isError ? (
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           Couldn&rsquo;t load Search Console data. Try again shortly.
         </p>
       ) : !report ? (
-        <div className="grid grid-cols-2 gap-3" aria-busy>
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-20" />
-          ))}
-        </div>
+        <StatGridSkeleton />
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <StatTile
@@ -159,17 +155,17 @@ export function AuditHealthCard({
       {audit.status === "running" ? (
         // A running crawl has at most a partial issue list, and an empty one
         // is not the same as a healthy site.
-        <p className="text-sm text-base-content/70">
+        <p className="text-sm text-muted-foreground">
           Issues appear here when the crawl finishes.
         </p>
       ) : audit.topIssues.length === 0 ? (
         audit.status === "completed" ? (
-          <div className="flex items-center gap-2 text-sm text-base-content/70">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Check className="size-4 text-success" />
             No issues found — your site looks healthy.
           </div>
         ) : (
-          <p className="text-sm text-base-content/70">
+          <p className="text-sm text-muted-foreground">
             Run the audit again to see issues.
           </p>
         )
@@ -187,27 +183,27 @@ export function AuditHealthCard({
                       ? "bg-error"
                       : issue.severity === "warning"
                         ? "bg-warning"
-                        : "bg-base-content/30"
+                        : "bg-muted-foreground/30"
                   }`}
                 />
                 <span className="truncate">
                   {issueTitles[issue.issueType] ?? issue.issueType}
                 </span>
               </span>
-              <span className="shrink-0 tabular-nums text-base-content/60">
+              <span className="shrink-0 tabular-nums text-muted-foreground">
                 {issue.count} {issue.count === 1 ? "page" : "pages"}
               </span>
             </li>
           ))}
           {audit.totalIssueTypes > audit.topIssues.length ? (
-            <li className="text-xs text-base-content/50">
+            <li className="text-xs text-muted-foreground">
               + {audit.totalIssueTypes - audit.topIssues.length} more issue
               {audit.totalIssueTypes - audit.topIssues.length === 1 ? "" : "s"}
             </li>
           ) : null}
           {/* A failed crawl keeps what it found, as the audit page does. */}
           {audit.status !== "completed" ? (
-            <li className="text-xs text-base-content/50">
+            <li className="text-xs text-muted-foreground">
               From the pages crawled before the audit stopped.
             </li>
           ) : null}
@@ -229,11 +225,7 @@ export function BacklinkPulseCard({
   if (!backlinks && refreshing) {
     return (
       <CardShell title="Backlink pulse" stamp="Taking your first snapshot…">
-        <div className="grid grid-cols-2 gap-3" aria-busy>
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-20" />
-          ))}
-        </div>
+        <StatGridSkeleton />
       </CardShell>
     );
   }
@@ -241,7 +233,7 @@ export function BacklinkPulseCard({
   if (!backlinks) {
     return (
       <CardShell title="Backlink pulse">
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           We&rsquo;ll snapshot who links to your domain — nothing to set up.
         </p>
       </CardShell>

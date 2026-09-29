@@ -2,7 +2,10 @@ import { CardShell } from "@/client/components/CardShell";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
-import { moreDetailsClass } from "@/client/features/dashboard/cardParts";
+import {
+  moreDetailsClass,
+  StatGridSkeleton,
+} from "@/client/features/dashboard/cardParts";
 import { StatTile } from "@/client/components/StatTile";
 import { Ga4ConnectCard } from "@/client/features/dashboard/Ga4ConnectCard";
 import {
@@ -77,20 +80,16 @@ export function Ga4Card({
       }
     >
       {reportQuery.isError ? (
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           Couldn&rsquo;t load Google Analytics data. Try again shortly.
         </p>
       ) : !report ? (
         <div className="space-y-3" aria-busy>
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} className="h-16" />
-            ))}
-          </div>
+          <StatGridSkeleton tileClassName="h-16" />
           <Skeleton className="h-24" />
         </div>
       ) : !report.totals.sessions ? (
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           No organic search traffic recorded in the last 28 days yet.
         </p>
       ) : (

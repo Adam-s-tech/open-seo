@@ -40,11 +40,24 @@ function renderChecklist(activation = fresh) {
 }
 
 describe("dashboard onboarding visibility", () => {
-  it("renders nothing once every step is completed or skipped", () => {
+  it("keeps skipped steps available to restore", () => {
+    const markup = renderChecklist({
+      ...fresh,
+      dismissedSteps: setupSteps.map((step) => step.id),
+    });
+    expect(markup).toContain("saved for later");
+  });
+
+  it("renders nothing once every step is complete", () => {
     expect(
       renderChecklist({
         ...fresh,
-        dismissedSteps: setupSteps.map((step) => step.id),
+        competitorClickedAt: "2026-09-28",
+        keywordsClickedAt: "2026-09-28",
+        hasAudit: true,
+        mcp: { ...fresh.mcp, authorizedAt: "2026-09-28" },
+        hasTeammate: true,
+        hasMultipleProjects: true,
       }),
     ).toBe("");
   });

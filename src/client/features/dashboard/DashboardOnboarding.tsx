@@ -59,7 +59,7 @@ export function DashboardOnboarding({
     (step) => getStepStatus(activation, step.id) === "skipped",
   );
 
-  if (remaining.length === 0) return null;
+  if (remaining.length === 0 && deferred.length === 0) return null;
 
   return (
     <section
