@@ -43,7 +43,6 @@
   "ignoreDependencies": [
     // Tailwindcss used via @tailwindcss/vite plugin
     "tailwindcss",
-    "daisyui",
     // Imported by app.css; shadcn is also the component CLI
     "tw-animate-css",
     "shadcn",

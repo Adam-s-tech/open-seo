@@ -15,12 +15,15 @@ export function FreePlanBanner() {
     <Link
       to={SUBSCRIBE_ROUTE}
       search={{ upgrade: true }}
-      className="link link-primary font-medium"
+      className="font-medium text-primary underline-offset-4 hover:underline"
     >
       Upgrade your plan
     </Link>
   ) : (
-    <Link to={BILLING_ROUTE} className="link link-primary font-medium">
+    <Link
+      to={BILLING_ROUTE}
+      className="font-medium text-primary underline-offset-4 hover:underline"
+    >
       Buy more credits
     </Link>
   );
@@ -50,12 +53,15 @@ export function FreePlanBanner() {
         <Link
           to={SUBSCRIBE_ROUTE}
           search={{ upgrade: true }}
-          className="link link-primary font-medium"
+          className="font-medium text-primary underline-offset-4 hover:underline"
         >
           Upgrade anytime
         </Link>{" "}
         or{" "}
-        <Link to="/support" className="link link-primary font-medium">
+        <Link
+          to="/support"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
           reach out with questions
         </Link>
         .

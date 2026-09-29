@@ -100,7 +100,6 @@
     "class-variance-authority": "^0.7.1",
     "cloudflare": "^5.2.0",
     "cn": "^0.3.0",
-    "daisyui": "^5.5.5",
     "drizzle-orm": "^0.45.2",
     "fast-xml-parser": "^5.4.1",
     "htmlparser2": "^10.1.0",

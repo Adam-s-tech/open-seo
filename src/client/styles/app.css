@@ -3,8 +3,7 @@
 @import "shadcn/tailwind.css";
 
 /* shadcn components here are built on Base UI. The shadcn variables below are
-   the source of truth for theme colors. The DaisyUI theme blocks alias them,
-   so pages that still use DaisyUI classes render the same values. */
+   the source of truth for theme colors. */
 
 @custom-variant dark (&:where([data-theme=openseo-dark], [data-theme=openseo-dark] *));
 
@@ -34,7 +33,7 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  --color-border: var(--border-color);
+  --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
@@ -62,11 +61,9 @@
   --radius-4xl: calc(var(--radius) * 4);
 }
 
-/* shadcn names its border color --border, but DaisyUI already uses --border
-   for its border width. Rename --border-color to --border when DaisyUI is
-   removed. */
 :where(:root),
 [data-theme="openseo"] {
+  color-scheme: light;
   --radius: 0.5rem;
   --background: oklch(95.5% 0 0);
   --foreground: oklch(20% 0 0);
@@ -89,7 +86,7 @@
   --warning-foreground: oklch(25% 0.05 80);
   --info: oklch(70% 0.15 230);
   --info-foreground: oklch(100% 0 0);
-  --border-color: oklch(92% 0 0);
+  --border: oklch(92% 0 0);
   --input: oklch(92% 0 0);
   --ring: oklch(50% 0.12 262);
   --chart-1: oklch(57.5% 0.163 255.5);
@@ -108,6 +105,7 @@
 }
 
 [data-theme="openseo-dark"] {
+  color-scheme: dark;
   --background: oklch(18% 0 0);
   --foreground: oklch(92% 0 0);
   --card: oklch(23% 0 0);
@@ -129,7 +127,7 @@
   --warning-foreground: oklch(25% 0.05 80);
   --info: oklch(70% 0.15 230);
   --info-foreground: oklch(100% 0 0);
-  --border-color: oklch(30% 0 0);
+  --border: oklch(30% 0 0);
   --input: oklch(30% 0 0);
   --ring: oklch(66% 0.12 262);
   --chart-1: oklch(62.2% 0.161 255.1);
@@ -157,89 +155,19 @@
   --trend-tooltip-shadow: oklch(0% 0 0 / 0.1);
 }
 
-@plugin "daisyui" {
-  /* @property isn't supported by some browsers and gives a noisy warning https://github.com/saadeghi/daisyui/issues/3882 */
-  exclude: properties;
-}
-
-/* Light theme */
-@plugin "daisyui/theme" {
-  name: "openseo";
-  default: true;
-  prefersdark: false;
-  color-scheme: light;
-  --color-base-100: var(--card);
-  --color-base-200: var(--background);
-  --color-base-300: var(--border-color);
-  --color-base-content: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-content: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-content: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-content: var(--accent-foreground);
-  --color-neutral: oklch(25% 0 0);
-  --color-neutral-content: oklch(100% 0 0);
-  --color-info: var(--info);
-  --color-info-content: var(--info-foreground);
-  --color-success: var(--success);
-  --color-success-content: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-content: var(--warning-foreground);
-  --color-error: var(--destructive);
-  --color-error-content: oklch(100% 0 0);
-  --radius-selector: var(--radius);
-  --radius-field: var(--radius);
-  --radius-box: calc(var(--radius) * 1.5);
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
-/* Dark theme - auto-activates via prefers-color-scheme */
-@plugin "daisyui/theme" {
-  name: "openseo-dark";
-  prefersdark: true;
-  color-scheme: dark;
-  --color-base-100: var(--card);
-  --color-base-200: var(--background);
-  --color-base-300: var(--border-color);
-  --color-base-content: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-content: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-content: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-content: var(--accent-foreground);
-  --color-neutral: oklch(85% 0 0);
-  --color-neutral-content: oklch(20% 0 0);
-  --color-info: var(--info);
-  --color-info-content: var(--info-foreground);
-  --color-success: var(--success);
-  --color-success-content: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-content: var(--warning-foreground);
-  --color-error: var(--destructive);
-  --color-error-content: oklch(100% 0 0);
-  --radius-selector: var(--radius);
-  --radius-field: var(--radius);
-  --radius-box: calc(var(--radius) * 1.5);
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 0;
-}
-
 html,
 body {
-  @apply m-0 bg-base-200;
+  @apply m-0 bg-background text-foreground;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
   overflow: hidden;
+}
+
+/* Thin scrollbars in the muted text color, in both themes. */
+:root {
+  scrollbar-color: color-mix(in oklch, currentColor 35%, transparent)
+    transparent;
 }
 
 /* Prevent Safari mobile from zooming on input focus (requires 16px minimum).
@@ -250,16 +178,6 @@ input:not([data-slot]),
 textarea:not([data-slot]),
 select:not([data-slot]) {
   @apply text-base;
-}
-
-/* Global input focus styling - use primary color instead of default ring */
-.input:focus,
-.input:focus-visible,
-.textarea:focus,
-.textarea:focus-visible {
-  outline: none;
-  border-color: var(--color-primary);
-  background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
 }
 
 /* Safe area utilities for mobile devices */
@@ -283,82 +201,6 @@ select:not([data-slot]) {
   body {
     touch-action: pan-x pan-y;
   }
-}
-
-/* DaisyUI draws a small triangle caret on .select. Draw the chevron that the
-   shadcn Select uses instead, in the same place: 16px, 8px from the right
-   edge, in the muted text color. A native select cannot hold an icon, so the
-   chevron is a background image. */
-.select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23161616' stroke-opacity='.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-position: right 0.5rem center;
-  background-size: 1rem 1rem;
-  background-repeat: no-repeat;
-  padding-inline-end: 2rem;
-}
-
-html[data-theme="openseo-dark"] .select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e5e5e5' stroke-opacity='.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-}
-
-/* Dark mode: neutral interactive surfaces should lift above the panel, not
-   sink below it. DaisyUI derives default buttons and the tabs-box well from
-   base-200, which is darker than the base-100 content panel in dark mode,
-   so they read as sunken/disabled. Colored variants (primary, error, ...)
-   set their own --btn-color and are excluded. */
-html[data-theme="openseo-dark"]
-  .btn:not(
-    .btn-primary,
-    .btn-error,
-    .btn-neutral,
-    .btn-ghost,
-    .btn-outline,
-    .btn-soft
-  ) {
-  --btn-color: oklch(25% 0 0);
-}
-
-/* Light mode: the base-200 default button is nearly invisible on the
-   base-100 content panel; use a white surface with a visible border,
-   matching inputs/selects. */
-html[data-theme="openseo"]
-  .btn:not(
-    .btn-primary,
-    .btn-error,
-    .btn-neutral,
-    .btn-ghost,
-    .btn-outline,
-    .btn-soft
-  ) {
-  --btn-color: var(--color-base-100);
-  --btn-border: var(--color-base-300);
-}
-
-/* Underline tabs: DaisyUI's tabs-border underlines the active tab with
-   currentColor; use the primary accent instead (PostHog-style). */
-.tabs-border > .tab.tab-active::before {
-  --tab-border-color: var(--color-primary);
-}
-
-/* Custom alert styling with darker borders and transparent background */
-.alert {
-  @apply flex gap-3 rounded-lg border p-4 text-base-content/70;
-}
-
-.alert-warning {
-  @apply border-warning/70 bg-warning/40 text-base-content/90;
-}
-
-.alert-info {
-  @apply border-info/70 bg-info/40 text-base-content/90;
-}
-
-.alert-success {
-  @apply border-success/70 bg-success/40 text-base-content/90;
-}
-
-.alert-error {
-  @apply border-error/70 bg-error/40 text-base-content/90;
 }
 
 /* Tag chip colors — muted background + readable text in both themes.
@@ -506,20 +348,4 @@ html[data-theme="openseo-dark"] {
   --trend-tooltip-bg: oklch(21% 0.01 255 / 0.95);
   --trend-tooltip-border: oklch(40% 0.01 255 / 0.65);
   --trend-tooltip-shadow: oklch(0% 0 0 / 0.35);
-}
-
-html[data-theme="openseo-dark"] .alert-warning {
-  @apply border-warning/60 bg-warning/20;
-}
-
-html[data-theme="openseo-dark"] .alert-info {
-  @apply border-info/60 bg-info/20;
-}
-
-html[data-theme="openseo-dark"] .alert-success {
-  @apply border-success/60 bg-success/20;
-}
-
-html[data-theme="openseo-dark"] .alert-error {
-  @apply border-error/60 bg-error/20;
 }

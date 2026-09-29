@@ -2,6 +2,9 @@ import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { useCustomer } from "autumn-js/react";
 import { useState } from "react";
 import { ArrowRight, Tag } from "lucide-react";
+import { QueryError } from "@/client/components/QueryState";
+import { StatusScreen } from "@/client/components/StatusScreen";
+import { Button } from "@/client/components/ui/button";
 import { PlanPageAccountMenu } from "@/client/features/billing/PlanPageAccountMenu";
 import { PlanOfferCard } from "@/client/features/billing/PlanOfferCard";
 import {
@@ -72,33 +75,14 @@ function YcPlanPage() {
 
   if (routeState === "error") {
     return (
-      <div className="w-full max-w-xs space-y-4">
-        <div className="text-center space-y-3">
-          <img
-            src="/transparent-logo.png"
-            alt="OpenSEO"
-            className="mx-auto size-10 rounded-lg"
-          />
-          <h1 className="text-xl font-semibold">Billing unavailable</h1>
-        </div>
-
-        <p className="text-sm text-center text-base-content/70">
-          {getStandardErrorMessage(
-            customerQuery.error,
-            "We couldn't verify your billing status right now. Please try again.",
-          )}
-        </p>
-
-        <button
-          type="button"
-          className="btn btn-soft w-full"
-          onClick={() => {
-            void customerQuery.refetch();
-          }}
-        >
-          Try again
-        </button>
-      </div>
+      <StatusScreen logo title="Billing unavailable" size="sm">
+        <QueryError
+          error={customerQuery.error}
+          fallback="We couldn't verify your billing status right now. Please try again."
+          onRetry={() => void customerQuery.refetch()}
+          isRetrying={customerQuery.isFetching}
+        />
+      </StatusScreen>
     );
   }
 
@@ -140,17 +124,17 @@ function YcPlanPage() {
           className="mx-auto size-10 rounded-lg"
         />
         <h1 className="text-xl font-semibold">OpenSEO for YC founders</h1>
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           A bigger monthly credit pool for teams doing serious SEO work, with
           your first month free through the YC deal.
         </p>
       </div>
 
       <PlanOfferCard offer={YC_PLAN_OFFER} features={PLAN_FEATURES}>
-        <div className="flex gap-2.5 rounded-md bg-base-200 p-3 text-sm">
-          <Tag className="mt-0.5 size-4 shrink-0 text-base-content/60" />
-          <p className="text-base-content/70">
-            <span className="font-medium text-base-content">
+        <div className="flex gap-2.5 rounded-md bg-muted p-3 text-sm">
+          <Tag className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">
               Don&rsquo;t forget your promo code.
             </span>{" "}
             Enter the code from the YC deal under &ldquo;Add promotion
@@ -158,21 +142,29 @@ function YcPlanPage() {
           </p>
         </div>
 
-        {error ? <p className="text-sm text-error">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
 
         {isOnYcPlan ? (
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm text-muted-foreground">
             You&rsquo;re already on the {YC_PLAN_OFFER.name}.{" "}
-            <Link to={BILLING_ROUTE} className="link">
+            <Link
+              to={BILLING_ROUTE}
+              className="underline underline-offset-2 hover:text-foreground"
+            >
               Manage it on Billing
             </Link>
             .
           </p>
         ) : canManageBilling ? (
           <div className="space-y-2">
-            <button
-              className="btn btn-soft w-full"
-              disabled={isAttaching}
+            <Button
+              className="w-full"
+              variant="secondary"
+              pending={isAttaching}
               onClick={() => void handleSubscribe()}
             >
               {isAttaching
@@ -180,15 +172,15 @@ function YcPlanPage() {
                 : isPaid
                   ? `Switch to the ${YC_PLAN_OFFER.name}`
                   : `Get the ${YC_PLAN_OFFER.name}`}
-            </button>
+            </Button>
             {isPaid ? (
-              <p className="text-center text-xs text-base-content/50">
+              <p className="text-center text-xs text-muted-foreground">
                 Replaces your current subscription.
               </p>
             ) : null}
           </div>
         ) : (
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm text-muted-foreground">
             Only the organization owner can change the plan. Ask them to switch
             this organization to the {YC_PLAN_OFFER.name}.
           </p>
@@ -196,16 +188,19 @@ function YcPlanPage() {
       </PlanOfferCard>
 
       <div className="text-center space-y-2">
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           Questions? Email{" "}
-          <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href={`mailto:${SUPPORT_EMAIL}`}
+          >
             {SUPPORT_EMAIL}
           </a>
           .
         </p>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowRight className="size-3.5 rotate-180" />
           Back to app

@@ -135,7 +135,7 @@ export function TurnstileWidget({
   if (!TURNSTILE_SITE_KEY) return null;
   if (scriptFailed) {
     return (
-      <p className="text-sm text-error">
+      <p role="alert" className="text-sm text-destructive">
         The security check couldn&rsquo;t load. Allow challenges.cloudflare.com
         in your browser or ad blocker, then reload the page.
       </p>

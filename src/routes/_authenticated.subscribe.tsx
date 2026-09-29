@@ -265,7 +265,10 @@ function SubscribePage() {
       <div className="text-center space-y-2">
         <p className="text-sm text-muted-foreground">
           Questions? Email{" "}
-          <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href={`mailto:${SUPPORT_EMAIL}`}
+          >
             {SUPPORT_EMAIL}
           </a>
           .

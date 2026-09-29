@@ -33,14 +33,12 @@ export function SearchCard({
   secondRow?: ReactNode;
 }) {
   return (
-    // ResearchScopeSelect opens an absolute menu below the row, so the card
-    // must not clip it.
-    <Card className="overflow-visible">
+    <Card>
       <CardContent className="space-y-3">
         <form noValidate className="space-y-3" onSubmit={onSubmit}>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             {children}
-            {/* 40px, to match the DaisyUI selects that still sit in the row. */}
+            {/* 40px, the height of the fields in the row. */}
             <Button
               type="submit"
               size="lg"

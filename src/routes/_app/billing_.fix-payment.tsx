@@ -12,6 +12,9 @@ import { getStandardErrorMessage } from "@/client/lib/error-messages";
 import { captureClientError, captureClientEvent } from "@/client/lib/posthog";
 import { getBillingRouteState } from "@/client/features/billing/route-state";
 import { BILLING_ROUTE } from "@/shared/billing";
+import { QueryError } from "@/client/components/QueryState";
+import { Spinner } from "@/client/components/Spinner";
+import { Button } from "@/client/components/ui/button";
 
 const SUPPORT_EMAIL = "ben@openseo.so";
 
@@ -132,19 +135,12 @@ function FixPaymentPage() {
   if (routeState === "error") {
     return (
       <Page title="Billing unavailable">
-        <p className="text-sm text-base-content/70">
-          {getStandardErrorMessage(
-            customerQuery.error,
-            "We couldn't load your billing details right now. Please try again.",
-          )}
-        </p>
-        <button
-          type="button"
-          className="btn btn-soft btn-sm"
-          onClick={() => void customerQuery.refetch()}
-        >
-          Try again
-        </button>
+        <QueryError
+          error={customerQuery.error}
+          fallback="We couldn't load your billing details right now. Please try again."
+          onRetry={() => void customerQuery.refetch()}
+          isRetrying={customerQuery.isFetching}
+        />
       </Page>
     );
   }
@@ -152,8 +148,8 @@ function FixPaymentPage() {
   if (isChecking) {
     return (
       <Page title="Checking your payment…">
-        <span className="loading loading-spinner loading-md" />
-        <p className="text-sm text-base-content/70">
+        <Spinner />
+        <p className="text-sm text-muted-foreground">
           Stripe is retrying the charge with your updated card. This usually
           takes a few seconds.
         </p>
@@ -164,11 +160,14 @@ function FixPaymentPage() {
   if (!isPastDue) {
     return (
       <Page title={returned ? "You're all set" : "Your billing is up to date"}>
-        <p className="text-sm text-base-content/70">
+        <p className="text-sm text-muted-foreground">
           {returned
             ? "The payment went through and your subscription is active again."
             : "There's nothing outstanding on your account."}{" "}
-          <Link to={BILLING_ROUTE} className="link link-primary font-medium">
+          <Link
+            to={BILLING_ROUTE}
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
             Back to billing
           </Link>
         </p>
@@ -179,7 +178,7 @@ function FixPaymentPage() {
   if (!canManageBilling) {
     return (
       <Page title="Fix your payment">
-        <p className="text-sm text-base-content/70">
+        <p className="text-sm text-muted-foreground">
           A payment for this organization didn&rsquo;t go through. Only the
           organization owner can update the card, so please ask them to visit
           this page.
@@ -190,29 +189,33 @@ function FixPaymentPage() {
 
   return (
     <Page title={returned ? "Still showing as unpaid" : "Fix your payment"}>
-      <p className="text-sm text-base-content/70">
+      <p className="text-sm text-muted-foreground">
         {returned
           ? "Your subscription is still marked past due. Stripe can take a few minutes to retry the charge. If you added a new card but the invoice is still listed as open in the portal, you can pay it there directly."
           : "Your last payment didn't go through. This usually means the card expired or the bank declined the charge. Nothing has been turned off yet."}
       </p>
 
-      <div className="rounded-lg border border-base-300 bg-base-100 p-4">
+      <div className="rounded-lg border border-border bg-card p-4">
         <p className="text-sm font-semibold">Update your payment method</p>
-        <p className="mt-1 text-sm text-base-content/60">
+        <p className="mt-1 text-sm text-muted-foreground">
           Add a working card in the billing portal. It becomes your default for
           future renewals, and the open invoice can be paid on the same screen.
         </p>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm mt-3"
-          disabled={isOpeningPortal}
+        <Button
+          size="sm"
+          className="mt-3"
+          pending={isOpeningPortal}
           onClick={() => void openPortal()}
         >
           {isOpeningPortal ? "Opening Stripe..." : "Open billing portal"}
-        </button>
+        </Button>
       </div>
 
-      {error ? <p className="text-sm text-error">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
     </Page>
   );
 }
@@ -221,11 +224,11 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mx-auto w-full max-w-xl space-y-5 p-4 py-10 md:p-6 md:py-12">
       <div>
-        <p className="text-sm font-medium text-base-content/40">Billing</p>
+        <p className="text-sm font-medium text-muted-foreground">Billing</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">{title}</h1>
       </div>
       {children}
-      <p className="text-xs text-base-content/40">
+      <p className="text-xs text-muted-foreground">
         Something look wrong? Email {SUPPORT_EMAIL}.
       </p>
     </div>

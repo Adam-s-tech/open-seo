@@ -180,7 +180,7 @@ export function AuditHealthCard({
                 <span
                   className={`size-2 shrink-0 rounded-full ${
                     issue.severity === "critical"
-                      ? "bg-error"
+                      ? "bg-destructive"
                       : issue.severity === "warning"
                         ? "bg-warning"
                         : "bg-muted-foreground/30"
