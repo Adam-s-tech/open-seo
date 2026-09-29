@@ -45,14 +45,7 @@ export function SavedKeywordsFilters({
             availableTags={availableTags}
             selectedTagIds={selectedTagIds}
             busyTagIds={busyTagIds}
-            onToggleTagFilter={(tagId) =>
-              onSelectedTagIdsChange(
-                selectedTagIds.includes(tagId)
-                  ? selectedTagIds.filter((id) => id !== tagId)
-                  : [...selectedTagIds, tagId],
-              )
-            }
-            onClearSelection={() => onSelectedTagIdsChange([])}
+            onSelectedTagIdsChange={onSelectedTagIdsChange}
             onUpdateTag={onUpdateTag}
             onDeleteTag={onDeleteTag}
           />
