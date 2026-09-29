@@ -1,45 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { useCustomer } from "autumn-js/react";
 import { AppBanner } from "@/client/layout/AppBanner";
-import { useSession } from "@/lib/auth-client";
-import { getCustomerPlanStatus } from "@/client/features/billing/plan-detection";
-import {
-  AUTUMN_SEO_DATA_BALANCE_FEATURE_ID,
-  AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID,
-  BILLING_ROUTE,
-  LOW_CREDITS_THRESHOLD_USD,
-  SUBSCRIBE_ROUTE,
-  autumnSeoDataCreditsToUsd,
-} from "@/shared/billing";
+import { useCreditBalance } from "@/client/features/billing/useCreditBalance";
+import { BILLING_ROUTE, SUBSCRIBE_ROUTE } from "@/shared/billing";
 
 export function FreePlanBanner() {
-  const { data: session } = useSession();
-  const customerQuery = useCustomer({
-    queryOptions: {
-      enabled: Boolean(session?.user?.id),
-    },
-  });
+  const { customerQuery, isFreePlan, isOutOfCredits, isLowCredits } =
+    useCreditBalance();
 
   if (customerQuery.isLoading || !customerQuery.data) {
     return null;
   }
-
-  const planStatus = getCustomerPlanStatus(customerQuery.data);
-  const isFreePlan = planStatus === "free";
-
-  const monthlyRemaining = autumnSeoDataCreditsToUsd(
-    customerQuery.data.balances?.[AUTUMN_SEO_DATA_BALANCE_FEATURE_ID]
-      ?.remaining ?? 0,
-  );
-  const topUpRemaining = autumnSeoDataCreditsToUsd(
-    customerQuery.data.balances?.[AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID]
-      ?.remaining ?? 0,
-  );
-  const totalRemaining = monthlyRemaining + topUpRemaining;
-
-  const isOutOfCredits = totalRemaining <= 0;
-  const isLowCredits =
-    !isOutOfCredits && totalRemaining < LOW_CREDITS_THRESHOLD_USD;
 
   const creditsActionLink = isFreePlan ? (
     <Link
