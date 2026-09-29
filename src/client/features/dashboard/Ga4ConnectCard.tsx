@@ -23,6 +23,7 @@ export function Ga4ConnectCard({
     <GoogleConnectionCard
       provider="ga4"
       projectId={projectId}
+      prominent
       onDismiss={
         connected
           ? undefined

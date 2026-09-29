@@ -53,7 +53,7 @@ export function GscCard({
   if (!connected || (report && !report.connected)) {
     return (
       <div id="connect-gsc">
-        <GoogleConnectionCard provider="gsc" projectId={projectId} />
+        <GoogleConnectionCard provider="gsc" projectId={projectId} prominent />
       </div>
     );
   }
@@ -121,6 +121,7 @@ export function AuditHealthCard({
           message="Crawl your site for broken links, missing tags and indexability problems."
           cta={
             <Button
+              size="lg"
               nativeButton={false}
               render={<Link to="/p/$projectId/audit" params={{ projectId }} />}
             >

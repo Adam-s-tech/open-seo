@@ -199,7 +199,7 @@ export function KeywordResearchPage(input: Props) {
 
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4">
         <PageHeader
           title="Keyword Research"
           description="Discover keyword ideas, search demand, and ranking opportunities."

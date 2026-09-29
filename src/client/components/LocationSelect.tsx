@@ -1,4 +1,3 @@
-import { cn } from "cn";
 import {
   Combobox,
   ComboboxContent,
@@ -50,7 +49,7 @@ export function LocationSelect({
       }}
     >
       <ComboboxInput
-        className={cn("h-10", className)}
+        className={className}
         placeholder="Select country"
         aria-label="Country"
       />

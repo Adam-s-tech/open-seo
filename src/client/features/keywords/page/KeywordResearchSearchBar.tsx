@@ -35,7 +35,7 @@ export function KeywordResearchSearchBar({ controller }: Props) {
       <CardContent className="space-y-2">
         <form
           noValidate
-          className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:gap-2"
+          className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start"
           onSubmit={handleSearchSubmit}
         >
           <controlsForm.Field name="keyword">
@@ -52,7 +52,7 @@ export function KeywordResearchSearchBar({ controller }: Props) {
                     <Search />
                   </InputGroupAddon>
                   <InputGroupTextarea
-                    className="min-h-0 leading-6 field-sizing-fixed"
+                    className="min-h-0 py-[7px] leading-6 field-sizing-fixed"
                     rows={rows}
                     placeholder="Enter a keyword"
                     aria-label="Keywords"
@@ -107,11 +107,7 @@ export function KeywordResearchSearchBar({ controller }: Props) {
 
             <KeywordSearchOptions controller={controller} />
 
-            <Button
-              type="submit"
-              size="lg"
-              className="h-10 w-full px-6 lg:w-auto lg:shrink-0"
-            >
+            <Button type="submit" className="w-full px-6 lg:w-auto lg:shrink-0">
               Search
             </Button>
           </div>

@@ -111,7 +111,7 @@ export function DomainSearchCard({
           >
             <SelectTrigger
               aria-label="Sort keywords"
-              className="h-10 w-full shrink-0 data-[size=default]:h-10 lg:w-36"
+              className="w-full shrink-0 lg:w-36"
             >
               <SelectValue />
             </SelectTrigger>

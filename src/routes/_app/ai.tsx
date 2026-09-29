@@ -112,7 +112,6 @@ function AiPage() {
                     <CopyButton
                       variant="default"
                       size="lg"
-                      className="h-11 gap-2 px-4"
                       value={prompt}
                       label="Copy setup prompt"
                       successMessage="Setup prompt copied"
@@ -160,7 +159,6 @@ function AiPage() {
                   <CopyButton
                     variant="default"
                     size="lg"
-                    className="h-11 gap-2 px-4"
                     value={agentUpdatePrompt}
                     label="Copy update prompt"
                     successMessage="Update prompt copied"

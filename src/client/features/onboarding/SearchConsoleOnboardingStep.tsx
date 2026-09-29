@@ -193,6 +193,7 @@ function GscConnect({
             <Button
               type="button"
               variant="outline"
+              size="lg"
               onClick={handleConnect}
               disabled={linking}
               aria-busy={linking}

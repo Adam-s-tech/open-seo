@@ -148,7 +148,7 @@ function TermsTokenInput({
             }
           };
           return (
-            <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-input px-2 py-1.5 focus-within:border-ring">
+            <div className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5 focus-within:border-ring">
               {terms.map((term) => (
                 <span
                   key={term}

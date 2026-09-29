@@ -77,7 +77,6 @@ export function BrandLookupSearchCard({
               onChange={(event) => onCompetitorsChange(event.target.value)}
               autoComplete="off"
               spellCheck={false}
-              className="h-10"
               aria-label="Competitors"
               aria-invalid={competitorsError || undefined}
               aria-describedby={

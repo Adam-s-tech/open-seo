@@ -182,7 +182,6 @@ export function PromptExplorerForm({
             </div>
             <Button
               type="submit"
-              size="lg"
               className="px-6"
               pending={isLoading}
               disabled={form.models.length === 0}

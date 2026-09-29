@@ -24,7 +24,7 @@ export function PlanPageAccountMenu({ email }: { email: string | undefined }) {
           render={
             <Button
               variant="ghost"
-              size="icon-lg"
+              size="icon"
               aria-label="Open account menu"
             />
           }

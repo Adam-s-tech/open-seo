@@ -1,4 +1,3 @@
-import { cn } from "cn";
 import {
   Select,
   SelectContent,
@@ -51,7 +50,7 @@ export function ResearchScopeSelect({
       disabled={disabledReason != null}
     >
       <SelectTrigger
-        className={cn("data-[size=default]:h-10", className)}
+        className={className}
         aria-label={ariaLabel}
         title={disabledReason}
       >

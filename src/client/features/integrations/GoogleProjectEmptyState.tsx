@@ -7,6 +7,7 @@ export function GoogleProjectEmptyState({
   hasGrant,
   disabled,
   canManage,
+  prominent,
   onChoose,
   onLink,
   children,
@@ -15,6 +16,7 @@ export function GoogleProjectEmptyState({
   hasGrant: boolean;
   disabled: boolean;
   canManage: boolean;
+  prominent?: boolean;
   onChoose: () => void;
   onLink: () => void;
   children?: ReactNode;
@@ -29,14 +31,20 @@ export function GoogleProjectEmptyState({
       <div className="flex flex-wrap items-center gap-1">
         {canManage || hasGrant ? (
           <Button
-            variant="outline"
-            size="sm"
+            variant={prominent ? "default" : "outline"}
+            size={prominent ? "lg" : "sm"}
             onClick={hasGrant ? onChoose : onLink}
             pending={disabled}
           >
-            {!disabled && !hasGrant ? (
+            {disabled || hasGrant ? null : prominent ? (
+              // The white chip keeps the brand colours readable on a primary
+              // button.
+              <span className="flex size-6 items-center justify-center rounded-full bg-white">
+                <GoogleGlyph className="size-4" />
+              </span>
+            ) : (
               <GoogleGlyph className="size-[18px]" />
-            ) : null}
+            )}
             {disabled
               ? "Opening Google…"
               : canManage

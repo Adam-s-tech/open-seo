@@ -28,7 +28,7 @@ export function AgentSetupPanel({
         <CopyButton
           variant="default"
           size="lg"
-          className="h-11 w-full gap-2"
+          className="w-full"
           value={prompt}
           label="Copy setup prompt"
           successMessage="Setup prompt copied"

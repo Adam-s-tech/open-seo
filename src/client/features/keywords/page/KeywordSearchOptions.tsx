@@ -55,8 +55,7 @@ export function KeywordSearchOptions({ controller }: Props) {
           <>
             <Button
               variant="outline"
-              size="lg"
-              className="h-10 w-full font-normal lg:w-auto lg:shrink-0"
+              className="w-full font-normal lg:w-auto lg:shrink-0"
               aria-haspopup="dialog"
               onClick={() => setOpen(true)}
             >

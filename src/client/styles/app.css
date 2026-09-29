@@ -87,7 +87,7 @@
   --info: oklch(70% 0.15 230);
   --info-foreground: oklch(100% 0 0);
   --border: oklch(92% 0 0);
-  --input: oklch(92% 0 0);
+  --input: oklch(82% 0 0);
   --ring: oklch(50% 0.12 262);
   --chart-1: oklch(57.5% 0.163 255.5);
   --chart-2: oklch(67.1% 0.175 40.6);
@@ -128,7 +128,7 @@
   --info: oklch(70% 0.15 230);
   --info-foreground: oklch(100% 0 0);
   --border: oklch(30% 0 0);
-  --input: oklch(30% 0 0);
+  --input: oklch(40% 0 0);
   --ring: oklch(66% 0.12 262);
   --chart-1: oklch(62.2% 0.161 255.1);
   --chart-2: oklch(62.2% 0.173 40.1);

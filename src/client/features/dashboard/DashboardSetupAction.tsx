@@ -173,7 +173,7 @@ export function DashboardSetupAction({
           project. Use the project switcher in the sidebar → New project
           anytime.
         </p>
-        <Button size="sm" onClick={() => setShowModal(true)}>
+        <Button onClick={() => setShowModal(true)}>
           Create another project
         </Button>
         <Collapsible className="rounded-lg border border-border p-4">
@@ -211,9 +211,7 @@ export function DashboardSetupAction({
         Bring a teammate into your workspace to share projects, research, and
         results.
       </p>
-      <Button size="sm" onClick={() => setShowModal(true)}>
-        Invite a teammate
-      </Button>
+      <Button onClick={() => setShowModal(true)}>Invite a teammate</Button>
       {showModal && (
         <InviteTeammateModal
           onClose={() => setShowModal(false)}
@@ -298,6 +296,7 @@ function StepInputForm({
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
               aria-invalid={field.state.meta.errors.length > 0}
+              className="h-12 px-4 md:text-base"
             />
             {field.state.meta.errors.length > 0 && (
               <span className="text-xs text-destructive">
@@ -309,7 +308,7 @@ function StepInputForm({
       </form.Field>
       <form.Subscribe selector={(state) => state.canSubmit}>
         {(canSubmit) => (
-          <Button type="submit" size="sm" disabled={!canSubmit || pending}>
+          <Button type="submit" size="lg" disabled={!canSubmit || pending}>
             {submitLabel}
           </Button>
         )}

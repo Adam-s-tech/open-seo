@@ -38,13 +38,7 @@ export function SearchCard({
         <form noValidate className="space-y-3" onSubmit={onSubmit}>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             {children}
-            {/* 40px, the height of the fields in the row. */}
-            <Button
-              type="submit"
-              size="lg"
-              className="h-10 px-6"
-              pending={pending}
-            >
+            <Button type="submit" className="px-6" pending={pending}>
               Search
             </Button>
           </div>
@@ -66,7 +60,7 @@ export function SearchInput({
   ...props
 }: ComponentProps<typeof InputGroupInput>) {
   return (
-    <InputGroup className={cn("h-10 lg:min-w-0 lg:flex-1", className)}>
+    <InputGroup className={cn("lg:min-w-0 lg:flex-1", className)}>
       <InputGroupAddon>
         <Search />
       </InputGroupAddon>

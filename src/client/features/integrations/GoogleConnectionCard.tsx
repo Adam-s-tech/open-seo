@@ -34,9 +34,12 @@ export function GoogleConnectionCard({
   projectId,
   onDismiss,
   dismissing = false,
+  prominent,
 }: {
   provider: GoogleProvider;
   projectId: string;
+  /** Shows the connect button as a large primary call to action. */
+  prominent?: boolean;
   /** Adds a Dismiss button while the project is not connected. */
   onDismiss?: () => void;
   dismissing?: boolean;
@@ -233,6 +236,7 @@ export function GoogleConnectionCard({
           hasGrant={hasGrant}
           canManage={canManage}
           disabled={linking}
+          prominent={prominent}
           onLink={handleConnect}
           onChoose={startPicking}
         >
