@@ -125,6 +125,6 @@ describe("onboarding connection actions", () => {
     expect(html).toContain("Couldn&#x27;t check your Google connection.");
     expect(html).toContain("Try again");
     expect(html).not.toContain("Choose property");
-    expect(html).toMatch(/disabled="">Save and continue<\/button>/);
+    expect(html).toMatch(/disabled=""[^>]*>Save and continue/);
   });
 });

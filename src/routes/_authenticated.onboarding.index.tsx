@@ -1,7 +1,7 @@
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { OnboardingAccountMenu } from "@/client/features/onboarding/OnboardingAccountMenu";
+import { PlanPageAccountMenu } from "@/client/features/billing/PlanPageAccountMenu";
 import { PostSignupOnboarding } from "@/client/features/onboarding/PostSignupOnboarding";
 import {
   buildOnboardingPayload,
@@ -132,7 +132,7 @@ function OnboardingFlow({
       onSkip={handleSkip}
       onFinish={handleFinish}
       isSaving={saveMutation.isPending}
-      accountMenu={<OnboardingAccountMenu email={email} />}
+      accountMenu={<PlanPageAccountMenu email={email} />}
     />
   );
 }

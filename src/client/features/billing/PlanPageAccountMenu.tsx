@@ -1,53 +1,56 @@
 import { Link } from "@tanstack/react-router";
 import { Settings, User } from "lucide-react";
-import { ThemePreferenceMenuItems } from "@/client/components/ThemePreferenceMenuItems";
+import { ThemePreferenceDropdownItems } from "@/client/components/ThemePreferenceMenuItems";
+import { Button } from "@/client/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/client/components/ui/dropdown-menu";
 import { signOutAndRedirect } from "@/lib/auth-client";
 
-// Account dropdown for the standalone plan pages (/subscribe, /yc), which
-// render outside the app shell and so have no other way to sign out.
+// Shared account menu for onboarding and standalone plan pages.
 export function PlanPageAccountMenu({ email }: { email: string | undefined }) {
   if (!email) return null;
 
-  const handleSignOut = () => signOutAndRedirect();
-
   return (
-    <div className="fixed top-4 right-4">
-      <div className="dropdown dropdown-end">
-        <button
-          type="button"
-          tabIndex={0}
-          className="btn btn-ghost btn-circle"
-          aria-label="Open account menu"
+    <div className="fixed top-4 right-4 z-20">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Open account menu"
+            />
+          }
         >
-          <User className="h-5 w-5" />
-        </button>
-        <ul
-          tabIndex={0}
-          className="dropdown-content z-20 menu mt-3 min-w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
-        >
-          <li className="menu-title max-w-full">
-            <span className="truncate text-base-content" data-ph-mask>
+          <User className="size-5" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="truncate" data-ph-mask>
               {email}
-            </span>
-          </li>
-          <li>
-            <Link to="/settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </Link>
-          </li>
-          <ThemePreferenceMenuItems />
-          <li>
-            <button
-              type="button"
-              className="text-error"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </button>
-          </li>
-        </ul>
-      </div>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <DropdownMenuItem render={<Link to="/settings" />}>
+            <Settings className="size-4" /> Settings
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <ThemePreferenceDropdownItems />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOutAndRedirect()}
+          >
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

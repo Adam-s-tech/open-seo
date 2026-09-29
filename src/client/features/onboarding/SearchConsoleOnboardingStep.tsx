@@ -1,7 +1,7 @@
 import * as React from "react";
 import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { GoogleGlyph } from "@/client/features/gsc/GoogleGlyph";
 import { QueryError } from "@/client/components/QueryState";
 import { Spinner } from "@/client/components/Spinner";
@@ -19,6 +19,9 @@ import {
   useGoogleLinkPending,
 } from "@/client/features/integrations/startGoogleLink";
 import { captureClientEvent } from "@/client/lib/posthog";
+import { Button } from "@/client/components/ui/button";
+import { Spinner as SpinnerIcon } from "@/client/components/ui/spinner";
+import { WizardFooter } from "@/client/features/onboarding/WizardFooter";
 
 const GRANT_STATUS_KEY = ["gscGrantStatus"];
 
@@ -44,7 +47,7 @@ export function SearchConsoleOnboardingStep(props: NavigationProps) {
         <h1 className="text-2xl font-semibold tracking-tight">
           Connect Google Search Console now?
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-base-content/60">
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Bring your real clicks and queries into OpenSEO and your AI agent. You
           can also do this later from the dashboard.
         </p>
@@ -64,7 +67,12 @@ export function SearchConsoleOnboardingStep(props: NavigationProps) {
           ) : (
             <Spinner size="sm" label="Checking…" />
           )}
-          <StepNavigation {...props} />
+          <WizardFooter
+            onBack={props.onBack}
+            onSkip={props.onSkip}
+            skipLabel="Skip for now"
+            continueLabel="Save and continue"
+          />
         </>
       )}
     </div>
@@ -148,7 +156,7 @@ function GscConnect({
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
             <Check className="size-3.5" />
           </span>
-          <span className="text-base-content/80">
+          <span className="text-foreground/80">
             Connected to{" "}
             <span className="font-mono">{connection?.property}</span>.
           </span>
@@ -170,11 +178,11 @@ function GscConnect({
               }
               saveLabel="Save and continue"
               renderActions={(saveButton) => (
-                <StepNavigation
-                  onNext={onNext}
+                <WizardFooter
                   onBack={onBack}
                   onSkip={onSkip}
-                  saveAction={saveButton}
+                  skipLabel="Skip for now"
+                  continueAction={saveButton}
                 />
               )}
               saving={setSiteMutation.isPending}
@@ -182,72 +190,32 @@ function GscConnect({
               onReconnect={handleConnect}
             />
           ) : (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handleConnect}
               disabled={linking}
               aria-busy={linking}
-              className="inline-flex items-center gap-2.5 rounded-lg border border-base-300 bg-base-100 px-4 py-2.5 text-sm font-semibold text-base-content shadow-sm transition hover:bg-base-200 hover:shadow focus-visible:outline-2 focus-visible:outline-primary"
             >
               {linking ? (
-                <span className="loading loading-spinner loading-xs" />
+                <SpinnerIcon />
               ) : (
                 <GoogleGlyph className="size-[18px]" />
               )}
               {linking ? "Opening Google…" : "Connect with Google"}
-            </button>
+            </Button>
           )}
         </div>
       )}
       {!showPicker && (
-        <StepNavigation
-          connected={connected}
-          onNext={onNext}
+        <WizardFooter
           onBack={onBack}
-          onSkip={onSkip}
+          onSkip={connected ? undefined : onSkip}
+          skipLabel="Skip for now"
+          onContinue={connected ? onNext : undefined}
+          continueLabel={connected ? "Continue" : "Save and continue"}
         />
       )}
     </fieldset>
-  );
-}
-
-function StepNavigation({
-  connected = false,
-  onNext,
-  onBack,
-  onSkip,
-  saveAction,
-}: NavigationProps & { connected?: boolean; saveAction?: React.ReactNode }) {
-  return (
-    <div className="mt-8 flex items-center justify-between gap-3">
-      <button
-        type="button"
-        className="flex min-h-10 items-center gap-1.5 text-xs text-base-content/60 hover:text-base-content"
-        onClick={onBack}
-      >
-        <ArrowLeft className="size-3.5" /> Back
-      </button>
-      <div className="flex items-center gap-2">
-        {connected ? (
-          <button type="button" className="btn btn-primary" onClick={onNext}>
-            Continue <ArrowRight className="size-4" />
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm text-base-content/55"
-            onClick={onSkip}
-          >
-            Skip for now
-          </button>
-        )}
-        {!connected &&
-          (saveAction ?? (
-            <button type="button" className="btn btn-primary btn-sm" disabled>
-              Save and continue
-            </button>
-          ))}
-      </div>
-    </div>
   );
 }

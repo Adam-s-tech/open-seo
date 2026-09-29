@@ -1,5 +1,5 @@
 import { OnboardingCard } from "./OnboardingCard";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 import { Fragment } from "react";
 import {
@@ -14,6 +14,9 @@ import {
 } from "@/client/features/onboarding/onboardingModel";
 import { AgentSetup } from "@/client/features/ai-mcp/AgentSetup";
 import { SearchConsoleOnboardingStep } from "@/client/features/onboarding/SearchConsoleOnboardingStep";
+import { WizardFooter } from "@/client/features/onboarding/WizardFooter";
+import { Input } from "@/client/components/ui/input";
+import { Toggle } from "@/client/components/ui/toggle";
 
 type PostSignupOnboardingProps = {
   step: number;
@@ -116,44 +119,12 @@ export function PostSignupOnboarding({
           )}
 
           {step < 3 && (
-            <div className="mt-8 flex items-center justify-between gap-3">
-              {step > 0 ? (
-                <button
-                  type="button"
-                  className="flex min-h-10 items-center gap-1.5 text-xs text-base-content/60 hover:text-base-content"
-                  onClick={onBack}
-                >
-                  <ArrowLeft className="size-3.5" /> Back
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={onSkip}
-                >
-                  Skip
-                </button>
-              )}
-              <div className="flex items-center gap-2">
-                {step > 0 && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm text-base-content/55"
-                    onClick={onSkip}
-                  >
-                    Skip
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={!canContinue || isSaving}
-                  onClick={onNext}
-                >
-                  Continue <ArrowRight className="size-4" />
-                </button>
-              </div>
-            </div>
+            <WizardFooter
+              onBack={step > 0 ? onBack : undefined}
+              onSkip={onSkip}
+              onContinue={onNext}
+              continueDisabled={!canContinue || isSaving}
+            />
           )}
         </fieldset>
       </OnboardingCard>
@@ -194,7 +165,7 @@ function OnboardingChoiceGroup({
       <div className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         {description ? (
-          <p className="mt-3 text-sm leading-relaxed text-base-content/60">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         ) : null}
@@ -207,22 +178,22 @@ function OnboardingChoiceGroup({
 
           return (
             <Fragment key={option}>
-              <button
-                type="button"
-                className={`flex min-h-11 items-center gap-3 rounded-full border px-4 py-2.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-primary ${selected ? "border-primary bg-primary/5 text-primary" : "border-base-300 hover:bg-base-200"} disabled:cursor-not-allowed disabled:opacity-35`}
-                aria-pressed={selected}
+              <Toggle
+                variant="outline"
+                pressed={selected}
+                className={`min-h-11 gap-3 rounded-full px-4 py-2.5 text-left ${selected ? "border-primary bg-primary/5 text-primary" : "border-border"}`}
                 disabled={disabled}
-                onClick={() => onToggle(option)}
+                onPressedChange={() => onToggle(option)}
               >
                 <span
-                  className={`flex size-4 shrink-0 items-center justify-center border ${multiple ? "rounded" : "rounded-full"} ${selected ? "border-primary bg-primary text-primary-content" : "border-base-content/30"}`}
+                  className={`flex size-4 shrink-0 items-center justify-center border ${multiple ? "rounded" : "rounded-full"} ${selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}
                 >
                   {selected && <Check className="size-3" />}
                 </span>
                 <span className="capitalize">
                   {ONBOARDING_OPTION_LABELS[option] ?? option}
                 </span>
-              </button>
+              </Toggle>
 
               {selected && option === CLIENT_WORK_FOR ? followUp : null}
             </Fragment>
@@ -231,9 +202,9 @@ function OnboardingChoiceGroup({
       </div>
 
       {isOtherSelected ? (
-        <input
+        <Input
           type="text"
-          className="input input-bordered mt-4 w-full"
+          className="mt-4"
           aria-label={multiple ? "Other tasks" : "Other answer"}
           placeholder={multiple ? "Tell us what else..." : "Tell us more..."}
           value={otherValue}
@@ -252,8 +223,8 @@ function ClientWebsiteCountPicker({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="w-full rounded-lg border border-base-300 bg-base-200/40 p-4">
-      <p className="text-sm text-base-content/70">
+    <div className="w-full rounded-lg border border-border bg-muted/40 p-4">
+      <p className="text-sm text-muted-foreground">
         About how many client sites do you work on?
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -261,19 +232,15 @@ function ClientWebsiteCountPicker({
           const selected = value === option;
 
           return (
-            <button
+            <Toggle
               key={option}
-              type="button"
-              className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-                selected
-                  ? "border-base-content bg-base-200 text-base-content"
-                  : "border-base-300 text-base-content/75 hover:border-base-content/40 hover:bg-base-200/60"
-              }`}
-              aria-pressed={selected}
-              onClick={() => onChange(selected ? "" : option)}
+              variant="outline"
+              pressed={selected}
+              className="rounded-md"
+              onPressedChange={() => onChange(selected ? "" : option)}
             >
               {option}
-            </button>
+            </Toggle>
           );
         })}
       </div>

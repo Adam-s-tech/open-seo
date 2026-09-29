@@ -2,6 +2,9 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
+import { Skeleton } from "@/client/components/ui/skeleton";
+import { QueryError } from "@/client/components/QueryState";
 import { CardShell } from "@/client/components/CardShell";
 import { PermissionHint } from "@/client/components/PermissionHint";
 import { GoogleConnectedState } from "@/client/features/integrations/GoogleConnectedState";
@@ -126,14 +129,15 @@ export function GoogleConnectionCard({
   const changingConnection =
     setPropertyMutation.isPending || disconnectMutation.isPending || linking;
   const dismissButton = onDismiss ? (
-    <button
+    <Button
       type="button"
-      className="btn btn-ghost btn-sm text-base-content/60"
+      variant="ghost"
+      size="sm"
       onClick={onDismiss}
       disabled={dismissing || changingConnection}
     >
       Dismiss
-    </button>
+    </Button>
   ) : null;
   const handleConnect = () => void linkAccount(window.location.href);
   const startPicking = () => {
@@ -161,24 +165,18 @@ export function GoogleConnectionCard({
         <div
           role="status"
           aria-label="Loading connection"
-          className="space-y-3 animate-pulse"
+          className="space-y-3"
         >
-          <div className="h-4 w-2/3 rounded bg-base-200" />
-          <div className="h-9 w-24 rounded bg-base-200" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-9 w-24" />
         </div>
       ) : connectionUnavailable ? (
-        <div role="alert" className="space-y-3 text-sm">
-          <p className="text-error">
-            Couldn't check this project's connection.
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => void connectionQuery.refetch()}
-          >
-            Try again
-          </button>
-        </div>
+        <QueryError
+          error={connectionQuery.error}
+          fallback="Couldn't check this project's connection."
+          onRetry={() => void connectionQuery.refetch()}
+          isRetrying={connectionQuery.isFetching}
+        />
       ) : needsGoogleOAuthSetup ? (
         <div className="space-y-3">
           <GoogleOAuthSetupWarning
@@ -242,7 +240,7 @@ export function GoogleConnectionCard({
         </GoogleProjectEmptyState>
       )}
       {setPropertyMutation.isError || disconnectMutation.isError ? (
-        <p role="alert" className="mt-3 text-sm text-error">
+        <p role="alert" className="mt-3 text-sm text-destructive">
           {getStandardErrorMessage(
             setPropertyMutation.error ?? disconnectMutation.error,
           )}

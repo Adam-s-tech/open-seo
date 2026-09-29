@@ -19,6 +19,7 @@ import { normalizeAuthRedirect } from "@/lib/auth-redirect";
 import { useCanManageBilling } from "@/client/features/team/organizationQueries";
 import { AUTUMN_MANAGED_ACCESS_FEATURE_ID } from "@/shared/billing";
 import { SUPPORT_EMAIL } from "@/client/lib/support";
+import { Button } from "@/client/components/ui/button";
 
 const PLAN_FEATURES = [
   "Keyword research, backlinks, rank tracking, and site audits",
@@ -199,7 +200,7 @@ function SubscribePage() {
     <div className="w-full max-w-sm space-y-6">
       <PlanPageAccountMenu email={session?.user?.email} />
 
-      <div className="text-center space-y-3">
+      <div className="space-y-3 text-center">
         <img
           src="/transparent-logo.png"
           alt="OpenSEO"
@@ -212,7 +213,7 @@ function SubscribePage() {
               ? `Welcome to OpenSEO, ${firstName}!`
               : "Welcome to OpenSEO!"}
         </h1>
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           SEO on your terms. All your SEO tools in one place at a fair price.
         </p>
       </div>
@@ -224,7 +225,7 @@ function SubscribePage() {
           /* Sub-bullet of the Usage Credits line above. */
           <li className="-mt-1 pl-6 text-xs">
             <a
-              className="text-base-content/60 underline decoration-base-content/40 decoration-dotted underline-offset-4 transition-colors hover:text-base-content"
+              className="text-muted-foreground underline decoration-muted-foreground/40 decoration-dotted underline-offset-4 transition-colors hover:text-foreground"
               href="https://openseo.so/pricing"
               target="_blank"
               rel="noreferrer"
@@ -238,18 +239,23 @@ function SubscribePage() {
           </li>
         }
       >
-        {error ? <p className="text-sm text-error">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
 
         {canManageBilling ? (
-          <button
-            className="btn btn-soft w-full"
-            disabled={isAttaching}
+          <Button
+            className="w-full"
+            variant="secondary"
+            pending={isAttaching}
             onClick={() => void handleSubscribe()}
           >
             {isAttaching ? "Redirecting..." : "Subscribe"}
-          </button>
+          </Button>
         ) : (
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm text-muted-foreground">
             Only the organization owner can subscribe. Ask them to upgrade this
             organization.
           </p>
@@ -257,7 +263,7 @@ function SubscribePage() {
       </PlanOfferCard>
 
       <div className="text-center space-y-2">
-        <p className="text-sm text-base-content/60">
+        <p className="text-sm text-muted-foreground">
           Questions? Email{" "}
           <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
             {SUPPORT_EMAIL}
@@ -265,14 +271,14 @@ function SubscribePage() {
           .
         </p>
         {isUpgradeFlow ? (
-          <button
+          <Button
             type="button"
-            className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-base-content/70 hover:text-base-content transition-colors"
+            variant="ghost"
             onClick={() => void navigate({ to: "/", replace: true })}
           >
             <ArrowRight className="size-3.5 rotate-180" />
             Back to app
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>
