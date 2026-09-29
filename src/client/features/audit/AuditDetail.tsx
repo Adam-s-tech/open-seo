@@ -1,7 +1,22 @@
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
+import { Badge } from "@/client/components/ui/badge";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/client/components/ui/card";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/client/components/ui/progress";
+import { Spinner } from "@/client/components/ui/spinner";
 import {
   getAuditResults,
   getAuditStatus,
@@ -267,62 +282,52 @@ function ProgressCard({
 
   return (
     <div className="space-y-3">
-      <div className="card bg-base-100 border border-base-300">
-        <div className="card-body gap-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium flex items-center gap-2">
-              <Loader2 className="size-4 animate-spin text-primary" />
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-medium">
+            <Spinner className="text-primary" aria-hidden />
+            {isLighthousePhase ? "Running Lighthouse checks" : "Crawling pages"}
+          </CardTitle>
+          <CardAction>
+            <Badge variant="secondary">{phaseLabel}</Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <Progress value={progress}>
+            <ProgressLabel className="font-normal">
               {isLighthousePhase
-                ? "Running Lighthouse checks"
-                : "Crawling pages"}
-            </h2>
-            <span className="badge badge-ghost badge-sm">{phaseLabel}</span>
-          </div>
-
-          <progress
-            className="progress progress-primary w-full"
-            value={progress}
-            max={100}
-          />
-
-          <div className="flex items-center justify-between text-sm">
-            {isLighthousePhase ? (
-              <span>
-                {lighthouseDone} / {status.lighthouseTotal} checks
-                {status.lighthouseFailed > 0
-                  ? ` (${status.lighthouseFailed} failed)`
-                  : ""}
-              </span>
-            ) : (
-              <span>
-                {status.pagesCrawled} / {status.pagesTotal} pages
-              </span>
-            )}
-            <span className="text-base-content/60">{progress}%</span>
-          </div>
-        </div>
-      </div>
+                ? `${lighthouseDone} / ${status.lighthouseTotal} checks${
+                    status.lighthouseFailed > 0
+                      ? ` (${status.lighthouseFailed} failed)`
+                      : ""
+                  }`
+                : `${status.pagesCrawled} / ${status.pagesTotal} pages`}
+            </ProgressLabel>
+            <ProgressValue />
+          </Progress>
+        </CardContent>
+      </Card>
 
       {crawledUrls.length > 0 && (
-        <div className="card bg-base-100 border border-base-300">
-          <div className="card-body gap-2 p-4">
-            <h3 className="text-sm font-medium text-base-content/70">
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle className="font-medium text-muted-foreground">
               Crawled Pages ({crawledUrls.length})
-            </h3>
-            <p className="text-xs text-base-content/50">
+            </CardTitle>
+            <CardDescription className="text-xs">
               Updated {new Date(crawledUrls[0].crawledAt).toLocaleTimeString()}
-            </p>
-            <div className="max-h-[400px] overflow-y-auto -mx-1">
-              {crawledUrls.map((entry, i) => (
-                <ProgressRow
-                  key={`${entry.url}-${entry.crawledAt}`}
-                  entry={entry}
-                  index={i}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="max-h-[400px] overflow-y-auto">
+            {crawledUrls.map((entry, i) => (
+              <ProgressRow
+                key={`${entry.url}-${entry.crawledAt}`}
+                entry={entry}
+                index={i}
+              />
+            ))}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

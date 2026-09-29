@@ -1,0 +1,76 @@
+import type { ComponentProps, FormEvent, ReactNode } from "react";
+import { Search } from "lucide-react";
+import { cn } from "cn";
+import { Button } from "@/client/components/ui/button";
+import { Card, CardContent } from "@/client/components/ui/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/client/components/ui/input-group";
+
+/**
+ * The search form at the top of a research page: the fields in one row, the
+ * submit button at the end, the validation error below.
+ */
+export function SearchCard({
+  onSubmit,
+  pending = false,
+  error,
+  errorId,
+  children,
+}: {
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  /** Shows a spinner in the submit button while the search runs. */
+  pending?: boolean;
+  error?: string | null;
+  /** Point the invalid field's `aria-describedby` at this id. */
+  errorId?: string;
+  /** The fields, laid out in one row on wide screens. */
+  children: ReactNode;
+}) {
+  return (
+    // ResearchScopeSelect opens an absolute menu below the row, so the card
+    // must not clip it.
+    <Card className="overflow-visible">
+      <CardContent className="space-y-3">
+        <form
+          noValidate
+          className="flex flex-col gap-3 lg:flex-row lg:items-center"
+          onSubmit={onSubmit}
+        >
+          {children}
+          {/* 40px, to match the DaisyUI selects that still sit in the row. */}
+          <Button
+            type="submit"
+            size="lg"
+            className="h-10 px-6"
+            pending={pending}
+          >
+            Search
+          </Button>
+        </form>
+        {error ? (
+          <p id={errorId} role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The text input with a search icon that leads a SearchCard row. */
+export function SearchInput({
+  className,
+  ...props
+}: ComponentProps<typeof InputGroupInput>) {
+  return (
+    <InputGroup className={cn("h-10 lg:min-w-0 lg:flex-1", className)}>
+      <InputGroupAddon>
+        <Search />
+      </InputGroupAddon>
+      <InputGroupInput {...props} />
+    </InputGroup>
+  );
+}

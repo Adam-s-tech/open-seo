@@ -3,7 +3,7 @@ import { useCustomer } from "autumn-js/react";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { QueryError } from "@/client/components/QueryState";
-import { Spinner } from "@/client/components/Spinner";
+import { StatusScreen } from "@/client/components/StatusScreen";
 import { PlanPageAccountMenu } from "@/client/features/billing/PlanPageAccountMenu";
 import { PlanOfferCard } from "@/client/features/billing/PlanOfferCard";
 import {
@@ -128,54 +128,43 @@ function SubscribePage() {
     subscribeRouteState === "loading" ||
     subscribeRouteState === "redirectToApp"
   ) {
-    return <Spinner />;
+    return <StatusScreen pending />;
   }
 
   if (subscribeRouteState === "finalizing") {
     return (
-      <div className="w-full max-w-xs space-y-4 text-center">
-        <img
-          src="/transparent-logo.png"
-          alt="OpenSEO"
-          className="mx-auto size-10 rounded-lg"
-        />
-        <h1 className="text-xl font-semibold">
-          Finalizing your subscription&hellip;
-        </h1>
-        <Spinner />
-        <p className="text-sm text-base-content/60">
-          This usually takes a few seconds.
-        </p>
-        <p className="text-xs text-base-content/50">
-          Taking longer?{" "}
-          <a className="link" href={`mailto:${SUPPORT_EMAIL}`}>
-            Email {SUPPORT_EMAIL}
-          </a>
-          .
-        </p>
-      </div>
+      <StatusScreen
+        logo
+        size="sm"
+        title="Finalizing your subscription…"
+        pending
+        description="This usually takes a few seconds."
+        footer={
+          <>
+            Taking longer?{" "}
+            <a
+              className="underline underline-offset-2 hover:text-foreground"
+              href={`mailto:${SUPPORT_EMAIL}`}
+            >
+              Email {SUPPORT_EMAIL}
+            </a>
+            .
+          </>
+        }
+      />
     );
   }
 
   if (subscribeRouteState === "error") {
     return (
-      <div className="w-full max-w-xs space-y-4">
-        <div className="text-center space-y-3">
-          <img
-            src="/transparent-logo.png"
-            alt="OpenSEO"
-            className="mx-auto size-10 rounded-lg"
-          />
-          <h1 className="text-xl font-semibold">Billing unavailable</h1>
-        </div>
-
+      <StatusScreen logo title="Billing unavailable" size="sm">
         <QueryError
           error={customerQuery.error}
           fallback="We couldn't verify your billing status right now. Please try again."
           onRetry={() => void customerQuery.refetch()}
           isRetrying={customerQuery.isFetching}
         />
-      </div>
+      </StatusScreen>
     );
   }
 

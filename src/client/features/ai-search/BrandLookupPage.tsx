@@ -15,6 +15,7 @@ import {
 } from "@/client/components/RecentSearches";
 import { AiSearchLoadingState } from "@/client/features/ai-search/components/AiSearchLoadingState";
 import { AiSearchPaidPlanGate } from "@/client/features/ai-search/components/AiSearchPaidPlanGate";
+import { Badge } from "@/client/components/ui/badge";
 import { useBrandLookupSearchHistory } from "@/client/hooks/useBrandLookupSearchHistory";
 import {
   BRAND_LOOKUP_MAX_INPUT_LENGTH,
@@ -331,9 +332,9 @@ export function BrandLookupPage({
                     {/* Only non-default scopes are stored, so this badge always
                         adds information the query string doesn't carry. */}
                     {item.scope ? (
-                      <span className="badge badge-ghost badge-sm ml-2">
+                      <Badge variant="secondary" className="ml-2">
                         {RESEARCH_SCOPE_LABELS[item.scope]}
-                      </span>
+                      </Badge>
                     ) : null}
                   </>
                 )}

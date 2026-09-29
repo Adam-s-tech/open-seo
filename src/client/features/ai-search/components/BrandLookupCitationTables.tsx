@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { createColumnHelper, type Table } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, Sparkles } from "lucide-react";
 import { AppDataTable } from "@/client/components/table/AppDataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HelpLabel } from "@/client/components/HelpLabel";
+import { ExpandableList } from "@/client/components/ExpandableList";
 import { numericNullsLast } from "@/client/components/table/nullSafeSort";
 import {
   formatCount,
@@ -130,50 +130,36 @@ function KeywordsCell({
   projectId: string;
   brand: string;
 }) {
-  const [expanded, setExpanded] = useState(false);
-
   if (keywords.length === 0) {
-    return <span className="text-base-content/40">—</span>;
+    return <span className="text-muted-foreground">—</span>;
   }
 
-  const visible = expanded ? keywords : keywords.slice(0, 3);
-  const remaining = keywords.length - visible.length;
-
   return (
-    <div className="space-y-1">
-      <ul className="space-y-0.5">
-        {visible.map((keyword) => (
-          <li key={keyword.question}>
-            <Link
-              to="/p/$projectId/prompt-explorer"
-              params={{ projectId }}
-              search={{ q: keyword.question, hb: brand || undefined }}
-              className="group/kw inline-flex items-baseline gap-2 text-xs"
-              title="Run this prompt in Prompt Explorer"
+    <ExpandableList
+      items={keywords}
+      className="space-y-0.5"
+      renderItem={(keyword) => (
+        <li key={keyword.question}>
+          <Link
+            to="/p/$projectId/prompt-explorer"
+            params={{ projectId }}
+            search={{ q: keyword.question, hb: brand || undefined }}
+            className="group/kw inline-flex items-baseline gap-2 text-xs"
+            title="Run this prompt in Prompt Explorer"
+          >
+            <span className="text-foreground/80 group-hover/kw:underline">
+              {keyword.question}
+            </span>
+            <span
+              className="shrink-0 text-muted-foreground tabular-nums"
+              title="Prompt volume in the fetched sample"
             >
-              <span className="text-base-content/80 group-hover/kw:underline">
-                {keyword.question}
-              </span>
-              <span
-                className="shrink-0 tabular-nums text-base-content/40"
-                title="Prompt volume in the fetched sample"
-              >
-                {formatCount(keyword.aiSearchVolume)} vol.
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {keywords.length > 3 ? (
-        <button
-          type="button"
-          onClick={() => setExpanded((current) => !current)}
-          className="text-xs text-base-content/50 hover:text-base-content"
-        >
-          {expanded ? "Show less" : `+${remaining} more`}
-        </button>
-      ) : null}
-    </div>
+              {formatCount(keyword.aiSearchVolume)} vol.
+            </span>
+          </Link>
+        </li>
+      )}
+    />
   );
 }
 

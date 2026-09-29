@@ -9,7 +9,7 @@ import {
 import { getErrorCode } from "@/client/lib/error-messages";
 import { AuthErrorCard } from "@/client/components/AuthErrorCard";
 import { QueryError } from "@/client/components/QueryState";
-import { Spinner } from "@/client/components/Spinner";
+import { StatusScreen } from "@/client/components/StatusScreen";
 import { SUBSCRIBE_ROUTE } from "@/shared/billing";
 
 export const Route = createFileRoute("/_app/")({
@@ -56,13 +56,10 @@ function IndexRedirect() {
 
     if (errorCode === "PAYMENT_REQUIRED") {
       return (
-        <div className="flex items-center justify-center h-full p-4">
-          <div className="flex flex-col items-center gap-3 max-w-xl text-center">
-            <p className="text-base-content/80">
-              Redirecting you to billing so you can start a hosted subscription.
-            </p>
-          </div>
-        </div>
+        <StatusScreen
+          pending
+          description="Redirecting you to billing so you can start a hosted subscription."
+        />
       );
     }
 
@@ -71,24 +68,18 @@ function IndexRedirect() {
         error={error}
         onRetry={() => void refetch()}
         fallback={
-          <div className="flex items-center justify-center h-full p-4">
-            <div className="w-full max-w-xl">
-              <QueryError
-                error={error}
-                fallback="An unexpected error occurred. Please check server logs."
-                onRetry={() => void refetch()}
-                isRetrying={isFetching}
-              />
-            </div>
-          </div>
+          <StatusScreen>
+            <QueryError
+              error={error}
+              fallback="An unexpected error occurred. Please check server logs."
+              onRetry={() => void refetch()}
+              isRetrying={isFetching}
+            />
+          </StatusScreen>
         }
       />
     );
   }
 
-  return (
-    <div className="flex items-center justify-center h-full">
-      <Spinner />
-    </div>
-  );
+  return <StatusScreen pending />;
 }

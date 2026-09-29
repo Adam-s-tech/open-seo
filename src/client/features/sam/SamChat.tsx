@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Brain } from "lucide-react";
 import { QueryError } from "@/client/components/QueryState";
-import { Spinner } from "@/client/components/Spinner";
+import { StatusScreen } from "@/client/components/StatusScreen";
+import { Button } from "@/client/components/ui/button";
 import { useSamAccess } from "./useSamAccess";
 import { useSamSessions } from "./useSamSessions";
 import { optInToSamBeta, useSamBetaOptIn } from "./samBetaOptIn";
@@ -92,27 +93,27 @@ export function SamChat({
   }, [isMissing, recheckedSessionId, activeSessionId, refetchSessions]);
 
   if (!optedIn) {
-    return <SamBetaGate onContinue={optInToSamBeta} />;
+    return (
+      <StatusScreen>
+        <SamBetaGate onContinue={optInToSamBeta} />
+      </StatusScreen>
+    );
   }
 
   if (access.status === "checking") {
-    return (
-      <div className="flex h-full items-center justify-center p-4">
-        <Spinner />
-      </div>
-    );
+    return <StatusScreen pending />;
   }
 
   if (access.status === "error") {
     return (
-      <div className="flex h-full items-center justify-center p-4">
+      <StatusScreen>
         <QueryError
           error={access.error}
           fallback="Could not load AI agent setup status."
           onRetry={access.onRetry}
           isRetrying={access.isRetrying}
         />
-      </div>
+      </StatusScreen>
     );
   }
 
@@ -120,15 +121,13 @@ export function SamChat({
   // instructions instead of letting a chat fail mid-stream (self-hosted only).
   if (access.status === "setup") {
     return (
-      <div className="overflow-auto px-4 py-4 md:px-6 md:py-6">
-        <div className="mx-auto max-w-3xl">
-          <SamSetupGate
-            errorMessage={access.errorMessage}
-            isRefetching={access.isRefetching}
-            onRetry={access.onRetry}
-          />
-        </div>
-      </div>
+      <StatusScreen size="lg">
+        <SamSetupGate
+          errorMessage={access.errorMessage}
+          isRefetching={access.isRefetching}
+          onRetry={access.onRetry}
+        />
+      </StatusScreen>
     );
   }
 
@@ -137,7 +136,7 @@ export function SamChat({
     // redirects into it. Either request can fail, and neither retries itself.
     const loadFailed = sessionsQuery.isError && !sessionsQuery.data;
     return (
-      <div className="flex h-full items-center justify-center p-4">
+      <StatusScreen pending={!loadFailed && !createError}>
         {loadFailed ? (
           <QueryError
             error={sessionsQuery.error}
@@ -151,10 +150,8 @@ export function SamChat({
             fallback="Failed to start a new chat."
             onRetry={startChat}
           />
-        ) : (
-          <Spinner />
-        )}
-      </div>
+        ) : null}
+      </StatusScreen>
     );
   }
 
@@ -165,36 +162,23 @@ export function SamChat({
       sessionsQuery.data !== undefined &&
       recheckedSessionId === activeSessionId;
     if (sessionsQuery.isFetching || (!confirmed && !sessionsQuery.isError)) {
-      return (
-        <div className="flex h-full items-center justify-center p-4">
-          <Spinner />
-        </div>
-      );
+      return <StatusScreen pending />;
     }
     if (sessionsQuery.isError) {
       return (
-        <div className="flex h-full items-center justify-center p-4">
+        <StatusScreen>
           <QueryError
             error={sessionsQuery.error}
             fallback="Failed to load your chats."
             onRetry={() => void refetchSessions()}
           />
-        </div>
+        </StatusScreen>
       );
     }
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center">
-        <p className="text-sm text-base-content/70">
-          This chat was archived or does not exist.
-        </p>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => goToSession()}
-        >
-          Go to your latest chat
-        </button>
-      </div>
+      <StatusScreen description="This chat was archived or does not exist.">
+        <Button onClick={() => goToSession()}>Go to your latest chat</Button>
+      </StatusScreen>
     );
   }
 
@@ -220,13 +204,7 @@ export function SamChat({
             boundary keeps that suspension inside the chat panel instead of
             letting it bubble up and swap out the whole shell — which read as
             a full page refresh on every session switch. */}
-        <Suspense
-          fallback={
-            <div className="flex flex-1 items-center justify-center">
-              <Spinner />
-            </div>
-          }
-        >
+        <Suspense fallback={<StatusScreen pending />}>
           <SamConversation
             key={activeSessionId}
             projectId={projectId}

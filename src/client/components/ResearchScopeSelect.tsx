@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import {
   RESEARCH_SCOPES,
   RESEARCH_SCOPE_DESCRIPTIONS,
@@ -103,7 +103,6 @@ export function ResearchScopeSelect({
         onKeyDown={handleKeyDown}
       >
         <span className="truncate">{RESEARCH_SCOPE_LABELS[value]}</span>
-        <ChevronDown className="size-4 shrink-0 text-base-content/60" />
       </button>
 
       {open ? (

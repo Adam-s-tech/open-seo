@@ -1,6 +1,7 @@
 import { CalendarDays, Loader2, SlidersHorizontal, Table } from "lucide-react";
 import { SegmentedToggle } from "@/client/components/SegmentedToggle";
 import { ExportMenu } from "@/client/components/ExportMenu";
+import { Progress } from "@/client/components/ui/progress";
 import { MoreMenu } from "./ToolbarMenus";
 
 export function RankTrackingTableToolbar({
@@ -91,8 +92,9 @@ export function RankTrackingTableToolbar({
             {latestRun.keywordsChecked}/{latestRun.keywordsTotal || "?"}
           </span>
           {latestRun.keywordsTotal > 0 && (
-            <progress
-              className="progress progress-primary w-24"
+            <Progress
+              className="w-24"
+              aria-label="Rank check progress"
               value={latestRun.keywordsChecked}
               max={latestRun.keywordsTotal}
             />

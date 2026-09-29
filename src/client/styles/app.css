@@ -285,6 +285,22 @@ select:not([data-slot]) {
   }
 }
 
+/* DaisyUI draws a small triangle caret on .select. Draw the chevron that the
+   shadcn Select uses instead, in the same place: 16px, 8px from the right
+   edge, in the muted text color. A native select cannot hold an icon, so the
+   chevron is a background image. */
+.select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23161616' stroke-opacity='.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  padding-inline-end: 2rem;
+}
+
+html[data-theme="openseo-dark"] .select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e5e5e5' stroke-opacity='.6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
 /* Dark mode: neutral interactive surfaces should lift above the panel, not
    sink below it. DaisyUI derives default buttons and the tabs-box well from
    base-200, which is darker than the base-100 content panel in dark mode,

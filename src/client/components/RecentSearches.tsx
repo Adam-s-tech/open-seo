@@ -1,5 +1,8 @@
-import type { ComponentType, ReactNode } from "react";
-import { ArrowLeft, Clock, History, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { ArrowLeft, Clock, History, X, type LucideIcon } from "lucide-react";
+import { EmptyState } from "@/client/components/EmptyState";
+import { Button, buttonVariants } from "@/client/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/client/components/ui/card";
 
 // Props for the caller's clickable element. Spread them onto a <Link> so
 // cmd+click and "open in new tab" work, or onto a <button> for in-page state.
@@ -12,7 +15,7 @@ type Props<TItem extends { timestamp: number }> = {
   renderLink: (item: TItem, props: ClickableProps) => ReactNode;
   getTitle: (item: TItem) => ReactNode;
   getSubtitle: (item: TItem) => ReactNode;
-  emptyIcon: ComponentType<{ className?: string }>;
+  emptyIcon: LucideIcon;
   emptyTitle: string;
   emptyDescription?: string;
 };
@@ -24,7 +27,7 @@ export function RecentSearches<TItem extends { timestamp: number }>({
   renderLink,
   getTitle,
   getSubtitle,
-  emptyIcon: EmptyIcon,
+  emptyIcon,
   emptyTitle,
   emptyDescription,
 }: Props<TItem>) {
@@ -34,72 +37,70 @@ export function RecentSearches<TItem extends { timestamp: number }>({
 
   if (items.length === 0) {
     return (
-      <section className="rounded-2xl border border-dashed border-base-300 bg-base-100/70 p-6 text-center text-base-content/55 space-y-2">
-        <EmptyIcon className="size-9 mx-auto opacity-35" />
-        <p className="text-base font-medium text-base-content/80">
-          {emptyTitle}
-        </p>
-        {emptyDescription ? (
-          <p className="text-sm max-w-md mx-auto">{emptyDescription}</p>
-        ) : null}
-      </section>
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+      />
     );
   }
 
   return (
-    <section className="rounded-2xl border border-base-300 bg-base-100 p-5 md:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="size-4 text-base-content/45" />
-        <span className="text-sm text-base-content/60">
-          {items.length} recent search{items.length !== 1 ? "es" : ""}
-        </span>
-      </div>
+    <Card size="lg">
+      <CardHeader className="flex items-center gap-2 text-muted-foreground">
+        <History className="size-4" aria-hidden />
+        {items.length} recent search{items.length !== 1 ? "es" : ""}
+      </CardHeader>
 
-      <div className="grid gap-2">
-        {items.map((item) => (
-          <div
-            key={item.timestamp}
-            className="group flex min-w-0 items-center gap-2 rounded-lg border border-base-300 bg-base-100 p-2"
-          >
-            {renderLink(item, {
-              className:
-                "flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1 text-left transition-colors hover:bg-base-200",
-              children: (
-                <>
-                  <Clock className="size-4 text-base-content/40 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="font-medium text-base-content truncate">
-                      {getTitle(item)}
-                    </p>
-                    {getSubtitle(item) ? (
-                      <p className="text-sm text-base-content/60 truncate">
-                        {getSubtitle(item)}
-                      </p>
-                    ) : null}
-                  </div>
-                </>
-              ),
-            })}
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-base-content/40">
-                {new Date(item.timestamp).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-              <button
-                type="button"
-                className="btn btn-ghost btn-xs p-1 reveal-on-hover"
-                onClick={() => onRemove(item.timestamp)}
-                aria-label="Remove from recent searches"
-              >
-                <X className="size-3" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
+      <CardContent>
+        <ul className="grid gap-2">
+          {items.map((item) => (
+            <li
+              key={item.timestamp}
+              className="group flex min-w-0 items-center gap-2 rounded-lg border border-border p-2"
+            >
+              {renderLink(item, {
+                className:
+                  "flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1 text-left transition-colors outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50",
+                children: (
+                  <>
+                    <Clock
+                      className="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{getTitle(item)}</p>
+                      {getSubtitle(item) ? (
+                        <p className="truncate text-muted-foreground">
+                          {getSubtitle(item)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </>
+                ),
+              })}
+              <div className="flex shrink-0 items-center gap-1">
+                <span className="text-xs text-muted-foreground">
+                  {new Date(item.timestamp).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="reveal-on-hover"
+                  onClick={() => onRemove(item.timestamp)}
+                  aria-label="Remove from recent searches"
+                >
+                  <X />
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -112,11 +113,14 @@ export function RecentSearchesBackLink({
   return (
     <div>
       {render({
-        className:
-          "btn btn-ghost btn-sm gap-2 px-0 text-base-content/70 hover:bg-transparent",
+        className: buttonVariants({
+          variant: "ghost",
+          size: "sm",
+          className: "-ml-2.5 text-muted-foreground",
+        }),
         children: (
           <>
-            <ArrowLeft className="size-4" />
+            <ArrowLeft />
             Recent searches
           </>
         ),
