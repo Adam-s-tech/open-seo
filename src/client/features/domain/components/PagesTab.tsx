@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { Copy, Download, FileSpreadsheet, Sheet } from "lucide-react";
 import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
 import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainFilterPanel } from "@/client/features/domain/components/DomainFilterPanel";
 import { DomainPagesTable } from "@/client/features/domain/components/DomainPagesTable";
-import { DomainTableTabSurface } from "@/client/features/domain/components/DomainTableTabSurface";
+import { DomainTableToolbar } from "@/client/features/domain/components/DomainTableToolbar";
 import {
   PAGE_FILTER_FIELDS,
   buildPagesClearSearchUpdate,
@@ -126,8 +125,7 @@ export function PagesTab({
   const rows = query.data?.pages ?? EMPTY_PAGES_ROWS;
   const totalCount = query.data?.totalCount ?? null;
   const hasNextPage = query.data?.hasMore ?? false;
-  const isLoading = query.isFetching;
-  const showTableLoading = isLoading && (showFilters || rows.length === 0);
+  const isFetching = query.isFetching;
 
   const applyFilters = useCallback(
     (values: PagesFilterValues) => {
@@ -162,86 +160,63 @@ export function PagesTab({
     });
 
   return (
-    <DomainTableTabSurface
-      overBudgetLimit={filtersOverBudget ? maxConditions : null}
-      showFilters={showFilters}
-      onToggleFilters={() => setShowFilters((prev) => !prev)}
-      activeFilterCount={activeFilterCount}
-      countLabel="pages"
-      totalCount={totalCount}
-      fallbackCount={rows.length}
-      isLoading={isLoading}
-      showTableLoading={showTableLoading}
-      exportActions={[
-        {
-          label: "Export to Sheets",
-          icon: <Sheet className="size-4" />,
-          onClick: () => exportAll("sheets"),
-        },
-        {
-          label: "Copy data (JSON)",
-          icon: <Copy className="size-4" />,
-          onClick: () => exportAll("copy-json"),
-        },
-        {
-          label: "Download CSV",
-          icon: <Download className="size-4" />,
-          onClick: () => exportAll("csv"),
-        },
-        {
-          label: "Download Excel",
-          icon: <FileSpreadsheet className="size-4" />,
-          onClick: () => exportAll("excel"),
-        },
-      ]}
-      filterPanel={
-        showFilters ? (
-          <DomainFilterPanel
-            activeFilterCount={activeFilterCount}
-            appliedFilters={restoredFilters}
-            fields={PAGE_FILTER_FIELDS}
-            textFields={PAGE_TEXT_FILTERS}
-            rangeFields={PAGE_RANGE_FILTERS}
-            countConditions={countPageFilterConditions}
-            maxConditions={maxConditions}
-            onApply={applyFilters}
-            onClear={resetFilters}
+    <DomainPagesTable
+      domain={hostname}
+      rows={rows}
+      sortMode={routeState.sort}
+      currentSortOrder={routeState.order}
+      onSortClick={onSortClick}
+      isLoading={isFetching && (showFilters || rows.length === 0)}
+      isFiltered={!filtersOverBudget && activeFilterCount > 0}
+      onClearFilters={resetFilters}
+      error={
+        query.isError ? (
+          <QueryError
+            error={query.error}
+            fallback="Failed to load pages."
+            onRetry={() => void query.refetch()}
+            isRetrying={isFetching}
           />
         ) : null
       }
-      pagination={
+      toolbar={
+        <DomainTableToolbar
+          overBudgetLimit={filtersOverBudget ? maxConditions : null}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters((prev) => !prev)}
+          activeFilterCount={activeFilterCount}
+          countLabel="pages"
+          totalCount={totalCount}
+          fallbackCount={rows.length}
+          onExport={exportAll}
+          filterPanel={
+            <DomainFilterPanel
+              activeFilterCount={activeFilterCount}
+              appliedFilters={restoredFilters}
+              fields={PAGE_FILTER_FIELDS}
+              textFields={PAGE_TEXT_FILTERS}
+              rangeFields={PAGE_RANGE_FILTERS}
+              countConditions={countPageFilterConditions}
+              maxConditions={maxConditions}
+              onApply={applyFilters}
+              onClear={resetFilters}
+            />
+          }
+        />
+      }
+      footer={
         <TablePagination
           page={routeState.page}
           pageSize={routeState.pageSize}
           pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
           totalCount={totalCount}
           hasNextPage={hasNextPage}
-          isLoading={isLoading}
+          isLoading={isFetching}
           onPageChange={onPageChange}
           onPageSizeChange={onPageSizeChange}
           renderPageButton={DomainPageLink}
         />
       }
-    >
-      <div className="space-y-3">
-        {query.isError ? (
-          <QueryError
-            error={query.error}
-            fallback="Failed to load pages."
-            onRetry={() => void query.refetch()}
-            isRetrying={query.isFetching}
-          />
-        ) : null}
-        {query.isError && !query.data ? null : (
-          <DomainPagesTable
-            domain={hostname}
-            rows={rows}
-            sortMode={routeState.sort}
-            currentSortOrder={routeState.order}
-            onSortClick={onSortClick}
-          />
-        )}
-      </div>
-    </DomainTableTabSurface>
+    />
   );
 }

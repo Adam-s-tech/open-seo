@@ -1,4 +1,14 @@
 import { Link } from "@tanstack/react-router";
+import { Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
+import { Badge } from "@/client/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/client/components/ui/card";
 import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
 import { RESEARCH_SCOPE_LABELS } from "@/shared/researchScope";
 import { HelpLabel } from "@/client/components/HelpLabel";
@@ -41,10 +51,8 @@ export function BacklinksOverviewPanels({
           />
         )}
       />
-      <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/65">
-        <span className="badge badge-outline">
-          {RESEARCH_SCOPE_LABELS[data.scope]}
-        </span>
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <Badge variant="outline">{RESEARCH_SCOPE_LABELS[data.scope]}</Badge>
         <span>Target: {data.displayTarget}</span>
         <span>-</span>
         <span>Updated {formatRelativeTimestamp(data.fetchedAt)}</span>
@@ -56,21 +64,23 @@ export function BacklinksOverviewPanels({
       </div>
       <OverviewGrid data={data} summaryStats={summaryStats} />
       {data.scope === "exact_url" ? (
-        <div className="alert alert-info">
-          <span>
+        <Alert variant="info">
+          <Info />
+          <AlertDescription className="text-foreground">
             Showing backlinks for this exact page. Switch the scope to Domain or
             Subdomains for site-wide results — trend charts need one of those.
-          </span>
-        </div>
+          </AlertDescription>
+        </Alert>
       ) : null}
       {data.scope === "subfolder" ? (
-        <div className="alert alert-info">
-          <span>
+        <Alert variant="info">
+          <Info />
+          <AlertDescription className="text-foreground">
             Showing backlinks pointing into this subfolder. Counts come from
             filtered backlink totals; rank, trends, and the referring-domains
             breakdown need Domain or Subdomains scope.
-          </span>
-        </div>
+          </AlertDescription>
+        </Alert>
       ) : null}
     </>
   );
@@ -104,23 +114,24 @@ function SummaryStatsGrid({
   summaryStats: SummaryStat[];
 }) {
   const hasTrendPanels = data.scope === "domain" || data.scope === "subdomains";
-  const cardClassName = `card bg-base-100 border border-base-300 ${hasTrendPanels ? "md:col-span-2 xl:col-span-1" : ""}`;
 
   return (
-    <div className={cardClassName}>
-      <div className="card-body p-4 xl:h-full">
+    <Card
+      className={hasTrendPanels ? "md:col-span-2 xl:col-span-1" : undefined}
+    >
+      <CardContent className="xl:h-full">
         <div className="grid grid-cols-2 gap-x-6 gap-y-5 xl:gap-y-6">
           {summaryStats.map((item) => (
             <div key={item.label}>
-              <div className="text-xs uppercase tracking-wide text-base-content/55">
+              <div className="text-xs tracking-wide text-muted-foreground uppercase">
                 <HelpLabel label={item.label} helpText={item.description} />
               </div>
               <p className="text-2xl font-semibold">{item.value}</p>
             </div>
           ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -153,14 +164,14 @@ function TrendCard({
   title: string;
 }) {
   return (
-    <div className="card bg-base-100 border border-base-300">
-      <div className="card-body gap-2 p-4">
-        <div>
-          <h2 className="text-sm font-medium">{title}</h2>
-          <p className="text-xs text-base-content/55">{description}</p>
-        </div>
-        {children}
-      </div>
-    </div>
+    <Card className="gap-2">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">
+          <h2>{title}</h2>
+        </CardTitle>
+        <CardDescription className="text-xs">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }

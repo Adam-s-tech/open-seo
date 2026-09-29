@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Copy, Download, FileSpreadsheet, Save, Sheet } from "lucide-react";
+import { Download, Save, Sheet } from "lucide-react";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
@@ -11,7 +11,7 @@ import { TablePagination } from "@/client/components/table/TablePagination";
 import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
 import { DomainKeywordsTable } from "@/client/features/domain/components/DomainKeywordsTable";
 import { DomainFilterPanel } from "@/client/features/domain/components/DomainFilterPanel";
-import { DomainTableTabSurface } from "@/client/features/domain/components/DomainTableTabSurface";
+import { DomainTableToolbar } from "@/client/features/domain/components/DomainTableToolbar";
 import { saveSelectedKeywords } from "@/client/features/domain/domainActions";
 import {
   KEYWORD_FILTER_FIELDS,
@@ -135,8 +135,7 @@ export function KeywordsTab({
   const rows = query.data?.keywords ?? EMPTY_KEYWORDS;
   const totalCount = query.data?.totalCount ?? null;
   const hasNextPage = query.data?.hasMore ?? false;
-  const isLoading = query.isFetching;
-  const showTableLoading = isLoading && (showFilters || rows.length === 0);
+  const isFetching = query.isFetching;
 
   const visibleKeywords = useMemo(() => rows.map((r) => r.keyword), [rows]);
   useEffect(() => {
@@ -252,90 +251,74 @@ export function KeywordsTab({
         }
       />
 
-      <DomainTableTabSurface
-        overBudgetLimit={filtersOverBudget ? maxConditions : null}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((prev) => !prev)}
-        activeFilterCount={activeFilterCount}
-        countLabel="keywords"
-        totalCount={totalCount}
-        fallbackCount={rows.length}
-        isLoading={isLoading}
-        showTableLoading={showTableLoading}
-        exportActions={[
-          {
-            label: "Export to Sheets",
-            icon: <Sheet className="size-4" />,
-            onClick: () => exportAll("sheets"),
-          },
-          {
-            label: "Copy data (JSON)",
-            icon: <Copy className="size-4" />,
-            onClick: () => exportAll("copy-json"),
-          },
-          {
-            label: "Download CSV",
-            icon: <Download className="size-4" />,
-            onClick: () => exportAll("csv"),
-          },
-          {
-            label: "Download Excel",
-            icon: <FileSpreadsheet className="size-4" />,
-            onClick: () => exportAll("excel"),
-          },
-        ]}
-        filterPanel={
-          showFilters ? (
-            <DomainFilterPanel
-              activeFilterCount={activeFilterCount}
-              appliedFilters={restoredFilters}
-              fields={KEYWORD_FILTER_FIELDS}
-              textFields={KEYWORD_TEXT_FILTERS}
-              rangeFields={KEYWORD_RANGE_FILTERS}
-              countConditions={countKeywordFilterConditions}
-              maxConditions={maxConditions}
-              onApply={applyFilters}
-              onClear={resetFilters}
+      <DomainKeywordsTable
+        domain={hostname}
+        rows={rows}
+        selectedKeywords={selectedKeywords}
+        visibleKeywords={visibleKeywords}
+        sortMode={routeState.sort}
+        currentSortOrder={routeState.order}
+        onSortClick={onSortClick}
+        onToggleKeyword={toggleKeywordSelection}
+        isLoading={isFetching && (showFilters || rows.length === 0)}
+        isFiltered={!filtersOverBudget && activeFilterCount > 0}
+        onClearFilters={resetFilters}
+        error={
+          query.isError ? (
+            <QueryError
+              error={query.error}
+              fallback="Failed to load keywords."
+              onRetry={() => void query.refetch()}
+              isRetrying={isFetching}
             />
           ) : null
         }
-        pagination={
+        toolbar={
+          <DomainTableToolbar
+            overBudgetLimit={filtersOverBudget ? maxConditions : null}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters((prev) => !prev)}
+            activeFilterCount={activeFilterCount}
+            countLabel="keywords"
+            totalCount={totalCount}
+            fallbackCount={rows.length}
+            onExport={exportAll}
+            filterPanel={
+              <DomainFilterPanel
+                activeFilterCount={activeFilterCount}
+                appliedFilters={restoredFilters}
+                fields={KEYWORD_FILTER_FIELDS}
+                textFields={KEYWORD_TEXT_FILTERS}
+                rangeFields={KEYWORD_RANGE_FILTERS}
+                countConditions={countKeywordFilterConditions}
+                maxConditions={maxConditions}
+                onApply={applyFilters}
+                onClear={resetFilters}
+              />
+            }
+          >
+            <span className="text-sm text-muted-foreground">
+              ·{" "}
+              {selectedKeywords.size > 0
+                ? `${selectedKeywords.size} selected`
+                : "Select keywords to save"}
+            </span>
+          </DomainTableToolbar>
+        }
+        footer={
           <TablePagination
             page={routeState.page}
             pageSize={routeState.pageSize}
             pageSizes={DOMAIN_KEYWORDS_PAGE_SIZES}
             totalCount={totalCount}
             hasNextPage={hasNextPage}
-            isLoading={isLoading}
+            isLoading={isFetching}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
             renderPageButton={DomainPageLink}
           />
         }
-      >
-        <div className="space-y-3">
-          {query.isError ? (
-            <QueryError
-              error={query.error}
-              fallback="Failed to load keywords."
-              onRetry={() => void query.refetch()}
-              isRetrying={query.isFetching}
-            />
-          ) : null}
-          {query.isError && !query.data ? null : (
-            <DomainKeywordsTable
-              domain={hostname}
-              rows={rows}
-              selectedKeywords={selectedKeywords}
-              visibleKeywords={visibleKeywords}
-              sortMode={routeState.sort}
-              currentSortOrder={routeState.order}
-              onSortClick={onSortClick}
-              onToggleKeyword={toggleKeywordSelection}
-            />
-          )}
-        </div>
-      </DomainTableTabSurface>
+      />
     </>
   );
 }

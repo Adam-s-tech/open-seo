@@ -149,7 +149,7 @@ export function BacklinksBody({
   return (
     <>
       {tabStrip}
-      <p className="text-xs text-base-content/60">
+      <p className="text-xs text-muted-foreground">
         Overview metrics cover the full target, before table filters.
       </p>
       <BacklinksOverviewPanels

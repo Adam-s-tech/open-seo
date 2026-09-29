@@ -1,11 +1,13 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { SafeExternalLink } from "@/client/components/SafeExternalLink";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
-import { useDataTable } from "@/client/components/table/DataTable";
+import {
+  DataTable,
+  useDataTable,
+  type DataTableFrameProps,
+} from "@/client/components/table/DataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HelpLabel } from "@/client/components/HelpLabel";
-import { EmptyTableState } from "./BacklinksPageStates";
 import type { TopPageRow } from "./backlinksPageTypes";
 import type { TopPagesSortField } from "@/types/schemas/backlinks";
 import { formatNumber } from "./backlinksPageUtils";
@@ -18,6 +20,7 @@ const columns = [
   columnHelper.accessor("page", {
     id: "page",
     enableSorting: false,
+    meta: { cellClassName: "min-w-80" },
     header: () => (
       <HelpLabel
         label="Page"
@@ -30,7 +33,7 @@ const columns = [
         <SafeExternalLink
           url={page}
           label={page}
-          className="link link-hover break-all inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1 break-all underline-offset-4 hover:underline"
         />
       ) : (
         "-"
@@ -91,7 +94,8 @@ export function TopPagesTable({
   rows,
   sorting,
   onSortingChange,
-}: {
+  ...frame
+}: DataTableFrameProps & {
   rows: TopPageRow[];
   sorting: SortingState;
   onSortingChange: OnChangeFn<SortingState>;
@@ -104,16 +108,11 @@ export function TopPagesTable({
     manualSorting: true,
   });
 
-  if (rows.length === 0) {
-    return <EmptyTableState label="No top pages match this filter." />;
-  }
-
   return (
-    <AppDataTable
+    <DataTable
       table={table}
-      getCellClassName={(_, columnId) =>
-        columnId === "page" ? "min-w-80" : undefined
-      }
+      empty={{ title: "No top pages found for this target." }}
+      {...frame}
     />
   );
 }

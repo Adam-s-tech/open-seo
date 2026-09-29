@@ -34,20 +34,23 @@ export function ExternalUrlCell({
   value,
   label,
   baseDomain,
-  className = "link link-primary inline-flex items-center gap-1",
 }: {
   value: string | null | undefined;
   label: string;
   baseDomain?: string;
-  className?: string;
 }) {
   const href = resolveUrlHref(value, baseDomain);
   if (!value || !href) {
-    return <span className="text-base-content/40">-</span>;
+    return <span className="text-muted-foreground">-</span>;
   }
 
   return (
-    <a className={className} href={href} target="_blank" rel="noreferrer">
+    <a
+      className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline"
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+    >
       <span className="truncate">{label}</span>
       <ExternalLink className="size-3 shrink-0" />
     </a>

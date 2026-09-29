@@ -117,6 +117,22 @@ function SelectionCheckbox<TData>({
   );
 }
 
+/** The frame around the rows, for table components that pass it through. */
+export type DataTableFrameProps = {
+  /** The first load: shows skeleton rows under the real headers. */
+  isLoading?: boolean;
+  /** True when filters are active. An empty table then offers `onClearFilters`. */
+  isFiltered?: boolean;
+  onClearFilters?: () => void;
+  /**
+   * A load failure, for example a `QueryError`. It shows above the rows. With
+   * no rows it replaces the table, so a failed load never reads as empty.
+   */
+  error?: ReactNode;
+  toolbar?: ReactNode;
+  footer?: ReactNode;
+};
+
 /**
  * The table body of a data table: sortable headers, skeleton rows while the
  * first page loads, and an empty state that says whether filters hide rows.
@@ -131,19 +147,13 @@ export function DataTable<TData>({
   empty,
   isFiltered = false,
   onClearFilters,
+  error,
   toolbar,
   footer,
-}: {
+}: DataTableFrameProps & {
   table: TanStackTable<TData>;
-  /** The first load: shows skeleton rows under the real headers. */
-  isLoading?: boolean;
   /** Shown when there are no rows and no filters. */
   empty: { title: ReactNode; description?: ReactNode; action?: ReactNode };
-  /** True when filters are active. An empty table then offers `onClearFilters`. */
-  isFiltered?: boolean;
-  onClearFilters?: () => void;
-  toolbar?: ReactNode;
-  footer?: ReactNode;
 }) {
   const columns = table.getVisibleLeafColumns();
   const rows = table.getRowModel().rows;
@@ -151,92 +161,97 @@ export function DataTable<TData>({
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       {toolbar}
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className={header.column.columnDef.meta?.headerClassName}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            Array.from({ length: 8 }, (_, index) => (
-              <TableRow key={index} aria-hidden>
-                {columns.map((column) => (
-                  <TableCell key={column.id}>
-                    <Skeleton
-                      className={
-                        column.id === "select" ? "size-4" : "h-4 w-full"
-                      }
-                    />
-                  </TableCell>
+      {error ? <div className="p-4">{error}</div> : null}
+      {error && !isLoading && rows.length === 0 ? null : (
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={header.column.columnDef.meta?.headerClassName}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))
-          ) : rows.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={columns.length}>
-                {isFiltered ? (
-                  <EmptyState
-                    kind="filtered"
-                    variant="plain"
-                    title="No rows match these filters"
-                    description="Change or clear the filters to see more rows."
-                    action={
-                      onClearFilters ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={onClearFilters}
-                        >
-                          Clear filters
-                        </Button>
-                      ) : undefined
-                    }
-                  />
-                ) : (
-                  <EmptyState variant="plain" {...empty} />
-                )}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() ? "selected" : undefined}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const meta = cell.column.columnDef.meta?.cellClassName;
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={typeof meta === "function" ? meta(row) : meta}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              Array.from({ length: 8 }, (_, index) => (
+                <TableRow key={index} aria-hidden>
+                  {columns.map((column) => (
+                    <TableCell key={column.id}>
+                      <Skeleton
+                        className={
+                          column.id === "select" ? "size-4" : "h-4 w-full"
+                        }
+                      />
                     </TableCell>
-                  );
-                })}
+                  ))}
+                </TableRow>
+              ))
+            ) : rows.length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length}>
+                  {isFiltered ? (
+                    <EmptyState
+                      kind="filtered"
+                      variant="plain"
+                      title="No rows match these filters"
+                      description="Change or clear the filters to see more rows."
+                      action={
+                        onClearFilters ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onClearFilters}
+                          >
+                            Clear filters
+                          </Button>
+                        ) : undefined
+                      }
+                    />
+                  ) : (
+                    <EmptyState variant="plain" {...empty} />
+                  )}
+                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta?.cellClassName;
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={
+                          typeof meta === "function" ? meta(row) : meta
+                        }
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      )}
       {footer}
     </div>
   );

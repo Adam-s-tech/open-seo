@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
-import { useDataTable } from "@/client/components/table/DataTable";
-import { EmptyTableState } from "./BacklinksPageStates";
+import type { OnChangeFn, Row, SortingState } from "@tanstack/react-table";
+import {
+  DataTable,
+  useDataTable,
+  type DataTableFrameProps,
+} from "@/client/components/table/DataTable";
 import {
   buildBacklinksColumns,
   type BacklinksDisplayRow,
@@ -72,13 +74,21 @@ function buildDisplayRows(
   return out;
 }
 
+function tintExpandedRow(row: Row<BacklinksDisplayRow>) {
+  const displayRow = row.original;
+  return displayRow.kind !== "link" || displayRow.depth > 0
+    ? "bg-muted/50"
+    : undefined;
+}
+
 export function BacklinksTable({
   rows,
   domainRatings,
   sorting,
   onSortingChange,
   expansion,
-}: {
+  ...frame
+}: DataTableFrameProps & {
   rows: BacklinksRow[];
   domainRatings: DomainRatings | null;
   sorting: SortingState;
@@ -87,7 +97,14 @@ export function BacklinksTable({
   expansion: BacklinksDomainExpansion | null;
 }) {
   const columns = useMemo(
-    () => buildBacklinksColumns(domainRatings, expansion?.toggleDomain),
+    () =>
+      buildBacklinksColumns(domainRatings, expansion?.toggleDomain).map(
+        (column) => ({
+          ...column,
+          // Tints a domain's expanded links and its status row.
+          meta: { ...column.meta, cellClassName: tintExpandedRow },
+        }),
+      ),
     [domainRatings, expansion?.toggleDomain],
   );
   const displayRows = useMemo(
@@ -103,19 +120,11 @@ export function BacklinksTable({
     manualSorting: true,
   });
 
-  if (rows.length === 0) {
-    return <EmptyTableState label="No backlinks match this filter." />;
-  }
-
   return (
-    <AppDataTable
+    <DataTable
       table={table}
-      fixedLayout
-      getRowClassName={(row) =>
-        row.original.kind !== "link" || row.original.depth > 0
-          ? "bg-base-200/30"
-          : undefined
-      }
+      empty={{ title: "No backlinks found for this target." }}
+      {...frame}
     />
   );
 }

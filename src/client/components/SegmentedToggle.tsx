@@ -32,7 +32,9 @@ export function SegmentedToggle<T extends string>({
         const picked = items.find((item) => item.value === next[0]);
         if (picked) onChange(picked.value);
       }}
-      className="rounded-lg bg-muted p-0.5 ring-1 ring-border ring-inset"
+      // A border (not an inset ring) keeps the padding clear, and the larger outer
+      // radius keeps the pressed pill concentric with the track.
+      className="rounded-lg border border-border bg-muted p-0.5 data-[size=sm]:rounded-lg"
     >
       {items.map((item) => (
         <ToggleGroupItem
@@ -40,10 +42,16 @@ export function SegmentedToggle<T extends string>({
           value={item.value}
           aria-label={showLabels ? undefined : item.label}
           title={item.label}
-          className="h-6 text-muted-foreground aria-pressed:bg-primary/15 aria-pressed:text-primary aria-pressed:shadow-sm"
+          className="h-[22px] text-muted-foreground aria-pressed:bg-primary/15 aria-pressed:text-primary"
         >
           {item.icon}
-          {showLabels && item.label}
+          {showLabels && (
+            // Trim the line box to cap height so the text centers optically
+            // with the icon instead of riding high on the font's ascender.
+            <span className="[text-box:trim-both_cap_alphabetic]">
+              {item.label}
+            </span>
+          )}
         </ToggleGroupItem>
       ))}
     </ToggleGroup>

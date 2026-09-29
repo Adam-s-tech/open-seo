@@ -3,6 +3,9 @@ import { ChevronRight } from "lucide-react";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HelpLabel } from "@/client/components/HelpLabel";
 import { SafeExternalLink } from "@/client/components/SafeExternalLink";
+import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
+import { Spinner } from "@/client/components/ui/spinner";
 import type { BacklinksRow } from "./backlinksPageTypes";
 import type { BacklinksRowsSortField } from "@/types/schemas/backlinks";
 import {
@@ -42,7 +45,7 @@ function BacklinksSourceLink({
     <SafeExternalLink
       url={url}
       label={truncateMiddle(extractUrlPath(url), maxLength)}
-      className={`link link-hover break-all inline-flex items-center gap-1 ${muted ? "text-xs text-base-content/55" : "text-sm"}`}
+      className={`inline-flex items-center gap-1 break-all underline-offset-4 hover:underline ${muted ? "text-xs text-muted-foreground" : "text-sm"}`}
     />
   );
 }
@@ -50,21 +53,13 @@ function BacklinksSourceLink({
 function BacklinkFlags({ row }: { row: BacklinksRow }) {
   return (
     <div className="flex flex-wrap gap-1">
-      {row.isLost ? (
-        <span className="badge badge-sm badge-error badge-outline">Lost</span>
-      ) : null}
-      {row.isBroken ? (
-        <span className="badge badge-sm badge-warning badge-outline">
-          Broken
-        </span>
-      ) : null}
+      {row.isLost ? <Badge variant="destructive">Lost</Badge> : null}
+      {row.isBroken ? <Badge variant="warning">Broken</Badge> : null}
       {row.isDofollow === false ? (
-        <span className="badge badge-sm badge-outline">Nofollow</span>
+        <Badge variant="outline">Nofollow</Badge>
       ) : null}
       {row.linksCount != null && row.linksCount > 1 ? (
-        <span className="badge badge-sm badge-outline min-w-fit whitespace-nowrap">
-          {row.linksCount} links
-        </span>
+        <Badge variant="outline">{row.linksCount} links</Badge>
       ) : null}
     </div>
   );
@@ -73,14 +68,14 @@ function BacklinkFlags({ row }: { row: BacklinksRow }) {
 function StatusCell({ status }: { status: "loading" | "error" | "empty" }) {
   if (status === "loading") {
     return (
-      <span className="flex items-center gap-2 pl-6 text-sm text-base-content/60">
-        <span className="loading loading-spinner loading-xs" />
+      <span className="flex items-center gap-2 pl-6 text-sm text-muted-foreground">
+        <Spinner className="size-3.5" />
         Loading links…
       </span>
     );
   }
   return (
-    <span className="pl-6 text-sm text-base-content/60">
+    <span className="pl-6 text-sm text-muted-foreground">
       {status === "error"
         ? "Couldn't load this domain's links."
         : "No other links from this domain."}
@@ -106,7 +101,7 @@ function SourceCell({
         {row.urlFrom ? (
           <BacklinksSourceLink url={row.urlFrom} maxLength={48} muted />
         ) : (
-          <span className="text-base-content/55">-</span>
+          <span className="text-muted-foreground">-</span>
         )}
       </div>
     );
@@ -116,9 +111,10 @@ function SourceCell({
   return (
     <div className="flex items-start gap-1.5 break-all">
       {expandable && row.domainFrom && onToggleDomain ? (
-        <button
-          type="button"
-          className="btn btn-ghost btn-xs btn-square shrink-0 -ml-1"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="-ml-1 shrink-0"
           aria-label={`${expanded ? "Hide" : "Show"} all links from ${domainLabel}`}
           aria-expanded={expanded}
           onClick={() => onToggleDomain(row.domainFrom ?? "")}
@@ -126,7 +122,7 @@ function SourceCell({
           <ChevronRight
             className={`size-4 transition-transform ${expanded ? "rotate-90" : ""}`}
           />
-        </button>
+        </Button>
       ) : null}
       <div>
         <div className="font-semibold">{domainLabel}</div>
@@ -157,8 +153,7 @@ function buildBaseColumns(
       id: "source",
       enableSorting: false,
       header: () => <HelpLabel label="Source" helpText="Page linking to you" />,
-      size: 250,
-      minSize: 180,
+      meta: { headerClassName: "min-w-[200px]" },
       cell: ({ row }) => (
         <SourceCell displayRow={row.original} onToggleDomain={onToggleDomain} />
       ),
@@ -169,8 +164,7 @@ function buildBaseColumns(
       header: () => (
         <HelpLabel label="Target" helpText="Destination on your site" />
       ),
-      size: 220,
-      minSize: 150,
+      meta: { headerClassName: "min-w-[180px]" },
       cell: linkCell((row) => (
         <div className="break-all">
           {row.urlTo ? (
@@ -187,13 +181,12 @@ function buildBaseColumns(
       header: () => (
         <HelpLabel label="Anchor" helpText="Text or format of the link" />
       ),
-      size: 150,
-      minSize: 100,
+      meta: { headerClassName: "min-w-[150px]" },
       cell: linkCell((row) => (
-        <div className="space-y-0.5 break-words">
+        <div className="space-y-0.5 wrap-anywhere">
           <span className="text-sm">{row.anchor || "No anchor text"}</span>
           {row.itemType ? (
-            <div className="text-xs text-base-content/55">{row.itemType}</div>
+            <div className="text-xs text-muted-foreground">{row.itemType}</div>
           ) : null}
         </div>
       )),
@@ -207,8 +200,7 @@ function buildBaseColumns(
           helpText="Special backlink attributes, such as lost, broken, nofollow, or multiple links from the same source."
         />
       ),
-      size: 130,
-      minSize: 80,
+      meta: { headerClassName: "min-w-[110px]" },
       cell: linkCell((row) => <BacklinkFlags row={row} />),
     },
     {
@@ -223,8 +215,6 @@ function buildBaseColumns(
           align="right"
         />
       ),
-      size: 70,
-      minSize: 50,
       sortDescFirst: true,
       cell: linkCell((row) => (
         <div className="text-right tabular-nums text-sm">
@@ -244,8 +234,6 @@ function buildBaseColumns(
           align="right"
         />
       ),
-      size: 70,
-      minSize: 50,
       sortDescFirst: true,
       cell: linkCell((row) => (
         <div className="text-right tabular-nums text-sm">
@@ -265,8 +253,6 @@ function buildBaseColumns(
           align="right"
         />
       ),
-      size: 70,
-      minSize: 50,
       sortDescFirst: true,
       cell: linkCell((row) => {
         const value = row.spamScore;
@@ -292,14 +278,12 @@ function buildBaseColumns(
           helpText="When this link was first discovered by the crawler"
         />
       ),
-      size: 110,
-      minSize: 80,
       sortDescFirst: true,
       cell: linkCell((row) => (
         <div className="whitespace-nowrap text-sm">
           <div>{formatCompactDate(row.firstSeen)}</div>
           {row.lastSeen ? (
-            <div className="text-xs text-base-content/55">
+            <div className="text-xs text-muted-foreground">
               Last {formatCompactDate(row.lastSeen)}
             </div>
           ) : null}
@@ -334,8 +318,6 @@ export function buildBacklinksColumns(
         />
       </span>
     ),
-    size: 90,
-    minSize: 70,
     cell: linkCell((row) => {
       const domain = row.domainFrom?.replace(/^www\./, "");
       const dr = domain ? (ratings[domain] ?? null) : null;

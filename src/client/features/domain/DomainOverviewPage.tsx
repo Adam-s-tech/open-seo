@@ -1,7 +1,16 @@
 /* eslint-disable max-lines, max-lines-per-function -- Domain Overview keeps page-only orchestration colocated to avoid fake indirection. */
 import { useCallback, useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
-import { Globe } from "lucide-react";
+import { Globe, Info } from "lucide-react";
+import { PageHeader } from "@/client/components/PageHeader";
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
+import { Badge } from "@/client/components/ui/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/client/components/ui/tabs";
 import {
   DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE,
   type DomainSearchParams,
@@ -547,13 +556,10 @@ export function DomainOverviewPage({
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto max-w-7xl space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Domain Overview</h1>
-          <p className="text-sm text-base-content/70">
-            Analyze any domain&apos;s SEO profile: traffic, keywords, and
-            backlinks.
-          </p>
-        </div>
+        <PageHeader
+          title="Domain Overview"
+          description="Analyze any domain's SEO profile: traffic, keywords, and backlinks."
+        />
 
         <DomainSearchCard
           controlsForm={state.controlsForm}
@@ -603,12 +609,10 @@ export function DomainOverviewPage({
             {tabControls}
             {overviewError}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="badge badge-ghost font-medium">
-                {state.overview.displayTarget}
-              </span>
-              <span className="badge badge-outline">
+              <Badge variant="secondary">{state.overview.displayTarget}</Badge>
+              <Badge variant="outline">
                 {RESEARCH_SCOPE_LABELS[state.overview.scope]}
-              </span>
+              </Badge>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <StatTile
@@ -632,41 +636,27 @@ export function DomainOverviewPage({
             </div>
 
             {!state.overview.hasData ? (
-              <div className="alert alert-info">
-                <span>
+              <Alert variant="info">
+                <Info />
+                <AlertDescription className="text-foreground">
                   Not enough data for this scope yet. Try another domain or a
                   broader scope.
-                </span>
-              </div>
+                </AlertDescription>
+              </Alert>
             ) : null}
 
-            <div className="border border-base-300 rounded-xl bg-base-100 overflow-hidden">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-4 py-3 border-b border-base-300">
-                <div role="tablist" className="tabs tabs-border w-fit">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={routeState.tab === "keywords"}
-                    className={`tab ${routeState.tab === "keywords" ? "tab-active" : ""}`}
-                    onClick={() => state.handleTabChange("keywords")}
-                  >
-                    Top Keywords
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={routeState.tab === "pages"}
-                    className={`tab ${routeState.tab === "pages" ? "tab-active" : ""}`}
-                    onClick={() => state.handleTabChange("pages")}
-                  >
-                    Top Pages
-                  </button>
-                </div>
-              </div>
-
-              {routeState.tab === "keywords" ? (
+            <Tabs
+              value={routeState.tab}
+              onValueChange={(value) =>
+                state.handleTabChange(value === "pages" ? "pages" : "keywords")
+              }
+            >
+              <TabsList variant="line">
+                <TabsTrigger value="keywords">Top Keywords</TabsTrigger>
+                <TabsTrigger value="pages">Top Pages</TabsTrigger>
+              </TabsList>
+              <TabsContent value="keywords">
                 <KeywordsTab
-                  key="keywords"
                   projectId={projectId}
                   target={state.overview.displayTarget}
                   hostname={state.overview.domain}
@@ -678,9 +668,9 @@ export function DomainOverviewPage({
                   onPageChange={state.goToPage}
                   onPageSizeChange={state.setPageSize}
                 />
-              ) : (
+              </TabsContent>
+              <TabsContent value="pages">
                 <PagesTab
-                  key="pages"
                   projectId={projectId}
                   target={state.overview.displayTarget}
                   hostname={state.overview.domain}
@@ -691,8 +681,8 @@ export function DomainOverviewPage({
                   onPageChange={state.goToPage}
                   onPageSizeChange={state.setPageSize}
                 />
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>

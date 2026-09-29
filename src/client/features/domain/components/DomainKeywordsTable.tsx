@@ -1,12 +1,13 @@
-import { memo, useMemo } from "react";
+import { useMemo } from "react";
 import {
   createColumnHelper,
   type ColumnDef,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
+  DataTable,
   makeSelectionColumn,
+  type DataTableFrameProps,
   useDataTable,
   useSelectionAnchor,
 } from "@/client/components/table/DataTable";
@@ -24,7 +25,7 @@ import type {
   SortOrder,
 } from "@/client/features/domain/types";
 
-type Props = {
+type Props = DataTableFrameProps & {
   domain: string;
   rows: KeywordRow[];
   selectedKeywords: Set<string>;
@@ -37,7 +38,7 @@ type Props = {
 
 const keywordColumnHelper = createColumnHelper<KeywordRow>();
 
-function DomainKeywordsTableComponent({
+export function DomainKeywordsTable({
   domain,
   rows,
   selectedKeywords,
@@ -46,6 +47,7 @@ function DomainKeywordsTableComponent({
   currentSortOrder,
   onSortClick,
   onToggleKeyword,
+  ...frame
 }: Props) {
   const selectAnchorRef = useSelectionAnchor();
   const rowSelection = useMemo<RowSelectionState>(
@@ -170,24 +172,10 @@ function DomainKeywordsTableComponent({
     enableRowSelection: true,
   });
   return (
-    <div className="overflow-x-auto">
-      <div className="mb-2 text-xs text-base-content/60">
-        {selectedKeywords.size > 0
-          ? `${selectedKeywords.size} selected`
-          : "Select keywords to save"}
-      </div>
-      <AppDataTable
-        table={table}
-        className="table table-sm"
-        wrapperClassName=""
-        empty={
-          <div className="py-6 text-center text-base-content/60">
-            No keywords match this search.
-          </div>
-        }
-      />
-    </div>
+    <DataTable
+      table={table}
+      empty={{ title: "No keywords match this search." }}
+      {...frame}
+    />
   );
 }
-
-export const DomainKeywordsTable = memo(DomainKeywordsTableComponent);
