@@ -10,11 +10,11 @@ import { toast } from "sonner";
 import { getDomainKeywordSuggestions } from "@/serverFunctions/domain";
 import { addTrackingKeywords } from "@/serverFunctions/rank-tracking";
 import { isLabsLocationCode } from "@/client/features/keywords/locations";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
-  AppDataTable,
   makeSelectionColumn,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+  useDataTable,
+} from "@/client/components/table/DataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { RANK_TRACKING_HEADER_CLASS } from "./RankTrackingColumns";
 import {
@@ -192,7 +192,7 @@ export function KeywordSuggestionStep({
     }
   }, [suggestionsQuery.data, hasInitialized]);
 
-  const table = useAppTable({
+  const table = useDataTable({
     data,
     columns,
     state: { rowSelection, sorting },

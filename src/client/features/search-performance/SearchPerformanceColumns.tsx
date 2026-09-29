@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
 import type { MutableRefObject } from "react";
-import { makeSelectionColumn } from "@/client/components/table/AppDataTable";
+import { makeSelectionColumn } from "@/client/components/table/DataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { safeHttpUrl } from "@/shared/safe-url";
 import type { SelectionAnchor } from "@/client/components/table/tableSelection";

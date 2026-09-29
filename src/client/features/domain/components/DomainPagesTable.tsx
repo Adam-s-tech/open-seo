@@ -1,9 +1,7 @@
 import { memo, useMemo } from "react";
 import { createColumnHelper, type ColumnDef } from "@tanstack/react-table";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { ExternalUrlCell } from "@/client/components/table/url";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import {
@@ -85,7 +83,7 @@ function DomainPagesTableComponent({
   // data-keyed memo, so _autoResetPageIndex fires each render and its setState
   // schedules another one — an unbounded render loop that freezes the tab.
   const tableData = useMemo(() => rows.slice(0, 100), [rows]);
-  const table = useAppTable({
+  const table = useDataTable({
     data: tableData,
     columns,
   });

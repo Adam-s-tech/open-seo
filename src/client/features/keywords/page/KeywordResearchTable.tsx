@@ -4,12 +4,12 @@ import {
   type ColumnDef,
   type RowSelectionState,
 } from "@tanstack/react-table";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
-  AppDataTable,
   makeSelectionColumn,
-  useAppTable,
+  useDataTable,
   useSelectionAnchor,
-} from "@/client/components/table/AppDataTable";
+} from "@/client/components/table/DataTable";
 import {
   IntentBadge,
   SortHeader,
@@ -181,7 +181,7 @@ export function KeywordResearchTable({
     ],
     [selectAnchorRef, sortDir, sortField, toggleSort],
   );
-  const table = useAppTable({
+  const table = useDataTable({
     data: filteredRows,
     columns,
     state: { rowSelection },

@@ -5,10 +5,8 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { Link } from "@tanstack/react-router";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { TableExportMenu } from "@/client/components/table/TableBulkActionBar";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import {
@@ -77,7 +75,7 @@ export function PerformanceTable({
     () => buildPerformanceColumns({ auditId, projectId }),
     [auditId, projectId],
   );
-  const table = useAppTable({
+  const table = useDataTable({
     data: filteredRows,
     columns,
     state: { sorting },

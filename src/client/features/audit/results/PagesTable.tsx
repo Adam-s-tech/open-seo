@@ -5,10 +5,8 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { ExternalLink } from "lucide-react";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import {
   extractHostname,
@@ -217,7 +215,7 @@ export function PagesTable({
       }),
     [issues, pages, startUrl],
   );
-  const table = useAppTable({
+  const table = useDataTable({
     data: filteredPages,
     columns,
     state: { sorting },

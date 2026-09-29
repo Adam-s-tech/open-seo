@@ -2,6 +2,14 @@ import { Link } from "@tanstack/react-router";
 import { FileText, Trash2 } from "lucide-react";
 import { EmptyState } from "@/client/components/EmptyState";
 import { PortalMenu } from "@/client/components/PortalMenu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import { formatCreatedBy } from "@/client/features/reports/shared";
 import { formatRelativeTime } from "@/client/lib/relative-time";
 import type { ReportListItem } from "@/serverFunctions/reports";
@@ -28,42 +36,42 @@ export function ReportsList({
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg border border-base-300">
-        <table className="table table-sm">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Created by</th>
-              <th>Type</th>
-              <th>Updated</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="rounded-lg border border-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Created by</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Updated</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-base-200">
-                <td className="max-w-[420px]">
+              <TableRow key={report.id}>
+                <TableCell className="max-w-[420px]">
                   <Link
                     to="/p/$projectId/reports/$reportId"
                     params={{ projectId, reportId: report.id }}
-                    className="link link-hover font-medium"
+                    className="font-medium hover:underline"
                   >
                     {report.title}
                   </Link>
-                </td>
-                <td className="text-base-content/70">
+                </TableCell>
+                <TableCell className="text-muted-foreground">
                   {formatCreatedBy(report)}
-                </td>
+                </TableCell>
                 {/* The template the report was written from, else the skill
                     that produced it: what a reader needs to tell two reports
                     on the same site apart. */}
-                <td className="text-base-content/70">
+                <TableCell className="text-muted-foreground">
                   {report.templateName ?? report.skill ?? "-"}
-                </td>
-                <td className="whitespace-nowrap text-base-content/70">
+                </TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
                   {formatRelativeTime(report.updatedAt)}
-                </td>
-                <td className="w-10 text-right">
+                </TableCell>
+                <TableCell className="w-10 text-right">
                   <PortalMenu ariaLabel={`Actions for ${report.title}`}>
                     {(close) => (
                       <li>
@@ -80,14 +88,14 @@ export function ReportsList({
                       </li>
                     )}
                   </PortalMenu>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       {reports.length === REPORT_APP_LIST_LIMIT ? (
-        <p className="text-xs text-base-content/60">
+        <p className="text-xs text-muted-foreground">
           Showing the {REPORT_APP_LIST_LIMIT} most recent reports.
         </p>
       ) : null}

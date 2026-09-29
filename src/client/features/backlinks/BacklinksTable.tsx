@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { EmptyTableState } from "./BacklinksPageStates";
 import {
   buildBacklinksColumns,
@@ -97,7 +95,7 @@ export function BacklinksTable({
     [rows, expansion],
   );
 
-  const table = useAppTable({
+  const table = useDataTable({
     data: displayRows,
     columns,
     state: { sorting },

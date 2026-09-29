@@ -1,6 +1,6 @@
 import { useMemo, type MutableRefObject } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { makeSelectionColumn } from "@/client/components/table/AppDataTable";
+import { makeSelectionColumn } from "@/client/components/table/DataTable";
 import { ScoreBadge } from "@/client/components/table/ScoreBadge";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import type { RankTrackingRow } from "@/types/schemas/rank-tracking";

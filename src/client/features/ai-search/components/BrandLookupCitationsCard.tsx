@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
 import { ChevronDown, Download, Sheet, SlidersHorizontal } from "lucide-react";
-import { useAppTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { exportRows } from "@/client/lib/exportRows";
 import {
   buildBrandLookupExport,
@@ -100,7 +100,7 @@ export function CitationTabsCard({
     [showQueryPlatform, projectId, brand],
   );
 
-  const pagesTable = useAppTable({
+  const pagesTable = useDataTable({
     data: filteredPages,
     columns: pagesColumns,
     state: { sorting: pagesSort },
@@ -111,7 +111,7 @@ export function CitationTabsCard({
     // reorders rows, not stick to whatever row lands in the same slot.
     getRowId: (row) => `${row.platform}:${row.url}`,
   });
-  const queriesTable = useAppTable({
+  const queriesTable = useDataTable({
     data: filteredQueries,
     columns: queriesColumns,
     state: { sorting: queriesSort },

@@ -1,130 +1,19 @@
 import {
   flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
   type Header,
   type Row,
   type Table,
-  type TableOptions,
 } from "@tanstack/react-table";
-import {
-  useRef,
-  type MouseEvent,
-  type MutableRefObject,
-  type ReactNode,
-} from "react";
-import {
-  applyShiftRangeSelection,
-  type SelectionAnchor,
-} from "./tableSelection";
+import type { MouseEvent, ReactNode } from "react";
 
-type AppColumnMeta<TData> = {
-  headerClassName?: string;
-  cellClassName?: string | ((row: Row<TData>) => string | undefined);
-};
-
-declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData, TValue> extends AppColumnMeta<TData> {
-    readonly __valueType?: TValue;
-  }
-}
-
-type UseAppTableOptions<TData> = Omit<
-  TableOptions<TData>,
-  "getCoreRowModel"
-> & {
-  withSorting?: boolean;
-  withExpanded?: boolean;
-  withPagination?: boolean;
-};
-
-export function useAppTable<TData>(options: UseAppTableOptions<TData>) {
-  const { withSorting, withExpanded, withPagination, ...tableOptions } =
-    options;
-  return useReactTable({
-    ...tableOptions,
-    getCoreRowModel: getCoreRowModel(),
-    ...(withSorting ? { getSortedRowModel: getSortedRowModel() } : {}),
-    ...(withExpanded ? { getExpandedRowModel: getExpandedRowModel() } : {}),
-    ...(withPagination
-      ? { getPaginationRowModel: getPaginationRowModel() }
-      : {}),
-  });
-}
-
-export function useSelectionAnchor(): MutableRefObject<SelectionAnchor | null> {
-  return useRef<SelectionAnchor | null>(null);
-}
-
-export function makeSelectionColumn<TData>(
-  anchorRef: MutableRefObject<SelectionAnchor | null>,
-): ColumnDef<TData> {
-  return {
-    id: "select",
-    size: 32,
-    enableSorting: false,
-    header: ({ table }) => (
-      <input
-        type="checkbox"
-        className="checkbox checkbox-xs [--radius-selector:0.25rem]"
-        checked={table.getIsAllRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-        aria-label="Select all rows"
-      />
-    ),
-    cell: ({ row, table }) => (
-      <SelectionCheckbox row={row} table={table} anchorRef={anchorRef} />
-    ),
-  };
-}
-
-function SelectionCheckbox<TData>({
-  row,
-  table,
-  anchorRef,
-}: {
-  row: Row<TData>;
-  table: Table<TData>;
-  anchorRef: MutableRefObject<SelectionAnchor | null>;
-}) {
-  const rangeHandledRef = useRef(false);
-  return (
-    <input
-      type="checkbox"
-      className="checkbox checkbox-xs [--radius-selector:0.25rem]"
-      checked={row.getIsSelected()}
-      aria-label="Select row"
-      onClick={(event) => {
-        event.stopPropagation();
-        rangeHandledRef.current = applyShiftRangeSelection(
-          event,
-          row,
-          table,
-          anchorRef,
-        );
-      }}
-      onChange={(event) => {
-        if (rangeHandledRef.current) {
-          rangeHandledRef.current = false;
-          return;
-        }
-        row.getToggleSelectedHandler()(event);
-      }}
-    />
-  );
-}
+// The DaisyUI table, for pages that have not moved to `DataTable` yet. Each
+// page port moves its tables to `DataTable`. The last port deletes this file.
 
 export function AppDataTable<TData>({
   table,
   className = "table table-sm",
   wrapperClassName = "overflow-x-auto",
   empty,
-  isLoading,
-  loading,
   getRowClassName,
   getRowProps,
   getCellClassName,
@@ -135,8 +24,6 @@ export function AppDataTable<TData>({
   className?: string;
   wrapperClassName?: string;
   empty?: ReactNode;
-  isLoading?: boolean;
-  loading?: ReactNode;
   getRowClassName?: (row: Row<TData>) => string | undefined;
   getRowProps?: (row: Row<TData>) => {
     onClick?: (event: MouseEvent<HTMLTableRowElement>) => void;
@@ -146,7 +33,6 @@ export function AppDataTable<TData>({
   fixedLayout?: boolean;
   stickyHeader?: boolean;
 }) {
-  if (isLoading && loading) return <>{loading}</>;
   if (table.getRowModel().rows.length === 0 && empty) return <>{empty}</>;
 
   return (

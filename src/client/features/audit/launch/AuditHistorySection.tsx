@@ -4,6 +4,15 @@ import { ScanSearch, Trash2 } from "lucide-react";
 import type { getAuditHistory } from "@/serverFunctions/audit";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { QueryState } from "@/client/components/QueryState";
+import { Badge } from "@/client/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import { formatDate, StatusBadge } from "@/client/features/audit/shared";
 
 type AuditHistory = Awaited<ReturnType<typeof getAuditHistory>>;
@@ -57,46 +66,48 @@ function AuditHistoryTable({
     <div className="card bg-base-100 border border-base-300">
       <div className="card-body gap-3">
         <h2 className="card-title text-base">Previous Audits</h2>
-        <div className="overflow-x-auto">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>URL</th>
-                <th>Status</th>
-                <th>Pages</th>
-                <th>Lighthouse</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((audit) => (
-                <tr key={audit.id} className="hover group">
-                  <td className="text-xs text-base-content/70">
-                    {formatDate(audit.startedAt)}
-                  </td>
-                  <td className="max-w-[220px] truncate">{audit.startUrl}</td>
-                  <td>
-                    <StatusBadge status={audit.status} />
-                  </td>
-                  <td>{audit.pagesTotal || audit.pagesCrawled}</td>
-                  <td>
-                    {audit.ranLighthouse ? (
-                      <span className="badge badge-ghost badge-xs">Yes</span>
-                    ) : null}
-                  </td>
-                  <td>
-                    <HistoryActions
-                      projectId={projectId}
-                      auditId={audit.id}
-                      onDelete={onDelete}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>URL</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Pages</TableHead>
+              <TableHead>Lighthouse</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {history.map((audit) => (
+              <TableRow key={audit.id} className="group">
+                <TableCell className="text-xs text-muted-foreground">
+                  {formatDate(audit.startedAt)}
+                </TableCell>
+                <TableCell className="max-w-[220px] truncate">
+                  {audit.startUrl}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={audit.status} />
+                </TableCell>
+                <TableCell>{audit.pagesTotal || audit.pagesCrawled}</TableCell>
+                <TableCell>
+                  {audit.ranLighthouse ? (
+                    <Badge variant="outline" size="sm">
+                      Yes
+                    </Badge>
+                  ) : null}
+                </TableCell>
+                <TableCell>
+                  <HistoryActions
+                    projectId={projectId}
+                    auditId={audit.id}
+                    onDelete={onDelete}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

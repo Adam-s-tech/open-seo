@@ -4,12 +4,12 @@ import {
   type ColumnDef,
   type RowSelectionState,
 } from "@tanstack/react-table";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
-  AppDataTable,
   makeSelectionColumn,
-  useAppTable,
+  useDataTable,
   useSelectionAnchor,
-} from "@/client/components/table/AppDataTable";
+} from "@/client/components/table/DataTable";
 import { ExternalUrlCell } from "@/client/components/table/url";
 import { ScoreBadge } from "@/client/components/table/ScoreBadge";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
@@ -149,7 +149,7 @@ function DomainKeywordsTableComponent({
     ],
     [currentSortOrder, domain, onSortClick, selectAnchorRef, sortMode],
   );
-  const table = useAppTable({
+  const table = useDataTable({
     data: rows,
     columns,
     state: { rowSelection },

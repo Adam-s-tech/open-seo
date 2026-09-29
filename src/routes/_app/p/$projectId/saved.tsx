@@ -320,67 +320,62 @@ function SavedKeywordsPage() {
           onRefreshMetrics={() => refreshMetricsMutation.mutate()}
         />
 
-        <div className="overflow-hidden rounded-lg border border-base-300 bg-base-100">
-          <SavedKeywordsFilters
-            filtersForm={filters.filtersForm}
-            activeFilterCount={filters.activeFilterCount}
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters((v) => !v)}
-            onResetFilters={filters.resetFilters}
-            availableTags={availableTags}
-            selectedTagIds={selectedTagIds}
-            busyTagIds={tagManage.busyTagIds}
-            onToggleTagFilter={(tagId) => {
-              setSelectedTagIds(
-                selectedTagIds.includes(tagId)
-                  ? selectedTagIds.filter((id) => id !== tagId)
-                  : [...selectedTagIds, tagId],
-              );
-            }}
-            onClearTagSelection={() => setSelectedTagIds([])}
-            onUpdateTag={(input) => void tagManage.updateTag(input)}
-            onDeleteTag={(tagId) => void handleDeleteTag(tagId)}
+        {removeError ? (
+          <RemoveSavedKeywordsError message={removeError} />
+        ) : null}
+        {savedKeywordsQuery.isError ? (
+          <QueryError
+            error={savedKeywordsQuery.error}
+            fallback="Failed to load saved keywords."
+            onRetry={() => void savedKeywordsQuery.refetch()}
+            isRetrying={isFetching}
           />
-
-          <div className="space-y-3 p-4">
-            {removeError ? (
-              <RemoveSavedKeywordsError message={removeError} />
-            ) : null}
-            {savedKeywordsQuery.isError ? (
-              <QueryError
-                error={savedKeywordsQuery.error}
-                fallback="Failed to load saved keywords."
-                onRetry={() => void savedKeywordsQuery.refetch()}
-                isRetrying={isFetching}
+        ) : null}
+        {/* Without data a failed load has nothing to show; the empty
+            state would claim there are no saved keywords. */}
+        {savedKeywordsQuery.isError && data === undefined ? null : (
+          <SavedKeywordsTable
+            rows={savedKeywords}
+            rowSelection={rowSelection}
+            sorting={sorting}
+            isLoading={isLoading}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={() => {
+              filters.resetFilters();
+              setSelectedTagIds([]);
+            }}
+            onRowSelectionChange={setRowSelection}
+            onSortingChange={handleSortingChange}
+            toolbar={
+              <SavedKeywordsFilters
+                filtersForm={filters.filtersForm}
+                activeFilterCount={filters.activeFilterCount}
+                showFilters={showFilters}
+                onToggleFilters={() => setShowFilters((v) => !v)}
+                onResetFilters={filters.resetFilters}
+                availableTags={availableTags}
+                selectedTagIds={selectedTagIds}
+                busyTagIds={tagManage.busyTagIds}
+                onSelectedTagIdsChange={setSelectedTagIds}
+                onUpdateTag={(input) => void tagManage.updateTag(input)}
+                onDeleteTag={(tagId) => void handleDeleteTag(tagId)}
               />
-            ) : null}
-            {/* Without data a failed load has nothing to show; the empty
-                state would claim there are no saved keywords. */}
-            {savedKeywordsQuery.isError && data === undefined ? null : (
-              <SavedKeywordsTable
-                rows={savedKeywords}
-                rowSelection={rowSelection}
-                sorting={sorting}
-                isLoading={isLoading}
-                hasActiveFilters={hasActiveFilters}
-                onRowSelectionChange={setRowSelection}
-                onSortingChange={handleSortingChange}
+            }
+            footer={
+              <TablePagination
+                page={page}
+                pageSize={pageSize}
+                pageSizes={SAVED_KEYWORD_PAGE_SIZES}
+                totalCount={totalCount}
+                isLoading={isFetching}
+                onPageChange={(nextPage) => setSearch({ page: nextPage })}
+                onPageSizeChange={(nextPageSize) =>
+                  setSearch({ size: nextPageSize, page: undefined })
+                }
               />
-            )}
-          </div>
-
-          <TablePagination
-            page={page}
-            pageSize={pageSize}
-            pageSizes={SAVED_KEYWORD_PAGE_SIZES}
-            totalCount={totalCount}
-            isLoading={isFetching}
-            onPageChange={(nextPage) => setSearch({ page: nextPage })}
-            onPageSizeChange={(nextPageSize) =>
-              setSearch({ size: nextPageSize, page: undefined })
             }
           />
-        </div>
+        )}
 
         <SavedKeywordsBulkActionBar
           selectedCount={selectedCount}

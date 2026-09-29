@@ -2,10 +2,8 @@ import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { FileDown, Loader2, Sheet, Trash2 } from "lucide-react";
 import { Modal } from "@/client/components/Modal";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
@@ -77,7 +75,7 @@ export function RankTrackingTable({
     locationName,
   });
 
-  const table = useAppTable({
+  const table = useDataTable({
     data: rows,
     columns,
     state: { sorting },

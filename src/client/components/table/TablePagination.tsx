@@ -1,5 +1,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
+import { Button } from "@/client/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/client/components/ui/select";
+import { Spinner } from "@/client/components/ui/spinner";
 
 export type PageButtonProps = {
   page: number;
@@ -60,41 +69,45 @@ export function TablePagination<TSize extends number>({
   }, [currentPage, isLoading, isOutOfRange, onPageChange]);
 
   return (
-    <div className="flex flex-col gap-3 border-t border-base-300 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-2 text-sm text-base-content/70 tabular-nums">
+    <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground tabular-nums">
         <span className="whitespace-nowrap">
           {formatRange(currentPage, pageSize, totalCount, pageRange)}
         </span>
-        {isLoading ? (
-          <span className="loading loading-spinner loading-xs" />
-        ) : null}
+        {isLoading ? <Spinner className="size-3.5" /> : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
         {pageSizes && onPageSizeChange ? (
-          <label className="flex items-center gap-2 text-sm text-base-content/70">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="whitespace-nowrap">Rows per page</span>
-            <select
-              className="select select-bordered select-sm w-20"
+            <Select
               value={pageSize}
-              onChange={(event) => {
-                const size = pageSizes.find(
-                  (option) => option === Number(event.target.value),
-                );
+              onValueChange={(value) => {
+                const size = pageSizes.find((option) => option === value);
                 if (size != null) onPageSizeChange(size);
               }}
             >
-              {pageSizes.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger
+                size="sm"
+                className="w-20"
+                aria-label="Rows per page"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {pageSizes.map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : null}
 
         <div className="flex items-center gap-2">
-          <span className="whitespace-nowrap text-sm tabular-nums text-base-content/70">
+          <span className="whitespace-nowrap text-sm tabular-nums text-muted-foreground">
             Page {currentPage.toLocaleString()}
             {totalPages != null ? ` of ${totalPages.toLocaleString()}` : ""}
           </span>
@@ -103,25 +116,25 @@ export function TablePagination<TSize extends number>({
               page: currentPage - 1,
               disabled: !canGoPrev || isLoading,
               label: "Previous page",
-              children: <ChevronLeft className="size-4" />,
+              children: <ChevronLeft />,
               onPageChange,
             })}
             {isLastPage && loadMoreLabel != null ? (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
+              <Button
+                variant="ghost"
+                size="sm"
                 disabled={isLoading}
                 onClick={() => onPageChange(currentPage + 1)}
               >
                 {loadMoreLabel}
-                <ChevronRight className="size-4" />
-              </button>
+                <ChevronRight data-icon="inline-end" />
+              </Button>
             ) : (
               renderPageButton({
                 page: currentPage + 1,
                 disabled: !canGoNext || isLoading,
                 label: "Next page",
-                children: <ChevronRight className="size-4" />,
+                children: <ChevronRight />,
                 onPageChange,
               })
             )}
@@ -140,15 +153,15 @@ function PageButton({
   onPageChange,
 }: PageButtonProps) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-sm"
       aria-label={label}
-      className="btn btn-ghost btn-sm btn-square"
       disabled={disabled}
       onClick={() => onPageChange(page)}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 

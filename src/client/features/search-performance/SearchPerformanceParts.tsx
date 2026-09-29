@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
-  AppDataTable,
-  useAppTable,
+  useDataTable,
   useSelectionAnchor,
-} from "@/client/components/table/AppDataTable";
+} from "@/client/components/table/DataTable";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
@@ -211,7 +211,7 @@ export function DimensionTable({
   keyLabel: string;
 }) {
   const columns = useMemo(() => buildDimensionColumns(keyLabel), [keyLabel]);
-  const table = useAppTable({
+  const table = useDataTable({
     data: rows,
     columns,
     withSorting: true,
@@ -242,7 +242,7 @@ export function StrikingDistanceTable({
   const anchorRef = useSelectionAnchor();
   const [rowSelection, setRowSelection] = useState({});
   const columns = useMemo(() => buildStrikingColumns(anchorRef), [anchorRef]);
-  const table = useAppTable({
+  const table = useDataTable({
     data: rows,
     columns,
     withSorting: true,

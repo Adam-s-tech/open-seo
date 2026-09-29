@@ -1,10 +1,8 @@
 import { createColumnHelper } from "@tanstack/react-table";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 import { SafeExternalLink } from "@/client/components/SafeExternalLink";
-import {
-  AppDataTable,
-  useAppTable,
-} from "@/client/components/table/AppDataTable";
+import { AppDataTable } from "@/client/components/table/AppDataTable";
+import { useDataTable } from "@/client/components/table/DataTable";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { HelpLabel } from "@/client/components/HelpLabel";
 import { EmptyTableState } from "./BacklinksPageStates";
@@ -98,7 +96,7 @@ export function TopPagesTable({
   sorting: SortingState;
   onSortingChange: OnChangeFn<SortingState>;
 }) {
-  const table = useAppTable({
+  const table = useDataTable({
     data: rows,
     columns,
     state: { sorting },

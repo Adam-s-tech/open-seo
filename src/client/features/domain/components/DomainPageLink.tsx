@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { PageButtonProps } from "@/client/components/table/TablePagination";
+import { buttonVariants } from "@/client/components/ui/button";
 
 /** Prev/next as real links, so a page can open in a new tab. */
 export function DomainPageLink({
@@ -19,7 +20,11 @@ export function DomainPageLink({
       })}
       aria-label={label}
       aria-disabled={disabled}
-      className={`btn btn-ghost btn-sm btn-square ${disabled ? "btn-disabled" : ""}`}
+      className={buttonVariants({
+        variant: "ghost",
+        size: "icon-sm",
+        className: disabled && "pointer-events-none opacity-50",
+      })}
       onClick={(event) => {
         if (disabled) {
           event.preventDefault();
