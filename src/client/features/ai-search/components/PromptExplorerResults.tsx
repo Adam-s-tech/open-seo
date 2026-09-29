@@ -5,6 +5,7 @@ import {
   Globe,
   XCircle,
 } from "lucide-react";
+import { cn } from "cn";
 import { MarkdownAnswer } from "@/client/features/ai-search/components/MarkdownAnswer";
 import {
   formatModelLabel,
@@ -22,6 +23,9 @@ import type {
 type Props = {
   result: PromptExplorerResult;
 };
+
+const ARTICLE_CLASS =
+  "overflow-hidden rounded-r-lg border border-l-4 border-border bg-card";
 
 export function PromptExplorerResults({ result }: Props) {
   return (
@@ -48,9 +52,7 @@ function ModelResultCard({
 
   if (modelResult.status === "error") {
     return (
-      <article
-        className={`overflow-hidden rounded-r-lg border border-base-300 border-l-4 ${accent.border} bg-base-100`}
-      >
+      <article className={cn(ARTICLE_CLASS, accent.border)}>
         <ModelHeader
           model={modelResult.model}
           modelName={null}
@@ -60,7 +62,7 @@ function ModelResultCard({
           highlightBrand={null}
           status="error"
         />
-        <div className="flex items-start gap-2 px-5 py-4 text-sm text-error">
+        <div className="flex items-start gap-2 px-5 py-4 text-sm text-destructive">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
           <span>{modelResult.message}</span>
         </div>
@@ -69,9 +71,7 @@ function ModelResultCard({
   }
 
   return (
-    <article
-      className={`overflow-hidden rounded-r-lg border border-base-300 border-l-4 ${accent.border} bg-base-100`}
-    >
+    <article className={cn(ARTICLE_CLASS, accent.border)}>
       <ModelHeader
         model={modelResult.model}
         modelName={modelResult.modelName}
@@ -94,18 +94,19 @@ function ModelResultCard({
       ) : null}
 
       {modelResult.fanOutQueries.length > 0 ? (
-        <div className="border-t border-base-200 px-5 py-3">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-base-content/50">
+        <div className="border-t border-border px-5 py-3">
+          <p className="mb-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
             Related queries the model considered
           </p>
           <div className="flex flex-wrap gap-1.5">
             {modelResult.fanOutQueries.map((query, index) => (
-              <span
+              <Badge
                 key={`${query}-${index}`}
-                className="rounded-full border border-base-300 px-2.5 py-0.5 text-xs text-base-content/70"
+                variant="outline"
+                className="font-normal text-muted-foreground"
               >
                 {query}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
@@ -177,29 +178,27 @@ function ModelHeader({
 }) {
   const accent = getModelAccent(model);
   return (
-    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-base-200 bg-base-200/40 px-5 py-3">
+    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-5 py-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`size-2 rounded-full ${accent.dot}`} />
         <h3 className="text-sm font-semibold">{formatModelLabel(model)}</h3>
         {modelName ? (
-          <code className="text-xs text-base-content/50">{modelName}</code>
+          <code className="text-xs text-muted-foreground">{modelName}</code>
         ) : null}
-        {status === "error" ? (
-          <span className="badge badge-error badge-sm">Error</span>
-        ) : null}
+        {status === "error" ? <Badge variant="destructive">Error</Badge> : null}
         <BrandMentionBadge
           mentioned={brandMentioned}
           highlightBrand={highlightBrand}
         />
         {webSearch ? (
-          <span className="inline-flex items-center gap-1 text-xs text-base-content/60">
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Globe className="size-3" />
             web search
           </span>
         ) : null}
       </div>
       {tokens != null ? (
-        <span className="text-xs tabular-nums text-base-content/50">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {tokens.toLocaleString()} tokens
         </span>
       ) : null}
@@ -217,16 +216,16 @@ function BrandMentionBadge({
   if (mentioned == null || !highlightBrand) return null;
   if (mentioned) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success">
-        <CheckCircle2 className="size-3" />
+      <Badge variant="success">
+        <CheckCircle2 data-icon="inline-start" />
         {highlightBrand}
-      </span>
+      </Badge>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-base-200 px-2 py-0.5 text-xs text-base-content/60">
-      <XCircle className="size-3" />
+    <Badge variant="secondary" className="font-normal text-muted-foreground">
+      <XCircle data-icon="inline-start" />
       no {highlightBrand}
-    </span>
+    </Badge>
   );
 }

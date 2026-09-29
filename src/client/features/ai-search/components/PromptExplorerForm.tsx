@@ -1,4 +1,24 @@
 import type { FormEvent } from "react";
+import { cn } from "cn";
+import { Button } from "@/client/components/ui/button";
+import { Card, CardContent } from "@/client/components/ui/card";
+import { Checkbox } from "@/client/components/ui/checkbox";
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@/client/components/ui/field";
+import { Input } from "@/client/components/ui/input";
+import { Label } from "@/client/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/client/components/ui/select";
+import { Textarea } from "@/client/components/ui/textarea";
 import {
   formatCountryLabel,
   formatModelLabel,
@@ -31,6 +51,11 @@ type Props = {
   validationError: string | null;
 };
 
+const COUNTRY_ITEMS = WEB_SEARCH_COUNTRY_CODES.map((code) => ({
+  value: code,
+  label: formatCountryLabel(code),
+}));
+
 function isCountryCode(value: string): value is WebSearchCountryCode {
   return (WEB_SEARCH_COUNTRY_CODES as readonly string[]).includes(value);
 }
@@ -62,129 +87,117 @@ export function PromptExplorerForm({
   const promptOverLimit = promptCharCount > PROMPT_EXPLORER_MAX_PROMPT_LENGTH;
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="card border border-base-300 bg-base-100"
-    >
-      <div className="card-body gap-5">
-        <div className="space-y-1.5">
-          <label
-            className="block text-sm font-medium"
-            htmlFor="prompt-explorer-prompt"
-          >
-            Prompt
-          </label>
-          <textarea
-            id="prompt-explorer-prompt"
-            className={`textarea textarea-bordered w-full resize-none ${
-              promptOverLimit ? "textarea-error" : ""
-            }`}
-            rows={3}
-            value={form.prompt}
-            maxLength={PROMPT_EXPLORER_MAX_PROMPT_LENGTH + 50}
-            onChange={(event) => onPromptChange(event.target.value)}
-            aria-invalid={promptOverLimit ? true : undefined}
-            autoFocus
-          />
-          <div className="flex items-center justify-between text-xs text-base-content/60">
-            <span>What your customers might ask AI.</span>
-            <span
-              className={`tabular-nums ${promptOverLimit ? "font-medium text-error" : ""}`}
-            >
-              {promptCharCount}/{PROMPT_EXPLORER_MAX_PROMPT_LENGTH}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label
-              className="block text-sm font-medium"
-              htmlFor="prompt-explorer-brand"
-            >
-              Highlight brand (optional)
-            </label>
-            <input
-              id="prompt-explorer-brand"
-              type="text"
-              className="input input-bordered w-full"
-              value={form.highlightBrand}
-              onChange={(event) => onHighlightBrandChange(event.target.value)}
-              autoComplete="off"
-              spellCheck={false}
+    <Card>
+      <CardContent>
+        <form onSubmit={onSubmit} noValidate className="space-y-5">
+          <Field>
+            <FieldLabel htmlFor="prompt-explorer-prompt">Prompt</FieldLabel>
+            <Textarea
+              id="prompt-explorer-prompt"
+              className="resize-none"
+              rows={3}
+              value={form.prompt}
+              maxLength={PROMPT_EXPLORER_MAX_PROMPT_LENGTH + 50}
+              onChange={(event) => onPromptChange(event.target.value)}
+              aria-invalid={promptOverLimit ? true : undefined}
+              autoFocus
             />
-            <p className="text-xs text-base-content/60">
-              We&apos;ll flag whether each model mentions this brand.
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <span className="block text-sm font-medium">Models</span>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1.5">
-              {PROMPT_EXPLORER_MODELS.map((model) => {
-                const isActive = form.models.includes(model);
-                return (
-                  <label
-                    key={model}
-                    className="flex cursor-pointer items-center gap-2"
-                  >
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm"
-                      checked={isActive}
-                      onChange={() => toggleModel(model)}
-                    />
-                    <span className="text-sm">{formatModelLabel(model)}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-base-300 pt-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                className="checkbox checkbox-sm"
-                checked={form.webSearch}
-                onChange={(event) => onWebSearchChange(event.target.checked)}
-              />
-              <span className="text-sm">
-                Allow web search (more current answers)
+            <FieldDescription className="flex items-center justify-between">
+              <span>What your customers might ask AI.</span>
+              <span
+                className={cn(
+                  "tabular-nums",
+                  promptOverLimit && "font-medium text-destructive",
+                )}
+              >
+                {promptCharCount}/{PROMPT_EXPLORER_MAX_PROMPT_LENGTH}
               </span>
-            </label>
-            <select
-              id="prompt-explorer-country"
-              aria-label="Web search location"
-              className="select select-bordered select-sm min-w-0 sm:max-w-xs"
-              value={form.webSearchCountryCode}
-              onChange={(event) =>
-                onCountryChange(parseCountryCode(event.target.value))
-              }
-              disabled={!form.webSearch}
-            >
-              {WEB_SEARCH_COUNTRY_CODES.map((code) => (
-                <option key={code} value={code}>
-                  {formatCountryLabel(code)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary shrink-0 px-6"
-            disabled={isLoading || form.models.length === 0}
-          >
-            {isLoading ? "Running…" : "Run"}
-          </button>
-        </div>
+            </FieldDescription>
+          </Field>
 
-        {validationError ? (
-          <p className="text-sm text-error">{validationError}</p>
-        ) : null}
-      </div>
-    </form>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="prompt-explorer-brand">
+                Highlight brand (optional)
+              </FieldLabel>
+              <Input
+                id="prompt-explorer-brand"
+                value={form.highlightBrand}
+                onChange={(event) => onHighlightBrandChange(event.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <FieldDescription>
+                We&apos;ll flag whether each model mentions this brand.
+              </FieldDescription>
+            </Field>
+
+            <Field>
+              <FieldTitle>Models</FieldTitle>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1.5">
+                {PROMPT_EXPLORER_MODELS.map((model) => (
+                  <Label key={model} className="font-normal">
+                    <Checkbox
+                      checked={form.models.includes(model)}
+                      onCheckedChange={() => toggleModel(model)}
+                    />
+                    {formatModelLabel(model)}
+                  </Label>
+                ))}
+              </div>
+            </Field>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Label className="font-normal">
+                <Checkbox
+                  checked={form.webSearch}
+                  onCheckedChange={onWebSearchChange}
+                />
+                Allow web search (more current answers)
+              </Label>
+              <Select
+                items={COUNTRY_ITEMS}
+                value={form.webSearchCountryCode}
+                onValueChange={(value) =>
+                  onCountryChange(parseCountryCode(value ?? ""))
+                }
+                disabled={!form.webSearch}
+              >
+                <SelectTrigger
+                  aria-label="Web search location"
+                  className="min-w-0 sm:max-w-xs"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRY_ITEMS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              className="px-6"
+              pending={isLoading}
+              disabled={form.models.length === 0}
+            >
+              Run
+            </Button>
+          </div>
+
+          {validationError ? (
+            <p role="alert" className="text-sm text-destructive">
+              {validationError}
+            </p>
+          ) : null}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

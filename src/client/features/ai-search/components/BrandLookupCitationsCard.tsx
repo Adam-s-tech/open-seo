@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { type SortingState } from "@tanstack/react-table";
-import { ChevronDown, Download, Sheet, SlidersHorizontal } from "lucide-react";
-import { useDataTable } from "@/client/components/table/DataTable";
+import { ExportMenu } from "@/client/components/ExportMenu";
+import { DataTable, useDataTable } from "@/client/components/table/DataTable";
+import {
+  DataTableFilterToggle,
+  DataTableToolbar,
+} from "@/client/components/table/DataTableToolbar";
+import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
 import { exportRows } from "@/client/lib/exportRows";
 import {
   buildBrandLookupExport,
@@ -9,8 +14,6 @@ import {
 } from "@/client/features/ai-search/components/brandLookupExport";
 import { BrandLookupFilterPanel } from "@/client/features/ai-search/components/BrandLookupFilterPanel";
 import {
-  TopPagesTable,
-  TopQueriesTable,
   buildTopPagesColumns,
   buildTopQueriesColumns,
 } from "@/client/features/ai-search/components/BrandLookupCitationTables";
@@ -30,12 +33,6 @@ const DEFAULT_PAGES_SORT: SortingState = [{ id: "capturedVolume", desc: true }];
 const DEFAULT_QUERIES_SORT: SortingState = [
   { id: "aiSearchVolume", desc: true },
 ];
-
-// DaisyUI focus-dropdowns stay open until the active element blurs.
-function closeExportMenu(): void {
-  const active = document.activeElement;
-  if (active instanceof HTMLElement) active.blur();
-}
 
 export function CitationTabsCard({
   result,
@@ -135,13 +132,11 @@ export function CitationTabsCard({
       ...exportTable,
       filename: brandLookupExportFilename(activeTab, result.resolvedTarget),
     });
-    closeExportMenu();
   };
 
   const canExport = exportTable.rows.length > 0;
 
   const currentFilterCount = filters[activeTab].activeFilterCount;
-  const queriesActive = activeTab === "queries";
   const pagesActive = activeTab === "pages";
 
   // When the active tab's platform column is hidden, surface the lone platform
@@ -150,91 +145,41 @@ export function CitationTabsCard({
   const captionPlatform =
     activePlatforms.length === 1 ? activePlatforms[0] : null;
 
-  return (
-    <section className="overflow-hidden rounded-xl border border-base-300 bg-base-100">
-      <div className="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-3">
-        <div role="tablist" className="tabs tabs-border w-fit">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={queriesActive}
-            className={`tab ${queriesActive ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("queries")}
-          >
-            Queries
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={pagesActive}
-            className={`tab ${pagesActive ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("pages")}
-          >
-            Cited sources
-          </button>
-        </div>
-
-        <div className="dropdown dropdown-end">
-          <div
-            tabIndex={0}
-            role="button"
-            className={`btn btn-ghost btn-sm gap-1.5 ${canExport ? "" : "btn-disabled"}`}
-          >
-            <Download className="size-3.5" />
-            Export
-            <ChevronDown className="size-3.5" />
-          </div>
-          <ul
-            tabIndex={0}
-            className="menu dropdown-content z-10 mt-1 w-48 rounded-box border border-base-300 bg-base-100 p-1 shadow"
-          >
-            <li>
-              <button
-                type="button"
-                onClick={() => handleExport("sheets")}
-                disabled={!canExport}
-              >
-                <Sheet className="size-4" />
-                Google Sheets
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                onClick={() => handleExport("csv")}
-                disabled={!canExport}
-              >
-                <Download className="size-4" />
-                CSV
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 border-b border-base-300 px-4 py-2">
-        <button
-          type="button"
-          className={`btn btn-ghost btn-sm gap-1.5 ${filters.showFilters ? "btn-active" : ""}`}
-          onClick={() => filters.setShowFilters((current) => !current)}
-          title="Toggle table filters"
+  const toolbar = (
+    <>
+      <DataTableToolbar
+        actions={
+          <ExportMenu
+            actions={["sheets", "csv"]}
+            onExport={handleExport}
+            disabled={!canExport}
+          />
+        }
+      >
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value === "pages" ? "pages" : "queries")
+          }
         >
-          <SlidersHorizontal className="size-3.5" />
-          Filters
-          {currentFilterCount > 0 ? (
-            <span className="badge badge-xs badge-primary border-0 text-primary-content">
-              {currentFilterCount}
-            </span>
-          ) : null}
-        </button>
-      </div>
+          <TabsList variant="line">
+            <TabsTrigger value="queries">Queries</TabsTrigger>
+            <TabsTrigger value="pages">Cited sources</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <DataTableFilterToggle
+          open={filters.showFilters}
+          activeCount={currentFilterCount}
+          onToggle={() => filters.setShowFilters((current) => !current)}
+        />
+      </DataTableToolbar>
 
-      <div className="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-2 text-xs text-base-content/60">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
         <span>
-          {activeTab === "pages" ? (
+          {pagesActive ? (
             <>
               {isUrlScoped ? "Cited pages within " : "Pages cited alongside "}
-              <strong className="text-base-content/80">
+              <strong className="text-foreground">
                 {result.resolvedTarget}
               </strong>
               {isUrlScoped ? "." : " in AI answers."} Prompt examples come from
@@ -244,7 +189,7 @@ export function CitationTabsCard({
             <>
               Fetched sample of prompts whose AI answer cited{" "}
               {isUrlScoped ? "a page within " : null}
-              <strong className="text-base-content/80">
+              <strong className="text-foreground">
                 {result.resolvedTarget}
               </strong>
               {isUrlScoped ? "." : " in its text or sources."}
@@ -252,7 +197,7 @@ export function CitationTabsCard({
           )}
         </span>
         {captionPlatform ? (
-          <span className="inline-flex shrink-0 items-center gap-1.5 text-base-content/70">
+          <span className="inline-flex shrink-0 items-center gap-1.5">
             <span
               className={`size-1.5 rounded-full ${PLATFORM_DOT_CLASS[captionPlatform]}`}
             />
@@ -264,29 +209,43 @@ export function CitationTabsCard({
       {filters.showFilters ? (
         <BrandLookupFilterPanel activeTab={activeTab} filters={filters} />
       ) : null}
+    </>
+  );
 
-      {activeTab === "pages" ? (
-        <TopPagesTable
-          table={pagesTable}
-          // The provider only returns the domain's top cited pages, so a URL
-          // scope can filter every sampled row away without meaning zero
-          // citations exist for that section.
-          emptyMessage={
-            isUrlScoped
-              ? `None of this domain's top cited pages fall under ${result.resolvedTarget}. Broaden the scope to see domain-level citations.`
-              : undefined
-          }
-        />
-      ) : (
-        <TopQueriesTable
-          table={queriesTable}
-          emptyMessage={
-            isUrlScoped
-              ? `No sampled prompts cited a page under ${result.resolvedTarget}. Broaden the scope to see domain-level prompts.`
-              : undefined
-          }
-        />
-      )}
-    </section>
+  const tableProps = {
+    toolbar,
+    isFiltered: currentFilterCount > 0,
+    onClearFilters: filters[activeTab].reset,
+  };
+
+  // The provider only returns the domain's top cited pages, so a URL scope can
+  // filter every sampled row away without meaning zero citations exist for
+  // that section.
+  return pagesActive ? (
+    <DataTable
+      table={pagesTable}
+      empty={{
+        title: isUrlScoped
+          ? `None of this domain's top cited pages fall under ${result.resolvedTarget}.`
+          : "No cited sources to show.",
+        description: isUrlScoped
+          ? "Broaden the scope to see domain-level citations."
+          : undefined,
+      }}
+      {...tableProps}
+    />
+  ) : (
+    <DataTable
+      table={queriesTable}
+      empty={{
+        title: isUrlScoped
+          ? `No sampled prompts cited a page under ${result.resolvedTarget}.`
+          : "No matching queries found.",
+        description: isUrlScoped
+          ? "Broaden the scope to see domain-level prompts."
+          : undefined,
+      }}
+      {...tableProps}
+    />
   );
 }

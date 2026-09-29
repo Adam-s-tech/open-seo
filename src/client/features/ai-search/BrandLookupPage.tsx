@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BarChart3, Quote, Sparkles, TrendingUp } from "lucide-react";
 import { lookupBrand } from "@/serverFunctions/ai-search";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
-import { PageLoading } from "@/client/components/Spinner";
-import { getStandardErrorMessage } from "@/client/lib/error-messages";
-import { QueryError } from "@/client/components/QueryState";
+import { ResearchPageShell } from "@/client/features/ai-search/ResearchPageShell";
 import { BrandLookupResults } from "@/client/features/ai-search/components/BrandLookupResults";
 import { BrandLookupSearchCard } from "@/client/features/ai-search/components/BrandLookupSearchCard";
 import {
   RecentSearches,
   RecentSearchesBackLink,
 } from "@/client/components/RecentSearches";
-import { AiSearchLoadingState } from "@/client/features/ai-search/components/AiSearchLoadingState";
-import { AiSearchPaidPlanGate } from "@/client/features/ai-search/components/AiSearchPaidPlanGate";
 import { Badge } from "@/client/components/ui/badge";
 import { useBrandLookupSearchHistory } from "@/client/hooks/useBrandLookupSearchHistory";
 import {
@@ -140,29 +136,6 @@ export function BrandLookupPage({
     removeHistoryItem,
   } = useBrandLookupSearchHistory(projectId);
 
-  // Dedup ref prevents repeat adds — `addSearch` identity is not stable
-  // across renders, so we'd otherwise re-write the same item every render.
-  // Key on query + competitors so changing competitors records a fresh entry.
-  const lastAddedKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!hasActiveQuery || !lookupQuery.isSuccess) return;
-    const addedKey = `${trimmedInitialQuery}::${competitorKey}::${initialScope ?? ""}`;
-    if (lastAddedKeyRef.current === addedKey) return;
-    lastAddedKeyRef.current = addedKey;
-    addSearch({
-      query: trimmedInitialQuery,
-      competitors: competitorKey ? competitorKey.split(",") : [],
-      scope: initialScope,
-    });
-  }, [
-    hasActiveQuery,
-    lookupQuery.isSuccess,
-    trimmedInitialQuery,
-    competitorKey,
-    initialScope,
-    addSearch,
-  ]);
-
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     const trimmed = query.trim();
@@ -227,144 +200,122 @@ export function BrandLookupPage({
     onSearchChange(trimmed, competitors, explicitScope);
   };
 
-  // The form inputs are reset whenever the URL `q`/`c` changes — including the
-  // browser-back path and Cmd+click navigation. This keeps local form state in
-  // sync with the URL source-of-truth. Depend on the stable `competitorKey`
-  // string (not the fresh-each-render `initialCompetitors` array) so typing in
-  // the competitor field isn't clobbered on every render.
-  useEffect(() => {
-    setQuery(initialQuery);
-    setCompetitorsInput(competitorKey.split(",").join(", "));
-    setScopeChoice(initialScope);
-    setValidationError(null);
-  }, [initialQuery, competitorKey, initialScope]);
-
-  const isLoading = hasActiveQuery && lookupQuery.isPending;
-  const errorMessage =
-    hasActiveQuery && lookupQuery.isError
-      ? getStandardErrorMessage(
-          lookupQuery.error,
-          "Failed to load brand lookup",
-        )
-      : null;
-  const resultData = hasActiveQuery ? lookupQuery.data : undefined;
+  // The project is part of both keys, so switching projects resets the form
+  // and records the search in the new project's history.
+  const historyKey = `${projectId}::${trimmedInitialQuery}::${competitorKey}::${initialScope ?? ""}`;
 
   return (
-    <div className="px-4 py-4 pb-24 overflow-auto md:px-6 md:py-6 md:pb-8">
-      <div className="mx-auto max-w-7xl space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Brand Lookup</h1>
-          <p className="text-sm text-base-content/70">
-            See how AI search cites any brand name or domain.
-          </p>
-        </div>
-
-        {planStatus === "loading" ? (
-          <PageLoading />
-        ) : planStatus === "free" ? (
-          <AiSearchPaidPlanGate
-            feature="Brand Lookup"
-            description="See how ChatGPT and Google AI Overview cite any brand or domain — total mentions, sample prompts where it appears, and the pages cited alongside it."
-            bullets={BRAND_LOOKUP_BULLETS}
-          />
-        ) : (
-          <>
-            <BrandLookupSearchCard
-              query={query}
-              onQueryChange={(next) => {
-                setQuery(next);
-                if (validationError) setValidationError(null);
-              }}
-              scope={selectedScope}
-              onScopeChange={setScopeChoice}
-              scopeDisabledReason={scopeDisabledReason}
-              competitors={competitorsInput}
-              onCompetitorsChange={(next) => {
-                setCompetitorsInput(next);
-                if (validationError) setValidationError(null);
-              }}
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-              validationError={validationError}
+    <ResearchPageShell
+      title="Brand Lookup"
+      description="See how AI search cites any brand name or domain."
+      planStatus={planStatus}
+      gate={{
+        feature: "Brand Lookup",
+        description:
+          "See how ChatGPT and Google AI Overview cite any brand or domain — total mentions, sample prompts where it appears, and the pages cited alongside it.",
+        bullets: BRAND_LOOKUP_BULLETS,
+      }}
+      form={
+        <BrandLookupSearchCard
+          query={query}
+          onQueryChange={(next) => {
+            setQuery(next);
+            if (validationError) setValidationError(null);
+          }}
+          scope={selectedScope}
+          onScopeChange={setScopeChoice}
+          scopeDisabledReason={scopeDisabledReason}
+          competitors={competitorsInput}
+          onCompetitorsChange={(next) => {
+            setCompetitorsInput(next);
+            if (validationError) setValidationError(null);
+          }}
+          onSubmit={handleSubmit}
+          isLoading={hasActiveQuery && lookupQuery.isPending}
+          validationError={validationError}
+        />
+      }
+      query={lookupQuery}
+      hasActiveQuery={hasActiveQuery}
+      errorFallback="Failed to load brand lookup"
+      // The form resets whenever the URL `q`/`c`/`scope` changes, including
+      // browser back and history links. `competitorKey` is a stable string,
+      // unlike the fresh-each-render `initialCompetitors` array.
+      urlKey={`${initialQuery}::${historyKey}`}
+      onUrlChange={() => {
+        setQuery(initialQuery);
+        setCompetitorsInput(competitorKey.split(",").join(", "));
+        setScopeChoice(initialScope);
+        setValidationError(null);
+      }}
+      historyKey={historyKey}
+      onSuccess={() =>
+        addSearch({
+          query: trimmedInitialQuery,
+          competitors: competitorKey ? competitorKey.split(",") : [],
+          scope: initialScope,
+        })
+      }
+      backLink={
+        <RecentSearchesBackLink
+          render={(props) => (
+            <Link
+              from="/p/$projectId/brand-lookup"
+              to="/p/$projectId/brand-lookup"
+              params={{ projectId }}
+              search={{ q: undefined, c: undefined, scope: undefined }}
+              replace
+              {...props}
             />
-
-            {errorMessage ? (
-              <QueryError
-                cause={lookupQuery.error}
-                fallback={
-                  resultData
-                    ? `${errorMessage} Showing earlier results.`
-                    : errorMessage
-                }
-                onRetry={() => void lookupQuery.refetch()}
-                isRetrying={lookupQuery.isFetching}
-              />
-            ) : null}
-
-            {isLoading ? (
-              <AiSearchLoadingState />
-            ) : resultData ? (
-              <>
-                <RecentSearchesBackLink
-                  render={(props) => (
-                    <Link
-                      from="/p/$projectId/brand-lookup"
-                      to="/p/$projectId/brand-lookup"
-                      params={{ projectId }}
-                      search={{ q: undefined, c: undefined, scope: undefined }}
-                      replace
-                      {...props}
-                    />
-                  )}
-                />
-                <BrandLookupResults result={resultData} projectId={projectId} />
-              </>
-            ) : !errorMessage ? (
-              <RecentSearches
-                items={history}
-                loaded={historyLoaded}
-                onRemove={removeHistoryItem}
-                emptyIcon={Sparkles}
-                emptyTitle="Search a brand name or domain to see how AI cites it"
-                getTitle={(item) => (
-                  <>
-                    {item.query}
-                    {/* Only non-default scopes are stored, so this badge always
-                        adds information the query string doesn't carry. */}
-                    {item.scope ? (
-                      <Badge variant="secondary" className="ml-2">
-                        {RESEARCH_SCOPE_LABELS[item.scope]}
-                      </Badge>
-                    ) : null}
-                  </>
-                )}
-                getSubtitle={(item) =>
+          )}
+        />
+      }
+      renderResults={(result) => (
+        <BrandLookupResults result={result} projectId={projectId} />
+      )}
+      history={
+        <RecentSearches
+          items={history}
+          loaded={historyLoaded}
+          onRemove={removeHistoryItem}
+          emptyIcon={Sparkles}
+          emptyTitle="Search a brand name or domain to see how AI cites it"
+          getTitle={(item) => (
+            <>
+              {item.query}
+              {/* Only non-default scopes are stored, so this badge always
+                  adds information the query string doesn't carry. */}
+              {item.scope ? (
+                <Badge variant="secondary" className="ml-2">
+                  {RESEARCH_SCOPE_LABELS[item.scope]}
+                </Badge>
+              ) : null}
+            </>
+          )}
+          getSubtitle={(item) =>
+            item.competitors.length > 0
+              ? `vs ${item.competitors.join(", ")}`
+              : null
+          }
+          renderLink={(item, props) => (
+            <Link
+              from="/p/$projectId/brand-lookup"
+              to="/p/$projectId/brand-lookup"
+              params={{ projectId }}
+              search={{
+                q: item.query,
+                c:
                   item.competitors.length > 0
-                    ? `vs ${item.competitors.join(", ")}`
-                    : null
-                }
-                renderLink={(item, props) => (
-                  <Link
-                    from="/p/$projectId/brand-lookup"
-                    to="/p/$projectId/brand-lookup"
-                    params={{ projectId }}
-                    search={{
-                      q: item.query,
-                      c:
-                        item.competitors.length > 0
-                          ? item.competitors.join(",")
-                          : undefined,
-                      scope: item.scope,
-                    }}
-                    replace
-                    {...props}
-                  />
-                )}
-              />
-            ) : null}
-          </>
-        )}
-      </div>
-    </div>
+                    ? item.competitors.join(",")
+                    : undefined,
+                scope: item.scope,
+              }}
+              replace
+              {...props}
+            />
+          )}
+        />
+      }
+    />
   );
 }

@@ -19,6 +19,7 @@ export function SearchCard({
   error,
   errorId,
   children,
+  secondRow,
 }: {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   /** Shows a spinner in the submit button while the search runs. */
@@ -28,27 +29,28 @@ export function SearchCard({
   errorId?: string;
   /** The fields, laid out in one row on wide screens. */
   children: ReactNode;
+  /** More fields below the row, still inside the form so Enter submits. */
+  secondRow?: ReactNode;
 }) {
   return (
     // ResearchScopeSelect opens an absolute menu below the row, so the card
     // must not clip it.
     <Card className="overflow-visible">
       <CardContent className="space-y-3">
-        <form
-          noValidate
-          className="flex flex-col gap-3 lg:flex-row lg:items-center"
-          onSubmit={onSubmit}
-        >
-          {children}
-          {/* 40px, to match the DaisyUI selects that still sit in the row. */}
-          <Button
-            type="submit"
-            size="lg"
-            className="h-10 px-6"
-            pending={pending}
-          >
-            Search
-          </Button>
+        <form noValidate className="space-y-3" onSubmit={onSubmit}>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            {children}
+            {/* 40px, to match the DaisyUI selects that still sit in the row. */}
+            <Button
+              type="submit"
+              size="lg"
+              className="h-10 px-6"
+              pending={pending}
+            >
+              Search
+            </Button>
+          </div>
+          {secondRow}
         </form>
         {error ? (
           <p id={errorId} role="alert" className="text-sm text-destructive">
