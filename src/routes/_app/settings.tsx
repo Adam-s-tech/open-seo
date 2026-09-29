@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { NavTab, NavTabs } from "@/client/components/NavTabs";
+import { PageHeader } from "@/client/components/PageHeader";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 
 export const Route = createFileRoute("/_app/settings")({
@@ -22,7 +23,7 @@ function SettingsLayout() {
     <div className="h-full overflow-auto">
       <div className="mx-auto w-full max-w-4xl space-y-8 p-4 py-8 pb-24 sm:p-6 md:py-12 md:pb-12">
         <div className="space-y-4">
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <PageHeader title="Settings" />
           <NavTabs label="Settings sections">
             {tabs.map((tab) => (
               <NavTab

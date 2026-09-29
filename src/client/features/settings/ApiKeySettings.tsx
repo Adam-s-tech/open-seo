@@ -2,8 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QueryState } from "@/client/components/QueryState";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+import { revalidateLogic } from "@tanstack/react-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { SectionHeader } from "@/client/components/PageHeader";
+import { useAppForm } from "@/client/components/form/useAppForm";
 import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
@@ -15,6 +19,14 @@ import {
 } from "@/client/components/ui/dialog";
 import { RowActionsMenu } from "@/client/components/RowActionsMenu";
 import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import { CopyButton } from "@/client/components/CopyButton";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { authClient } from "@/lib/auth-client";
@@ -22,10 +34,13 @@ import { authClient } from "@/lib/auth-client";
 // Better Auth rejects longer names with INVALID_NAME_LENGTH.
 const MAX_KEY_NAME_LENGTH = 32;
 
+const createKeySchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+});
+
 export function ApiKeySettings() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [name, setName] = useState("");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<{ id: string; name: string } | null>(
     null,
@@ -63,7 +78,6 @@ export function ApiKeySettings() {
     },
     onSuccess: (key) => {
       setCreatedKey(key);
-      setName("");
       captureClientEvent("mcp:api_key_created");
       void queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
     },
@@ -84,27 +98,36 @@ export function ApiKeySettings() {
     },
   });
 
+  const form = useAppForm({
+    defaultValues: { name: "" },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: createKeySchema },
+    onSubmit: async ({ value }) => {
+      await createMutation.mutateAsync(value.name.trim());
+    },
+  });
+
   const closeCreateModal = () => {
     setIsCreateOpen(false);
     setCreatedKey(null);
-    setName("");
+    form.reset();
   };
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-medium text-base-content/50">API keys</h2>
+      <SectionHeader title="API keys" />
       <div className="flex items-start justify-between gap-6">
         <div>
           <p className="text-sm">
             Authenticate MCP clients when OAuth doesn't work
           </p>
-          <p className="mt-1 text-sm text-base-content/60">
+          <p className="mt-1 text-sm text-muted-foreground">
             Use this for remote agents like Hermes where the normal login flow
             doesn't work.
           </p>
           <p className="mt-1 text-sm">
             <a
-              className="link link-primary"
+              className="text-primary underline-offset-4 hover:underline"
               href="https://openseo.so/docs/mcp"
               target="_blank"
               rel="noreferrer"
@@ -113,13 +136,9 @@ export function ApiKeySettings() {
             </a>
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => setIsCreateOpen(true)}
-        >
+        <Button size="sm" onClick={() => setIsCreateOpen(true)}>
           Create API key
-        </button>
+        </Button>
       </div>
 
       <QueryState
@@ -128,40 +147,40 @@ export function ApiKeySettings() {
       >
         {(apiKeys) =>
           apiKeys.length === 0 ? (
-            <p className="text-sm text-base-content/60">No API keys yet.</p>
+            <p className="text-sm text-muted-foreground">No API keys yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
-              <table className="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Key</th>
-                    <th>Created</th>
-                    <th>Last used</th>
-                    <th className="w-10"></th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="rounded-lg border border-border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Key</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Last used</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {apiKeys.map((key) => (
-                    <tr key={key.id} className="hover">
-                      <td className="max-w-[220px] truncate font-medium">
+                    <TableRow key={key.id}>
+                      <TableCell className="max-w-[220px] truncate font-medium">
                         {key.name || "Unnamed key"}
-                      </td>
-                      <td
-                        className="font-mono text-xs text-base-content/70"
+                      </TableCell>
+                      <TableCell
+                        className="font-mono text-xs text-muted-foreground"
                         data-ph-mask
                       >
                         {key.start || "oseo_"}…
-                      </td>
-                      <td className="text-xs text-base-content/70">
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
                         {key.createdAt.toLocaleDateString()}
-                      </td>
-                      <td className="text-xs text-base-content/70">
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
                         {key.lastRequest
                           ? key.lastRequest.toLocaleDateString()
                           : "Never"}
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         <RowActionsMenu
                           label={`Actions for ${key.name || "API key"}`}
                         >
@@ -178,11 +197,11 @@ export function ApiKeySettings() {
                             Revoke key
                           </DropdownMenuItem>
                         </RowActionsMenu>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )
         }
@@ -209,7 +228,12 @@ export function ApiKeySettings() {
           if (!open && createdKey == null) closeCreateModal();
         }}
       >
-        <DialogContent showCloseButton={false} className="sm:max-w-md">
+        <DialogContent
+          showCloseButton={false}
+          // A minmax(0, 1fr) track, so the long key scrolls in its box and does
+          // not push the Copy and Done buttons out of the dialog.
+          className="grid-cols-1 sm:max-w-md"
+        >
           {createdKey ? (
             <>
               <DialogHeader>
@@ -219,12 +243,13 @@ export function ApiKeySettings() {
                   <span className="font-mono text-xs">
                     Authorization: Bearer
                   </span>{" "}
-                  to <span className="font-mono text-xs">{mcpUrl}</span>.
+                  to{" "}
+                  <span className="font-mono text-xs break-all">{mcpUrl}</span>.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex items-center gap-2">
                 <code
-                  className="min-w-0 flex-1 overflow-x-auto rounded bg-base-200 px-2.5 py-2 font-mono text-xs"
+                  className="min-w-0 flex-1 overflow-x-auto rounded bg-muted px-2.5 py-2 font-mono text-xs"
                   data-ph-mask
                 >
                   {createdKey}
@@ -242,43 +267,30 @@ export function ApiKeySettings() {
               </DialogFooter>
             </>
           ) : (
-            <form
-              className="grid gap-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (name.trim()) createMutation.mutate(name.trim());
-              }}
-            >
-              <DialogHeader>
-                <DialogTitle>Create API key</DialogTitle>
-              </DialogHeader>
-              <label className="form-control w-full">
-                <span className="label-text pb-1 text-xs text-base-content/60">
-                  Name
-                </span>
-                <input
-                  className="input input-sm input-bordered w-full"
-                  placeholder="Claude Code on laptop"
-                  value={name}
-                  maxLength={MAX_KEY_NAME_LENGTH}
-                  onChange={(event) => setName(event.currentTarget.value)}
-                  required
-                  autoFocus
-                />
-              </label>
-              <DialogFooter>
-                <Button variant="ghost" onClick={closeCreateModal}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  pending={createMutation.isPending}
-                  disabled={!name.trim()}
-                >
-                  Create
-                </Button>
-              </DialogFooter>
-            </form>
+            <form.AppForm>
+              <form.Form className="grid gap-4">
+                <DialogHeader>
+                  <DialogTitle>Create API key</DialogTitle>
+                </DialogHeader>
+                <form.AppField name="name">
+                  {(field) => (
+                    <field.TextField
+                      label="Name"
+                      placeholder="Claude Code on laptop"
+                      maxLength={MAX_KEY_NAME_LENGTH}
+                      required
+                      autoFocus
+                    />
+                  )}
+                </form.AppField>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={closeCreateModal}>
+                    Cancel
+                  </Button>
+                  <form.SubmitButton>Create</form.SubmitButton>
+                </DialogFooter>
+              </form.Form>
+            </form.AppForm>
           )}
         </DialogContent>
       </Dialog>

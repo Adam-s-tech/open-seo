@@ -23,7 +23,7 @@ export function RowActionsMenu({
       >
         <MoreHorizontal />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-auto min-w-40">
         {children}
       </DropdownMenuContent>
     </DropdownMenu>

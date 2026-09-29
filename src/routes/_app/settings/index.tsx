@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ApiKeySettings } from "@/client/features/settings/ApiKeySettings";
+import { SectionHeader } from "@/client/components/PageHeader";
 import { ThemePreferenceRadio } from "@/client/components/ThemePreferenceMenuItems";
+import { Switch } from "@/client/components/ui/switch";
 import { authClient, useSession } from "@/lib/auth-client";
 import { isHostedClientAuthMode } from "@/lib/auth-mode";
 import { version } from "../../../../package.json";
@@ -39,7 +41,7 @@ function PersonalSettings() {
   return (
     <div className="space-y-10">
       <section className="space-y-3">
-        <h2 className="text-sm font-medium text-base-content/50">Appearance</h2>
+        <SectionHeader title="Appearance" />
         <div className="flex items-center justify-between gap-6">
           <span className="text-sm">Theme</span>
           <ThemePreferenceRadio />
@@ -51,23 +53,19 @@ function PersonalSettings() {
           <ApiKeySettings />
 
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-base-content/50">
-              Analytics
-            </h2>
+            <SectionHeader title="Analytics" />
             <div className="flex items-start justify-between gap-6">
               <div>
                 <p className="text-sm">Help improve OpenSEO</p>
-                <p className="mt-1 text-sm text-base-content/60">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Share analytics and usage data.
                 </p>
               </div>
-              <input
-                type="checkbox"
-                className="toggle toggle-primary"
+              <Switch
                 checked={analyticsEnabled}
                 disabled={isSaving}
-                onChange={(event) => {
-                  void updateAnalyticsPreference(event.currentTarget.checked);
+                onCheckedChange={(checked) => {
+                  void updateAnalyticsPreference(checked);
                 }}
                 aria-label="Enable product analytics"
               />
@@ -76,10 +74,10 @@ function PersonalSettings() {
         </>
       ) : (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-base-content/50">About</h2>
+          <SectionHeader title="About" />
           <div className="flex items-center justify-between gap-6">
             <span className="text-sm">Version</span>
-            <span className="font-mono text-sm text-base-content/60">
+            <span className="font-mono text-sm text-muted-foreground">
               v{version}
             </span>
           </div>

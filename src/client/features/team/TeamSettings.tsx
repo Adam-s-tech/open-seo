@@ -6,8 +6,18 @@ import {
 } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SectionHeader } from "@/client/components/PageHeader";
+import { PermissionHint } from "@/client/components/PermissionHint";
 import { QueryError } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
+import { Button } from "@/client/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import {
   InviteTeammateModal,
   inviteErrorMessage,
@@ -139,38 +149,39 @@ export function TeamSettings() {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-sm font-medium text-base-content/50">Members</h2>
-        {canManageTeam ? (
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => setIsInviteOpen(true)}
-          >
-            Invite teammate
-          </button>
-        ) : null}
-      </div>
-      <p className="text-sm text-base-content/60">
+      <SectionHeader
+        title="Members"
+        action={
+          canManageTeam ? (
+            <Button size="sm" onClick={() => setIsInviteOpen(true)}>
+              Invite teammate
+            </Button>
+          ) : null
+        }
+      />
+      <p className="text-sm text-muted-foreground">
         Teammates join as Admins. Admins have full access to each project except
         for billing.
       </p>
+      {orgContextQuery.isSuccess && !canManageTeam ? (
+        <PermissionHint action="invite or remove teammates" />
+      ) : null}
       {loadError}
 
       {teamQuery.isPending ? (
         <PageLoading />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th>Member</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th className="w-10"></th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-10" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {members.map((member) => (
                 <MemberRow
                   key={member.id}
@@ -196,8 +207,8 @@ export function TeamSettings() {
                   }
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
