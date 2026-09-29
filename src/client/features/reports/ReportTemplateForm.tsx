@@ -3,8 +3,14 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAppForm } from "@/client/components/form/useAppForm";
-import { Modal } from "@/client/components/Modal";
 import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { saveReportTemplate } from "@/serverFunctions/reportTemplates";
 import type { ReportTemplate } from "@/types/schemas/report-templates";
@@ -75,56 +81,70 @@ export function ReportTemplateForm({
   });
 
   return (
-    <Modal maxWidth="max-w-2xl" onClose={onClose} labelledBy="template-title">
-      <h3 id="template-title" className="text-lg font-semibold">
-        {template ? "Edit template" : "New template"}
-      </h3>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open && !saveMutation.isPending) onClose();
+      }}
+    >
+      <DialogContent showCloseButton={false} className="sm:max-w-2xl">
+        <form.AppForm>
+          <form.Form className="flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle>
+                {template ? "Edit template" : "New template"}
+              </DialogTitle>
+            </DialogHeader>
 
-      <form.AppForm>
-        <form.Form className="flex flex-col gap-4">
-          <form.AppField name="name">
-            {(field) => (
-              <field.TextField
-                label="Name"
-                placeholder="Monthly client check-in"
-                required
-              />
-            )}
-          </form.AppField>
+            <form.AppField name="name">
+              {(field) => (
+                <field.TextField
+                  label="Name"
+                  placeholder="Monthly client check-in"
+                  required
+                />
+              )}
+            </form.AppField>
 
-          <form.AppField name="description">
-            {(field) => (
-              <field.TextField
-                label="Description"
-                description="One line saying when to use it. This is what an agent reads to decide."
-                placeholder="The monthly update we send retainer clients."
-                required
-              />
-            )}
-          </form.AppField>
+            <form.AppField name="description">
+              {(field) => (
+                <field.TextField
+                  label="Description"
+                  description="One line saying when to use it. This is what an agent reads to decide."
+                  placeholder="The monthly update we send retainer clients."
+                  required
+                />
+              )}
+            </form.AppField>
 
-          <form.AppField name="instructions">
-            {(field) => (
-              <field.TextareaField
-                label="Instructions"
-                description="Brand voice for the whole project lives in Context › Writing preferences."
-                className="h-56 font-mono leading-relaxed md:text-xs"
-                placeholder={INSTRUCTIONS_PLACEHOLDER}
-                required
-              />
-            )}
-          </form.AppField>
+            <form.AppField name="instructions">
+              {(field) => (
+                <field.TextareaField
+                  label="Instructions"
+                  description="Brand voice for the whole project lives in Context › Writing preferences."
+                  className="h-56 font-mono leading-relaxed md:text-xs"
+                  placeholder={INSTRUCTIONS_PLACEHOLDER}
+                  required
+                />
+              )}
+            </form.AppField>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <form.SubmitButton>
-              {template ? "Save changes" : "Create template"}
-            </form.SubmitButton>
-          </div>
-        </form.Form>
-      </form.AppForm>
-    </Modal>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={saveMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <form.SubmitButton>
+                {template ? "Save changes" : "Create template"}
+              </form.SubmitButton>
+            </DialogFooter>
+          </form.Form>
+        </form.AppForm>
+      </DialogContent>
+    </Dialog>
   );
 }

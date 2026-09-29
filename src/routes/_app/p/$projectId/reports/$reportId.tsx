@@ -13,9 +13,16 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { BackLink, PageHeader } from "@/client/components/PageHeader";
-import { PortalMenu } from "@/client/components/PortalMenu";
 import { QueryError } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
+import { Button } from "@/client/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/client/components/ui/dropdown-menu";
 import { ReportViewer } from "@/client/features/reports/ReportViewer";
 import {
   DeleteReportModal,
@@ -162,17 +169,17 @@ function ReportDetailPage() {
           description={
             <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-foreground">
               <div className="flex items-baseline gap-1.5">
-                <dt className="text-base-content/50">Created by</dt>
+                <dt className="text-muted-foreground">Created by</dt>
                 <dd>{formatCreatedBy(report)}</dd>
               </div>
               <div className="flex items-baseline gap-1.5">
-                <dt className="text-base-content/50">Type</dt>
+                <dt className="text-muted-foreground">Type</dt>
                 {/* As in the list's Type column: the template name when the
                     report followed one, else the skill, else an em dash. */}
                 <dd>{report.templateName ?? report.skill ?? "—"}</dd>
               </div>
               <div className="flex items-baseline gap-1.5">
-                <dt className="text-base-content/50">Updated</dt>
+                <dt className="text-muted-foreground">Updated</dt>
                 <dd title={new Date(report.updatedAt).toLocaleString()}>
                   {formatRelativeTime(report.updatedAt)}
                 </dd>
@@ -187,70 +194,51 @@ function ReportDetailPage() {
                 icon carries the state: a globe once a public link is live, a
                 lock while only members can open it. */}
               {hosted ? (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm gap-1.5"
-                  onClick={() => setShowShare(true)}
-                >
+                <Button onClick={() => setShowShare(true)}>
                   {report.shareToken ? (
-                    <Globe className="size-4" />
+                    <Globe data-icon="inline-start" />
                   ) : (
-                    <Lock className="size-4" />
+                    <Lock data-icon="inline-start" />
                   )}
                   Share
-                </button>
+                </Button>
               ) : (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm gap-1.5"
-                  onClick={exportPdf}
-                >
-                  <FileDown className="size-4" />
+                <Button onClick={exportPdf}>
+                  <FileDown data-icon="inline-start" />
                   Export
-                </button>
+                </Button>
               )}
-              <PortalMenu
-                ariaLabel="Report actions"
-                triggerClassName="btn btn-ghost btn-sm btn-square"
-                triggerContent={<MoreHorizontal className="size-4" />}
-                menuClassName="w-52"
-              >
-                {(close) => (
-                  <>
-                    {hosted ? (
-                      <>
-                        <li>
-                          <button
-                            onClick={() => {
-                              close();
-                              exportPdf();
-                            }}
-                          >
-                            <FileDown className="size-4" />
-                            Export
-                          </button>
-                        </li>
-                        <li
-                          role="separator"
-                          className="mx-1 my-1 h-px bg-base-300"
-                        />
-                      </>
-                    ) : null}
-                    <li>
-                      <button
-                        className="text-error"
-                        onClick={() => {
-                          close();
-                          setShowDelete(true);
-                        }}
-                      >
-                        <Trash2 className="size-4" />
-                        Delete
-                      </button>
-                    </li>
-                  </>
-                )}
-              </PortalMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Report actions"
+                    />
+                  }
+                >
+                  <MoreHorizontal />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  {hosted ? (
+                    <>
+                      <DropdownMenuItem onClick={exportPdf}>
+                        <FileDown />
+                        Export
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : null}
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setShowDelete(true)}
+                  >
+                    <Trash2 />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           }
         />
@@ -263,28 +251,30 @@ function ReportDetailPage() {
             so keyboard focus reaches them without tabbing through the report;
             inset from the edge so they clear a classic scrollbar. z-10 keeps
             them above the viewer, which is positioned and comes later. */}
-        <div className="absolute top-1 right-5 z-10 flex items-center gap-0.5 rounded-md border border-base-300 bg-base-100/95 p-0.5 shadow-sm backdrop-blur">
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm btn-square"
+        <div className="absolute top-1 right-5 z-10 flex items-center gap-0.5 rounded-md border border-border bg-card/95 p-0.5 shadow-sm backdrop-blur">
+          <Button
+            variant="ghost"
+            size="icon-sm"
             aria-label="Full screen"
             title="Full screen"
             onClick={() =>
               void navigate({ search: () => ({ full: true }), replace: true })
             }
           >
-            <Maximize2 className="size-4" />
-          </button>
-          <a
-            href={`/r/${report.id}`}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-ghost btn-sm btn-square"
+            <Maximize2 />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            nativeButton={false}
             aria-label="Open in new tab"
             title="Open in new tab"
+            render={
+              <a href={`/r/${report.id}`} target="_blank" rel="noreferrer" />
+            }
           >
-            <ExternalLink className="size-4" />
-          </a>
+            <ExternalLink />
+          </Button>
         </div>
         <ReportViewer src={`/r/${report.id}`} title={report.title} />
       </div>
@@ -334,24 +324,19 @@ function FullScreenReport({
   }, [onExit]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-base-100">
-      <div className="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-2">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2">
         <span className="truncate text-sm font-medium">{title}</span>
-        <button
-          type="button"
-          ref={exitRef}
-          className="btn btn-ghost btn-sm gap-1.5"
-          onClick={onExit}
-        >
-          <Minimize2 className="size-4" />
+        <Button ref={exitRef} variant="ghost" onClick={onExit}>
+          <Minimize2 data-icon="inline-start" />
           Exit
-        </button>
+        </Button>
       </div>
       <div className="min-h-0 flex-1 p-2">
         <ReportViewer
           src={`/r/${reportId}`}
           title={title}
-          className="h-full w-full bg-base-100"
+          className="h-full w-full bg-background"
         />
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { FileText, Trash2 } from "lucide-react";
 import { EmptyState } from "@/client/components/EmptyState";
-import { PortalMenu } from "@/client/components/PortalMenu";
+import { RowActionsMenu } from "@/client/components/RowActionsMenu";
+import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -66,28 +67,21 @@ export function ReportsList({
                     that produced it: what a reader needs to tell two reports
                     on the same site apart. */}
                 <TableCell className="text-muted-foreground">
-                  {report.templateName ?? report.skill ?? "-"}
+                  {report.templateName ?? report.skill ?? "—"}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {formatRelativeTime(report.updatedAt)}
                 </TableCell>
                 <TableCell className="w-10 text-right">
-                  <PortalMenu ariaLabel={`Actions for ${report.title}`}>
-                    {(close) => (
-                      <li>
-                        <button
-                          className="text-error"
-                          onClick={() => {
-                            close();
-                            onDelete(report);
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                          Delete
-                        </button>
-                      </li>
-                    )}
-                  </PortalMenu>
+                  <RowActionsMenu label={`Actions for ${report.title}`}>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => onDelete(report)}
+                    >
+                      <Trash2 />
+                      Delete
+                    </DropdownMenuItem>
+                  </RowActionsMenu>
                 </TableCell>
               </TableRow>
             ))}

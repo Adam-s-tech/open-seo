@@ -2,6 +2,14 @@ import { LayoutTemplate, Pencil, Trash2 } from "lucide-react";
 import { EmptyState } from "@/client/components/EmptyState";
 import { RowActionsMenu } from "@/client/components/RowActionsMenu";
 import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import { formatRelativeTime } from "@/client/lib/relative-time";
 import type { ReportTemplate } from "@/types/schemas/report-templates";
 
@@ -25,35 +33,35 @@ export function ReportTemplatesList({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-base-300">
-      <table className="table table-sm">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Updated</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="rounded-lg border border-border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Updated</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {templates.map((template) => (
-            <tr key={template.id} className="hover:bg-base-200">
-              <td>
+            <TableRow key={template.id}>
+              <TableCell>
                 <button
                   type="button"
-                  className="link link-hover text-left font-medium"
+                  className="text-left font-medium hover:underline"
                   onClick={() => onEdit(template)}
                 >
                   {template.name}
                 </button>
-              </td>
-              <td className="max-w-[420px] text-base-content/70">
+              </TableCell>
+              <TableCell className="max-w-[420px] text-muted-foreground">
                 {template.description}
-              </td>
-              <td className="whitespace-nowrap text-base-content/70">
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-muted-foreground">
                 {formatRelativeTime(template.updatedAt)}
-              </td>
-              <td className="w-10 text-right">
+              </TableCell>
+              <TableCell className="w-10 text-right">
                 <RowActionsMenu label={`Actions for ${template.name}`}>
                   <DropdownMenuItem onClick={() => onEdit(template)}>
                     <Pencil />
@@ -67,11 +75,11 @@ export function ReportTemplatesList({
                     Delete
                   </DropdownMenuItem>
                 </RowActionsMenu>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

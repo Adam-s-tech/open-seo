@@ -36,8 +36,7 @@ export function ReportViewer({
         title={title}
         onLoad={() => setLoadedSrc(src)}
         className={
-          className ??
-          "h-full w-full rounded-lg border border-base-300 bg-base-100"
+          className ?? "h-full w-full rounded-lg border border-border bg-card"
         }
       />
       {loadedSrc !== src ? (
