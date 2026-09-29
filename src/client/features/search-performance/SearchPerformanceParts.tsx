@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
 import {
+  DataTable,
   useDataTable,
   useSelectionAnchor,
 } from "@/client/components/table/DataTable";
@@ -12,6 +12,8 @@ import {
   TableBulkActionButton,
 } from "@/client/components/table/TableBulkActionBar";
 import { TablePagination } from "@/client/components/table/TablePagination";
+import { Button } from "@/client/components/ui/button";
+import { Card } from "@/client/components/ui/card";
 import {
   buildDimensionColumns,
   buildStrikingColumns,
@@ -74,16 +76,19 @@ function dimensionExportTable(
   };
 }
 
-function runExport(table: ExportTable, target: ExportTarget): void {
-  void exportRows({
+function runExport(table: ExportTable, target: ExportTarget): Promise<void> {
+  return exportRows({
     format: target,
     feature: "search_performance",
     ...table,
   });
 }
 
-export function exportStriking(report: Report, target: ExportTarget): void {
-  runExport(strikingExportTable(report), target);
+export function exportStriking(
+  report: Report,
+  target: ExportTarget,
+): Promise<void> {
+  return runExport(strikingExportTable(report), target);
 }
 
 /** Export the full queries/pages dataset (fetched separately, not the visible
@@ -93,31 +98,9 @@ export function exportDimensionRows(
   rows: SearchPerformanceTableRow[],
   range: Report["range"],
   target: ExportTarget,
-): void {
+): Promise<void> {
   const stamp = `${range.startDate}-to-${range.endDate}`;
-  runExport(dimensionExportTable(dimension, rows, stamp), target);
-}
-
-export function TabButton({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      className={`tab ${active ? "tab-active" : ""}`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  );
+  return runExport(dimensionExportTable(dimension, rows, stamp), target);
 }
 
 type Delta = { text: string; improved: boolean } | null;
@@ -184,31 +167,39 @@ function TotalCard({
   deltaTitle: string;
 }) {
   return (
-    <div className="rounded-lg border border-base-300 bg-base-100 p-4">
-      <div className="text-xs uppercase tracking-wide text-base-content/60">
+    <Card className="gap-0 p-4">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </div>
       <div className="mt-1 flex items-baseline gap-2">
         <span className="text-2xl font-semibold">{value}</span>
         {delta ? (
           <span
-            className={`text-xs ${delta.improved ? "text-success" : "text-error"}`}
+            className={`text-xs ${delta.improved ? "text-success" : "text-destructive"}`}
             title={deltaTitle}
           >
             {delta.text}
           </span>
         ) : null}
       </div>
-    </div>
+    </Card>
   );
 }
 
 export function DimensionTable({
   rows,
   keyLabel,
+  isFiltered,
+  isPastEnd,
+  onClearFilters,
+  onFirstPage,
 }: {
   rows: SearchPerformanceTableRow[];
   keyLabel: string;
+  isFiltered: boolean;
+  isPastEnd: boolean;
+  onClearFilters: () => void;
+  onFirstPage: () => void;
 }) {
   const columns = useMemo(() => buildDimensionColumns(keyLabel), [keyLabel]);
   const table = useDataTable({
@@ -218,14 +209,25 @@ export function DimensionTable({
     initialState: { sorting: [{ id: "clicks", desc: true }] },
   });
   return (
-    <AppDataTable
+    <DataTable
       table={table}
-      className="table table-zebra table-sm"
-      wrapperClassName="overflow-x-auto"
+      isFiltered={isFiltered && !isPastEnd}
+      onClearFilters={onClearFilters}
       empty={
-        <p className="p-6 text-sm text-base-content/60">
-          No data for this period yet. Search Console data trails by a few days.
-        </p>
+        isPastEnd
+          ? {
+              title: "No rows on this page",
+              description: "This page is past the end of the results.",
+              action: (
+                <Button variant="outline" size="sm" onClick={onFirstPage}>
+                  Go to first page
+                </Button>
+              ),
+            }
+          : {
+              title: "No Search Console data yet",
+              description: "Search Console data can take a few days to appear.",
+            }
       }
     />
   );
@@ -234,9 +236,21 @@ export function DimensionTable({
 export function StrikingDistanceTable({
   projectId,
   rows,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  isFiltered,
+  onClearFilters,
 }: {
   projectId: string;
   rows: Report["strikingDistance"];
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+  isFiltered: boolean;
+  onClearFilters: () => void;
 }) {
   const queryClient = useQueryClient();
   const anchorRef = useSelectionAnchor();
@@ -248,18 +262,15 @@ export function StrikingDistanceTable({
     withSorting: true,
     withPagination: true,
     enableRowSelection: true,
-    state: { rowSelection },
+    state: { rowSelection, pagination: { pageIndex: page - 1, pageSize } },
     onRowSelectionChange: setRowSelection,
     // The server collapses each query to its top page, so queries are unique.
     getRowId: (row) => row.query,
     initialState: {
       sorting: [{ id: "impressions", desc: true }],
-      // All rows are already loaded; paginate client-side to keep the table
-      // short. 50/page by default.
-      pagination: { pageIndex: 0, pageSize: 50 },
     },
   });
-  const pagination = table.getState().pagination;
+  const isPastEnd = page > 1 && table.getRowModel().rows.length === 0;
 
   const selectedQueries = table
     .getSelectedRowModel()
@@ -299,39 +310,52 @@ export function StrikingDistanceTable({
     },
   });
 
-  if (rows.length === 0) {
-    return (
-      <p className="p-6 text-sm text-base-content/60">
-        No striking-distance queries in this period. These are queries ranking
-        at positions 5 to 20, where an improvement is most likely to move
-        traffic.
-      </p>
-    );
-  }
-
   return (
     <>
       <div className="p-4">
-        <p className="mb-3 text-sm text-base-content/60">
+        <p className="mb-3 text-sm text-muted-foreground">
           Queries ranking at positions 5 to 20, sorted by impressions. Improve
           the listed page to move them into the top results.
         </p>
-        <AppDataTable
+        <DataTable
           table={table}
-          className="table table-zebra table-sm"
-          wrapperClassName="overflow-x-auto"
+          isFiltered={isFiltered && !isPastEnd}
+          onClearFilters={onClearFilters}
+          empty={
+            isPastEnd
+              ? {
+                  title: "No rows on this page",
+                  description: "This page is past the end of the results.",
+                  action: (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onPageChange(1)}
+                    >
+                      Go to first page
+                    </Button>
+                  ),
+                }
+              : {
+                  title: "No striking-distance queries",
+                  description:
+                    "Queries ranking at positions 5 to 20 will appear here.",
+                }
+          }
         />
       </div>
-      <TablePagination
-        page={pagination.pageIndex + 1}
-        pageSize={pagination.pageSize}
-        pageSizes={SEARCH_PERFORMANCE_PAGE_SIZES}
-        totalCount={rows.length}
-        hasNextPage={table.getCanNextPage()}
-        isLoading={false}
-        onPageChange={(nextPage) => table.setPageIndex(nextPage - 1)}
-        onPageSizeChange={(nextSize) => table.setPageSize(nextSize)}
-      />
+      {!isPastEnd && rows.length > 0 && (
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          pageSizes={SEARCH_PERFORMANCE_PAGE_SIZES}
+          totalCount={rows.length}
+          hasNextPage={table.getCanNextPage()}
+          isLoading={false}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      )}
       <TableBulkActionBar
         selectedCount={selectedQueries.length}
         selectedLabel={selectedQueries.length === 1 ? "query" : "queries"}

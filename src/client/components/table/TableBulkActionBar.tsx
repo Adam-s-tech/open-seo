@@ -97,7 +97,6 @@ export function TableBulkExportMenu({
       >
         {busy ? null : <Download data-icon="inline-start" />}
         Export
-        <ChevronDown data-icon="inline-end" className="opacity-60" />
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="w-52">
         {actions.map((action, index) => (

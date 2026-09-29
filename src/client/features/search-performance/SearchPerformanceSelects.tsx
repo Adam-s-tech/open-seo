@@ -5,6 +5,13 @@ import {
   type SearchPerformanceDevice,
   type SearchPerformanceSearch,
 } from "@/types/schemas/search-performance";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/client/components/ui/select";
 
 const RANGE_LABELS: Record<SearchPerformanceDateRange, string> = {
   last_7_days: "Last 7 days",
@@ -28,6 +35,7 @@ const DEVICE_OPTIONS = GSC_DEVICES.map((value) => ({
 
 // Sentinel for "no filter" in the selects; never written to the URL.
 const ALL = "ALL";
+const DEVICE_ITEMS = [{ value: ALL, label: "All devices" }, ...DEVICE_OPTIONS];
 
 function isDateRange(value: string): value is SearchPerformanceDateRange {
   return SEARCH_PERFORMANCE_RANGES.some((option) => option === value);
@@ -50,69 +58,85 @@ export function SearchPerformanceSelects({
   const device = search.device ?? ALL;
   const country = search.country ?? ALL;
   const range = search.range ?? "last_28_days";
+  const countryItems = [
+    { value: ALL, label: "All countries" },
+    ...(country !== ALL && !countries.some((row) => row.key === country)
+      ? [{ value: country, label: country.toUpperCase() }]
+      : []),
+    ...countries.map((row) => ({
+      value: row.key,
+      label: row.key.toUpperCase(),
+    })),
+  ];
   return (
     <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-      <select
-        className="select select-bordered select-sm w-36"
+      <Select
+        items={DEVICE_ITEMS}
         value={device}
-        onChange={(event) =>
+        onValueChange={(value) => {
+          if (value == null) return;
           onSearchChange({
             page: undefined,
-            device: isDevice(event.target.value)
-              ? event.target.value
-              : undefined,
-          })
-        }
-        aria-label="Device filter"
+            device: isDevice(value) ? value : undefined,
+          });
+        }}
       >
-        <option value={ALL}>All devices</option>
-        {DEVICE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <select
-        className="select select-bordered select-sm w-36"
+        <SelectTrigger size="sm" className="w-36" aria-label="Device filter">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {DEVICE_ITEMS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        items={countryItems}
         value={country}
-        onChange={(event) =>
+        onValueChange={(value) => {
+          if (value == null) return;
           onSearchChange({
             page: undefined,
-            country:
-              event.target.value === ALL ? undefined : event.target.value,
-          })
-        }
-        aria-label="Country filter"
+            country: value === ALL ? undefined : value,
+          });
+        }}
       >
-        <option value={ALL}>All countries</option>
-        {country !== ALL && !countries.some((row) => row.key === country) ? (
-          <option value={country}>{country.toUpperCase()}</option>
-        ) : null}
-        {countries.map((row) => (
-          <option key={row.key} value={row.key}>
-            {row.key.toUpperCase()}
-          </option>
-        ))}
-      </select>
-      <select
-        className="select select-bordered select-sm w-36"
+        <SelectTrigger size="sm" className="w-36" aria-label="Country filter">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {countryItems.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        items={RANGE_OPTIONS}
         value={range}
-        onChange={(event) => {
-          if (isDateRange(event.target.value)) {
+        onValueChange={(value) => {
+          if (value != null && isDateRange(value)) {
             onSearchChange({
               page: undefined,
-              range: event.target.value,
+              range: value,
             });
           }
         }}
-        aria-label="Date range"
       >
-        {RANGE_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger size="sm" className="w-36" aria-label="Date range">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {RANGE_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

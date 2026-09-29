@@ -1,7 +1,7 @@
 import type { UseQueryResult } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
+import { Spinner } from "@/client/components/ui/spinner";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { DimensionTable } from "@/client/features/search-performance/SearchPerformanceParts";
 import type { getSearchPerformanceTable } from "@/serverFunctions/searchPerformance";
@@ -16,6 +16,8 @@ export function DimensionSection({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  isFiltered,
+  onClearFilters,
 }: {
   projectId: string;
   tableQuery: UseQueryResult<
@@ -26,11 +28,13 @@ export function DimensionSection({
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+  isFiltered: boolean;
+  onClearFilters: () => void;
 }) {
   if (tableQuery.isPending) {
     return (
-      <div className="flex items-center gap-2 p-8 text-sm text-base-content/60">
-        <Loader2 className="size-4 animate-spin" /> Loading…
+      <div className="flex items-center gap-2 p-8 text-sm text-muted-foreground">
+        <Spinner /> Loading…
       </div>
     );
   }
@@ -58,22 +62,34 @@ export function DimensionSection({
     );
   }
 
+  const isPastEnd =
+    page > 1 && tableData.rows.length === 0 && !tableQuery.isPlaceholderData;
+
   return (
     <>
       {error}
       <div className="p-4">
-        <DimensionTable rows={tableData.rows} keyLabel={keyLabel} />
+        <DimensionTable
+          rows={tableData.rows}
+          keyLabel={keyLabel}
+          isFiltered={isFiltered}
+          isPastEnd={isPastEnd}
+          onClearFilters={onClearFilters}
+          onFirstPage={() => onPageChange(1)}
+        />
       </div>
-      <TablePagination
-        page={page}
-        pageSize={pageSize}
-        pageSizes={SEARCH_PERFORMANCE_PAGE_SIZES}
-        totalCount={tableData.totalCount}
-        hasNextPage={tableData.hasNextPage}
-        isLoading={tableQuery.isFetching}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
+      {!isPastEnd && (
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          pageSizes={SEARCH_PERFORMANCE_PAGE_SIZES}
+          totalCount={tableData.totalCount}
+          hasNextPage={tableData.hasNextPage}
+          isLoading={tableQuery.isFetching}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      )}
     </>
   );
 }

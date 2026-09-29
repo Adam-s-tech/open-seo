@@ -111,7 +111,7 @@ export function buildStrikingColumns(
           href={safeHttpUrl(getValue()) ?? undefined}
           target="_blank"
           rel="noreferrer"
-          className="link link-hover block max-w-sm truncate"
+          className="block max-w-sm truncate text-primary underline-offset-4 hover:underline"
           title={getValue()}
         >
           {getValue()}

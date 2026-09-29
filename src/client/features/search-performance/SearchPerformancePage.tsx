@@ -5,10 +5,14 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Download, Loader2, Sheet, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { QueryError } from "@/client/components/QueryState";
-import { TableExportMenu } from "@/client/components/table/TableBulkActionBar";
+import { ExportMenu } from "@/client/components/ExportMenu";
+import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
+import { Spinner } from "@/client/components/ui/spinner";
+import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { DimensionSection } from "@/client/features/search-performance/SearchPerformanceDimensionSection";
 import { SearchPerformanceSelects } from "@/client/features/search-performance/SearchPerformanceSelects";
@@ -25,7 +29,6 @@ import {
   exportDimensionRows,
   exportStriking,
   StrikingDistanceTable,
-  TabButton,
   TotalsCards,
   type ExportTarget,
 } from "@/client/features/search-performance/SearchPerformanceParts";
@@ -36,6 +39,7 @@ import {
 } from "@/serverFunctions/searchPerformance";
 import {
   SEARCH_PERFORMANCE_DEFAULT_PAGE_SIZE,
+  SEARCH_PERFORMANCE_TABS,
   type SearchPerformanceSearch,
   type SearchPerformanceTab,
   type SearchPerformanceTableDimension,
@@ -88,6 +92,7 @@ export function SearchPerformancePage({
     [search.pageText, search.pageMatch, search.queryText, search.queryMatch],
   );
   const [showFilters, setShowFilters] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const activeFilterCount =
     Number(Boolean(textFilters.pageFilter)) +
     Number(Boolean(textFilters.queryFilter)) +
@@ -149,20 +154,36 @@ export function SearchPerformancePage({
   ]);
 
   const handleExport = async (target: ExportTarget) => {
-    if (!report?.connected || reportQuery.isPlaceholderData) return;
+    if (!report?.connected || reportQuery.isPlaceholderData || isExporting)
+      return;
+    setIsExporting(true);
     try {
       if (tab === "striking") {
-        exportStriking(report, target);
+        await exportStriking(report, target);
         return;
       }
       const data = await exportSearchPerformanceTable({
         data: { projectId, dimension, ...filterInput },
       });
-      exportDimensionRows(dimension, data.rows, report.range, target);
+      await exportDimensionRows(dimension, data.rows, report.range, target);
     } catch (error) {
       toast.error(getStandardErrorMessage(error, "Export failed"));
+    } finally {
+      setIsExporting(false);
     }
   };
+
+  const resetFilters = () =>
+    onSearchChange({
+      page: undefined,
+      pageText: undefined,
+      pageMatch: undefined,
+      queryText: undefined,
+      queryMatch: undefined,
+      country: undefined,
+      device: undefined,
+      range: undefined,
+    });
 
   const reportError = (
     <QueryError
@@ -188,28 +209,17 @@ export function SearchPerformancePage({
           queryMatch: filters.queryFilter?.operator,
         });
       }}
-      onReset={() => {
-        onSearchChange({
-          page: undefined,
-          pageText: undefined,
-          pageMatch: undefined,
-          queryText: undefined,
-          queryMatch: undefined,
-          country: undefined,
-          device: undefined,
-          range: undefined,
-        });
-      }}
+      onReset={resetFilters}
     />
   );
 
   return (
-    <div className="px-4 py-4 pb-24 overflow-auto md:px-6 md:py-6 md:pb-8">
+    <div className="overflow-auto px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-7xl space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold">Search Performance</h1>
-            <p className="text-sm text-base-content/70">
+            <p className="text-sm text-muted-foreground">
               See your site&apos;s clicks, impressions, CTR, and position from
               Google Search Console.
             </p>
@@ -218,7 +228,7 @@ export function SearchPerformancePage({
             <Link
               to="/p/$projectId/settings/integrations"
               params={{ projectId }}
-              className="link link-hover shrink-0 self-start text-sm font-medium text-base-content/60 transition-colors hover:text-base-content sm:mt-1"
+              className="shrink-0 self-start text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:mt-1"
             >
               Change property
             </Link>
@@ -244,72 +254,51 @@ export function SearchPerformancePage({
             ) : (
               <TotalsCards report={report} />
             )}
-            <div className="overflow-hidden rounded-xl border border-base-300 bg-base-100">
-              <div className="flex flex-col gap-3 border-b border-base-300 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-                <div role="tablist" className="tabs tabs-border w-fit">
-                  <TabButton
-                    active={tab === "striking"}
-                    onClick={() =>
-                      onSearchChange({ tab: "striking", page: undefined })
-                    }
-                    label={
-                      reportQuery.isPlaceholderData
-                        ? "Striking distance"
-                        : `Striking distance (${report.strikingDistance.length})`
-                    }
-                  />
-                  <TabButton
-                    active={tab === "queries"}
-                    onClick={() =>
-                      onSearchChange({ tab: "queries", page: undefined })
-                    }
-                    label="Queries"
-                  />
-                  <TabButton
-                    active={tab === "pages"}
-                    onClick={() =>
-                      onSearchChange({ tab: "pages", page: undefined })
-                    }
-                    label="Pages"
-                  />
-                </div>
-                <TableExportMenu
-                  buttonClassName="btn btn-ghost btn-sm gap-1"
-                  actions={[
-                    {
-                      label: "Export to Sheets",
-                      disabled: reportQuery.isPlaceholderData,
-                      icon: <Sheet className="size-4" />,
-                      onClick: () => void handleExport("sheets"),
-                    },
-                    {
-                      label: "Download CSV",
-                      disabled: reportQuery.isPlaceholderData,
-                      icon: <Download className="size-4" />,
-                      onClick: () => void handleExport("csv"),
-                    },
-                  ]}
+            <Tabs
+              value={tab}
+              onValueChange={(value) => {
+                const nextTab = SEARCH_PERFORMANCE_TABS.find(
+                  (item) => item === value,
+                );
+                if (nextTab) onSearchChange({ tab: nextTab, page: undefined });
+              }}
+              className="overflow-hidden rounded-xl border border-border bg-card gap-0"
+            >
+              <div className="flex flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                <TabsList variant="line">
+                  <TabsTrigger value="striking">
+                    {reportQuery.isPlaceholderData
+                      ? "Striking distance"
+                      : `Striking distance (${report.strikingDistance.length})`}
+                  </TabsTrigger>
+                  <TabsTrigger value="queries">Queries</TabsTrigger>
+                  <TabsTrigger value="pages">Pages</TabsTrigger>
+                </TabsList>
+                <ExportMenu
+                  actions={["sheets", "csv"]}
+                  onExport={(target) => void handleExport(target)}
+                  busy={isExporting}
+                  disabled={reportQuery.isPlaceholderData}
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-base-300">
-                <button
+              <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
+                <Button
                   type="button"
-                  className={`btn btn-ghost btn-sm gap-1.5 ${showFilters ? "btn-active" : ""}`}
+                  variant={showFilters ? "secondary" : "ghost"}
+                  size="sm"
                   aria-expanded={showFilters}
                   aria-controls="search-performance-filters"
                   onClick={() => setShowFilters((current) => !current)}
                   title="Toggle table filters"
                 >
-                  <SlidersHorizontal className="size-3.5" />
+                  <SlidersHorizontal data-icon="inline-start" />
                   Filters
                   {activeFilterCount > 0 ? (
-                    <span className="badge badge-xs badge-primary border-0 text-primary-content">
-                      {activeFilterCount}
-                    </span>
+                    <Badge size="sm">{activeFilterCount}</Badge>
                   ) : null}
-                </button>
+                </Button>
                 {reportQuery.isFetching && !reportQuery.isPending ? (
-                  <Loader2 className="size-4 animate-spin text-base-content/40" />
+                  <Spinner className="size-4 text-muted-foreground" />
                 ) : null}
                 <SearchPerformanceSelects
                   search={search}
@@ -327,6 +316,16 @@ export function SearchPerformancePage({
                 <StrikingDistanceTable
                   projectId={projectId}
                   rows={report.strikingDistance}
+                  page={page}
+                  pageSize={pageSize}
+                  onPageChange={(nextPage) =>
+                    onSearchChange({ page: nextPage })
+                  }
+                  onPageSizeChange={(size) =>
+                    onSearchChange({ page: undefined, size })
+                  }
+                  isFiltered={activeFilterCount > 0}
+                  onClearFilters={resetFilters}
                 />
               ) : (
                 <DimensionSection
@@ -341,9 +340,11 @@ export function SearchPerformancePage({
                   onPageSizeChange={(size) =>
                     onSearchChange({ page: undefined, size })
                   }
+                  isFiltered={activeFilterCount > 0}
+                  onClearFilters={resetFilters}
                 />
               )}
-            </div>
+            </Tabs>
           </>
         )}
       </div>

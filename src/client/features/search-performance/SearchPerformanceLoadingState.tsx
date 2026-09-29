@@ -13,8 +13,8 @@ export function SearchPerformanceLoadingState() {
     <div className="space-y-4" aria-busy>
       <SkeletonStatGrid />
 
-      <div className="overflow-hidden rounded-xl border border-base-300 bg-base-100">
-        <div className="flex flex-col gap-3 border-b border-base-300 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
             <Skeleton className="h-8 w-40" />
             <Skeleton className="h-8 w-20" />
