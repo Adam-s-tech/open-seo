@@ -116,11 +116,7 @@ describe("project service", () => {
     });
 
     it("maps the reserved Default conflict to a friendly CONFLICT", async () => {
-      mocks.createProject.mockRejectedValue(
-        new Error(
-          "UNIQUE constraint failed: projects.projects_one_default_per_organization_idx",
-        ),
-      );
+      mocks.createProject.mockRejectedValue(uniqueViolation());
 
       await expect(
         createProject("org_1", { name: "Default", domain: undefined }),
@@ -163,11 +159,7 @@ describe("project service", () => {
 
   describe("restoreProject", () => {
     it("maps the Default singleton conflict to a friendly CONFLICT", async () => {
-      mocks.restoreProject.mockRejectedValue(
-        new Error(
-          "UNIQUE constraint failed: projects.projects_one_default_per_organization_idx",
-        ),
-      );
+      mocks.restoreProject.mockRejectedValue(uniqueViolation());
 
       await expect(
         restoreProject("org_1", { archivedProjectId: "project_default" }),
@@ -175,3 +167,12 @@ describe("project service", () => {
     });
   });
 });
+
+// Drizzle wraps the driver's error, so the UNIQUE text is only on the cause.
+function uniqueViolation() {
+  return new Error("Failed query: insert into projects", {
+    cause: new Error(
+      "UNIQUE constraint failed: projects.organization_id: SQLITE_CONSTRAINT",
+    ),
+  });
+}

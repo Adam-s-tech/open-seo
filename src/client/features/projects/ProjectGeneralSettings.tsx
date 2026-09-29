@@ -1,4 +1,3 @@
-import * as React from "react";
 import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { revalidateLogic } from "@tanstack/react-form";
 import { useAppForm } from "@/client/components/form/useAppForm";
+import { InlineConfirm } from "@/client/components/InlineConfirm";
 import { SectionHeader } from "@/client/components/PageHeader";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { ProjectMarketFields } from "@/client/features/projects/ProjectMarketFields";
@@ -155,8 +155,6 @@ function DangerSection({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [confirming, setConfirming] = React.useState(false);
-
   const archiveMutation = useMutation({
     mutationFn: () => archiveProject({ data: { projectId: project.id } }),
     onSuccess: async () => {
@@ -171,55 +169,25 @@ function DangerSection({
   });
 
   return (
-    <section className="space-y-3 border-t border-base-300 pt-8">
+    <section className="space-y-3 border-t border-border pt-8">
       <SectionHeader title="Archive project" />
-
-      {confirming ? (
-        <div className="space-y-3">
-          <p className="text-sm text-base-content/70">
-            Archiving{" "}
-            <span className="font-medium text-base-content">
-              {project.name}
-            </span>{" "}
-            removes it from your workspace and stops its scheduled rank
-            tracking. You can restore it later from the Projects page.
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="btn btn-error btn-sm"
-              onClick={() => archiveMutation.mutate()}
-              disabled={archiveMutation.isPending}
-            >
-              Yes, archive project
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setConfirming(false)}
-              disabled={archiveMutation.isPending}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-base-content/60">
-            {canArchive
-              ? "Archive this project to remove it from your organization."
-              : "You can't archive your only project."}
-          </p>
-          <button
-            type="button"
-            className="btn btn-outline btn-error btn-sm shrink-0"
-            onClick={() => setConfirming(true)}
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          {canArchive
+            ? "Archiving removes the project from your workspace and stops its scheduled rank tracking. You can restore it later from the Projects page."
+            : "You can't archive your only project."}
+        </p>
+        <div className="flex shrink-0 gap-2">
+          <InlineConfirm
+            label={`Archive ${project.name}`}
+            triggerLabel="Archive project"
+            confirmLabel="Yes, archive project"
+            pending={archiveMutation.isPending}
             disabled={!canArchive}
-          >
-            Archive project
-          </button>
+            onConfirm={() => archiveMutation.mutate()}
+          />
         </div>
-      )}
+      </div>
     </section>
   );
 }
