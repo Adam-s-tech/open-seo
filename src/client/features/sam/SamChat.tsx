@@ -186,14 +186,14 @@ export function SamChat({
     <div className="flex h-full min-h-0 flex-col">
       {/* Session title + the shortest path to inspect or correct the shared
           memory SAM reads and writes during the conversation. */}
-      <div className="flex items-center justify-between gap-3 border-b border-base-300 px-5 py-3.5">
-        <span className="truncate text-sm font-medium text-base-content/80">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
+        <span className="truncate text-sm font-medium text-foreground/80">
           {activeSession.title}
         </span>
         <Link
           to="/p/$projectId/context"
           params={{ projectId }}
-          className="flex shrink-0 items-center gap-1.5 text-xs text-base-content/60 transition-colors hover:text-base-content"
+          className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <Brain className="size-3.5" />
           Project memory

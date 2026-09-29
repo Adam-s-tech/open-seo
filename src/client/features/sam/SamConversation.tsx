@@ -3,12 +3,13 @@ import { useAgent } from "agents/react";
 // variant skips the client->server transcript sync Think doesn't support.
 import { useAgentChat } from "@cloudflare/think/react";
 import { useEffect, useRef, useState } from "react";
-import { RotateCcw } from "lucide-react";
 import { findLast } from "remeda";
 import { toast } from "sonner";
 import { ChatComposer } from "@/client/features/sam/ChatComposer";
 import { invalidateSamSessions } from "@/client/features/sam/samQueries";
 import { captureClientEvent } from "@/client/lib/posthog";
+import { ErrorState } from "@/client/components/ErrorState";
+import { Button } from "@/client/components/ui/button";
 import {
   ChatMessage,
   messageHasVisibleContent,
@@ -165,13 +166,14 @@ export function SamConversation({
         // Dev-only escape hatch: wipes this session's persisted transcript on
         // the server (Think's cf_agent_chat_clear), for testing fresh-session
         // behavior without creating a new chat.
-        <button
-          type="button"
-          className="btn btn-ghost btn-xs absolute right-3 top-2 z-10 text-base-content/40"
+        <Button
+          variant="ghost"
+          size="xs"
+          className="absolute top-2 right-3 z-10 text-muted-foreground"
           onClick={() => clearHistory()}
         >
           Clear history (dev)
-        </button>
+        </Button>
       ) : null}
       <div
         ref={scrollRef}
@@ -180,7 +182,7 @@ export function SamConversation({
       >
         <div className="mx-auto max-w-2xl space-y-6">
           {messages.length === 0 ? (
-            <div className="space-y-2 text-sm text-base-content/80">
+            <div className="space-y-2 text-sm text-foreground/80">
               <p>
                 Hey, I’m SAM — your in-app SEO agent. I can research keywords,
                 size up competitors, read your SERPs, backlinks, rank tracking
@@ -214,7 +216,7 @@ export function SamConversation({
           ))}
 
           {showTyping ? (
-            <div className="flex items-center gap-2 pt-1 text-base-content/40">
+            <div className="flex items-center gap-2 pt-1 text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
                 <span className="size-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
@@ -224,60 +226,58 @@ export function SamConversation({
           ) : null}
 
           {isRecovering ? (
-            <p className="text-xs text-base-content/50">
+            <p className="text-xs text-muted-foreground">
               Saving the reply that got cut off…
             </p>
           ) : null}
 
           {status === "error" ? (
-            <div className="flex flex-wrap items-center gap-3 text-sm text-error">
-              <span>SAM stopped before finishing this reply.</span>
-              {lastUserMessage ? (
-                <button
-                  type="button"
-                  className="btn btn-outline btn-error btn-xs gap-1"
-                  disabled={isBusy}
-                  onClick={retryLast}
-                >
-                  <RotateCcw className="size-3" />
-                  Retry
-                </button>
-              ) : null}
-            </div>
+            <ErrorState
+              variant="inline"
+              message="SAM stopped before finishing this reply."
+              onRetry={lastUserMessage ? retryLast : undefined}
+              isRetrying={isBusy}
+            />
           ) : null}
 
           {showSuggestions ? (
             <div className="flex flex-wrap gap-2">
               {SUGGESTIONS.map((question) => (
-                <button
+                <Button
                   key={question}
-                  type="button"
-                  className="rounded-full border border-base-300 bg-base-100 px-3 py-1.5 text-xs font-medium text-base-content/70 transition-colors hover:border-primary/50 hover:text-base-content"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full text-xs text-muted-foreground"
                   onClick={() => sendText(question, "suggestion")}
                 >
                   {question}
-                </button>
+                </Button>
               ))}
             </div>
           ) : null}
         </div>
       </div>
 
-      <div className="flex-shrink-0 border-t border-base-300 px-5 py-3">
+      <div className="flex-shrink-0 border-t border-border px-5 py-3">
         <div className="mx-auto w-full max-w-2xl">
           {connectionError ? (
-            <div className="mb-2 flex flex-wrap items-center gap-3 text-sm text-error">
-              <span>Lost the connection to SAM.</span>
-              <button
-                type="button"
-                className="btn btn-outline btn-error btn-xs"
-                onClick={() => agent.reconnect()}
-              >
-                Reconnect
-              </button>
+            <div className="mb-2">
+              <ErrorState
+                variant="inline"
+                message="Lost the connection to SAM."
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => agent.reconnect()}
+                  >
+                    Reconnect
+                  </Button>
+                }
+              />
             </div>
           ) : isReconnecting ? (
-            <p className="mb-2 text-xs text-base-content/60">Reconnecting…</p>
+            <p className="mb-2 text-xs text-muted-foreground">Reconnecting…</p>
           ) : null}
           <ChatComposer
             busy={isBusy}

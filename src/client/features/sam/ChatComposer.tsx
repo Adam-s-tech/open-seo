@@ -1,11 +1,11 @@
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type KeyboardEvent,
-} from "react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowUp, Square } from "lucide-react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/client/components/ui/input-group";
 
 export function ChatComposer({
   busy,
@@ -18,16 +18,6 @@ export function ChatComposer({
   onStop: () => void;
 }) {
   const [value, setValue] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-grow the textarea up to a few lines, then scroll. Resetting height to
-  // `auto` first lets it shrink as well as grow.
-  useLayoutEffect(() => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.style.height = "auto";
-    ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
-  }, [value]);
 
   function submit() {
     const text = value.trim();
@@ -49,38 +39,43 @@ export function ChatComposer({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-end gap-2 rounded-box border border-base-300 bg-base-100 px-3 py-2 focus-within:border-primary"
-    >
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={handleKey}
-        rows={1}
-        placeholder="Ask SAM to research, analyze, or track anything…"
-        className="max-h-40 flex-1 resize-none border-0 bg-transparent px-1 py-1 text-sm leading-relaxed outline-none placeholder:text-base-content/50 focus:outline-none"
-      />
-      {busy ? (
-        <button
-          type="button"
-          aria-label="Stop"
-          onClick={onStop}
-          className="btn btn-neutral btn-circle btn-sm"
-        >
-          <Square className="size-3.5 fill-current" />
-        </button>
-      ) : (
-        <button
-          type="submit"
-          aria-label="Send message"
-          disabled={!value.trim()}
-          className="btn btn-primary btn-circle btn-sm"
-        >
-          <ArrowUp className="size-4" />
-        </button>
-      )}
+    <form onSubmit={handleSubmit}>
+      {/* InputGroup dims itself when it holds a disabled control. The empty
+          composer disables only Send, so keep the field at full strength. */}
+      <InputGroup className="items-end rounded-xl bg-card has-disabled:bg-card has-disabled:opacity-100 dark:has-disabled:bg-input/30">
+        <InputGroupTextarea
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          onKeyDown={handleKey}
+          rows={1}
+          placeholder="Ask SAM to research, analyze, or track anything…"
+          className="max-h-40 min-h-0 px-3 leading-relaxed"
+        />
+        <InputGroupAddon align="inline-end">
+          {busy ? (
+            <InputGroupButton
+              variant="secondary"
+              size="icon-sm"
+              className="rounded-full"
+              aria-label="Stop"
+              onClick={onStop}
+            >
+              <Square className="size-3.5 fill-current" />
+            </InputGroupButton>
+          ) : (
+            <InputGroupButton
+              type="submit"
+              variant="default"
+              size="icon-sm"
+              className="rounded-full"
+              aria-label="Send message"
+              disabled={!value.trim()}
+            >
+              <ArrowUp />
+            </InputGroupButton>
+          )}
+        </InputGroupAddon>
+      </InputGroup>
     </form>
   );
 }

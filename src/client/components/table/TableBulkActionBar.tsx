@@ -1,4 +1,4 @@
-import { ChevronDown, Download, X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/client/components/ui/button";
 import {
@@ -111,52 +111,5 @@ export function TableBulkExportMenu({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-export function TableExportMenu({
-  actions,
-  buttonClassName = "btn btn-sm gap-1",
-  labelClassName,
-  menuClassName = "dropdown-content z-10 menu p-2 shadow-lg bg-base-100 border border-base-300 rounded-box w-56",
-}: {
-  actions: Array<{
-    label: ReactNode;
-    icon?: ReactNode;
-    onClick: () => void;
-    disabled?: boolean;
-  }>;
-  buttonClassName?: string;
-  /** Lets narrow toolbars hide the text and keep the icon. */
-  labelClassName?: string;
-  menuClassName?: string;
-}) {
-  return (
-    <div className="dropdown dropdown-end">
-      <div
-        tabIndex={0}
-        role="button"
-        aria-label="Export"
-        className={buttonClassName}
-      >
-        <Download className="size-4" />
-        <span className={labelClassName}>Export</span>
-        <ChevronDown className="size-3 opacity-60" />
-      </div>
-      <ul tabIndex={0} className={menuClassName}>
-        {actions.map((action, index) => (
-          <li key={index}>
-            <button
-              type="button"
-              onClick={action.onClick}
-              disabled={action.disabled}
-            >
-              {action.icon}
-              {action.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
