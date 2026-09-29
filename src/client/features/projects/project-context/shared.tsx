@@ -52,7 +52,7 @@ const AUTHOR_LABELS: Record<ContextAuthor, string> = {
 
 export function Provenance({ by, at }: { by: ContextAuthor; at?: string }) {
   return (
-    <span className="text-xs text-base-content/40">
+    <span className="text-xs text-muted-foreground">
       {at
         ? `Updated by ${AUTHOR_LABELS[by]} · ${formatRelativeTime(at)}`
         : `Added by ${AUTHOR_LABELS[by]}`}
@@ -61,7 +61,7 @@ export function Provenance({ by, at }: { by: ContextAuthor; at?: string }) {
 }
 
 export const listClass =
-  "divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100";
+  "divide-y divide-border overflow-hidden rounded-lg border border-border bg-card";
 
 /** Row actions and footer buttons shared by the inline competitor/page forms. */
 export function RowActions({ children }: { children: ReactNode }) {

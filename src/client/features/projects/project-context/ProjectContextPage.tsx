@@ -23,6 +23,9 @@ import {
 import { EmptyState } from "@/client/components/EmptyState";
 import { FormActions } from "@/client/components/FormActions";
 import { SectionHeader } from "@/client/components/PageHeader";
+import { Button } from "@/client/components/ui/button";
+import { Input } from "@/client/components/ui/input";
+import { Textarea } from "@/client/components/ui/textarea";
 
 const SECTION_HINTS: Record<ProjectContextSectionKey, string> = {
   business_overview: "What you sell, who buys it, and where.",
@@ -60,7 +63,7 @@ export function ProjectContextPage({ projectId }: { projectId: string }) {
         // key remounts the whole page when the project switches under it, so no
         // draft, open form, or edit state can carry over to another project.
         <div key={projectId} className="space-y-8">
-          <p className="text-sm text-base-content/70">
+          <p className="text-sm text-muted-foreground">
             What SAM, Claude Code, and any connected MCP client know about this
             project. They read it before they work and write back what they
             learn, so correct anything that looks wrong.
@@ -163,18 +166,20 @@ function ProseSections({
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
               <label
                 htmlFor={`context-${key}`}
-                className="text-sm font-medium text-base-content"
+                className="text-sm font-medium text-foreground"
               >
                 {PROJECT_CONTEXT_SECTION_LABELS[key]}
               </label>
               {section ? (
                 <Provenance by={section.updatedBy} at={section.updatedAt} />
               ) : (
-                <span className="text-xs text-base-content/40">Empty</span>
+                <span className="text-xs text-muted-foreground">Empty</span>
               )}
             </div>
-            <p className="text-xs text-base-content/50">{SECTION_HINTS[key]}</p>
-            <textarea
+            <p className="text-xs text-muted-foreground">
+              {SECTION_HINTS[key]}
+            </p>
+            <Textarea
               id={`context-${key}`}
               value={draftOf(key)}
               onChange={(event) => {
@@ -193,20 +198,19 @@ function ProseSections({
               rows={4}
               maxLength={PROSE_MAX_CHARS}
               placeholder={SECTION_PLACEHOLDERS[key]}
-              className="textarea textarea-bordered w-full text-sm"
             />
           </div>
         );
       })}
 
       <div className="flex justify-end">
-        <button
+        <Button
           type="submit"
-          className="btn btn-primary btn-sm"
+          size="sm"
           disabled={update.isPending || changed.length === 0}
         >
           Save changes
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -255,7 +259,7 @@ function CustomSections({
             ) : (
               <div
                 key={custom.slug}
-                className="space-y-2 rounded-lg border border-base-300 bg-base-100 p-3"
+                className="space-y-2 rounded-lg border border-border bg-card p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -265,14 +269,14 @@ function CustomSections({
                     <Provenance by={custom.updatedBy} at={custom.updatedAt} />
                   </div>
                   <RowActions>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-xs"
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
                       aria-label={`Edit ${custom.title ?? custom.slug}`}
                       onClick={() => setEditingSlug(custom.slug)}
                     >
                       <Pencil className="size-3.5" />
-                    </button>
+                    </Button>
                     <InlineConfirm
                       label={`Delete ${custom.title ?? custom.slug}`}
                       pending={update.isPending}
@@ -282,7 +286,7 @@ function CustomSections({
                     />
                   </RowActions>
                 </div>
-                <p className="whitespace-pre-wrap text-sm text-base-content/70">
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                   {custom.content}
                 </p>
               </div>
@@ -310,28 +314,25 @@ function CustomSectionForm({
 
   return (
     <form
-      className="space-y-2 rounded-lg border border-base-300 bg-base-200/40 p-3"
+      className="space-y-2 rounded-lg border border-border bg-muted/40 p-3"
       onSubmit={(event) => {
         event.preventDefault();
         if (pending || !content.trim()) return;
         onSave(title.trim() || custom.slug, content);
       }}
     >
-      <input
-        type="text"
+      <Input
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         placeholder={custom.slug}
         maxLength={120}
-        className="input input-bordered input-sm w-full"
         aria-label="Section title"
       />
-      <textarea
+      <Textarea
         value={content}
         onChange={(event) => setContent(event.target.value)}
         rows={5}
         maxLength={PROSE_MAX_CHARS}
-        className="textarea textarea-bordered w-full text-sm"
         aria-label="Section content"
       />
       <FormActions
@@ -375,8 +376,8 @@ function ResearchLog({
               className="flex items-start justify-between gap-3 p-3"
             >
               <div className="min-w-0 space-y-0.5">
-                <p className="text-sm text-base-content/80">{entry.summary}</p>
-                <div className="flex flex-wrap items-baseline gap-x-2 text-xs text-base-content/40">
+                <p className="text-sm text-foreground">{entry.summary}</p>
+                <div className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
                   <span>{entry.entryDate}</span>
                   <Provenance by={entry.createdBy} />
                 </div>

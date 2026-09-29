@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/client/components/ui/button";
+import { z } from "zod";
+import { revalidateLogic } from "@tanstack/react-form";
+import { useAppForm } from "@/client/components/form/useAppForm";
 import { saveCrawlerCredential } from "@/serverFunctions/crawlerAccess";
 import {
   isCrawlerAccessExpired,
@@ -10,6 +11,19 @@ import {
 
 export const crawlerCredentialsQueryKey = ["crawler-credentials"];
 export const saveCrawlerCredentialMutationKey = ["save-crawler-credential"];
+
+const signatureSchema = z.object({
+  host: z.string().trim().min(1, "Enter a domain."),
+  signatureInput: z
+    .string()
+    .trim()
+    .min(1, "Enter Signature-Input.")
+    .refine(
+      (value) => !isCrawlerAccessExpired(parseSignatureExpiry(value)),
+      "This signature has already expired. Create a new one in Shopify admin.",
+    ),
+  signature: z.string().trim().min(1, "Enter Signature."),
+});
 
 /**
  * The two values a merchant copies out of Shopify admin. `Signature-Agent` is
@@ -28,19 +42,14 @@ export function CrawlerAccessForm({
   onSaved?: () => void;
 }) {
   const queryClient = useQueryClient();
-  const [host, setHost] = useState(initialHost);
-  const [signatureInput, setSignatureInput] = useState("");
-  const [signature, setSignature] = useState("");
 
   const saveMutation = useMutation({
     mutationKey: saveCrawlerCredentialMutationKey,
-    mutationFn: () =>
+    mutationFn: (values: z.infer<typeof signatureSchema>) =>
       saveCrawlerCredential({
-        data: { projectId, host, signatureInput, signature },
+        data: { projectId, ...values },
       }),
     onSuccess: async (saved) => {
-      setSignatureInput("");
-      setSignature("");
       await queryClient.invalidateQueries({
         queryKey: crawlerCredentialsQueryKey,
       });
@@ -49,76 +58,61 @@ export function CrawlerAccessForm({
     },
   });
 
-  const isExpired = isCrawlerAccessExpired(
-    parseSignatureExpiry(signatureInput),
-  );
-  const canSave =
-    !isExpired &&
-    projectId !== "" &&
-    host.trim() !== "" &&
-    signatureInput.trim() !== "" &&
-    signature.trim() !== "";
+  const form = useAppForm({
+    defaultValues: { host: initialHost, signatureInput: "", signature: "" },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: signatureSchema },
+    onSubmit: async ({ value, formApi }) => {
+      await saveMutation.mutateAsync(value);
+      formApi.reset({ ...value, signatureInput: "", signature: "" });
+    },
+  });
 
   return (
-    <form
-      className="space-y-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (canSave) saveMutation.mutate();
-      }}
-    >
-      {!lockHost && (
-        <label className="block space-y-1">
-          <span className="text-sm font-medium">Domain</span>
-          <input
-            type="text"
-            className="input input-bordered input-sm w-full font-mono"
-            placeholder="store.example.com"
-            value={host}
-            onChange={(event) => setHost(event.target.value)}
-          />
-        </label>
-      )}
-
-      <label className="block space-y-1">
-        <span className="text-sm font-medium">Signature-Input</span>
-        <input
-          type="password"
-          autoComplete="off"
-          data-ph-mask
-          className="input input-bordered input-sm w-full font-mono"
-          placeholder="sig1=(...);expires=..."
-          value={signatureInput}
-          onChange={(event) => setSignatureInput(event.target.value)}
-        />
-        {isExpired && (
-          <span className="block text-sm text-error">
-            This signature has already expired. Create a new one in Shopify
-            admin.
-          </span>
-        )}
-      </label>
-
-      <label className="block space-y-1">
-        <span className="text-sm font-medium">Signature</span>
-        <input
-          type="password"
-          autoComplete="off"
-          data-ph-mask
-          className="input input-bordered input-sm w-full font-mono"
-          placeholder="sig1=:...:"
-          value={signature}
-          onChange={(event) => setSignature(event.target.value)}
-        />
-      </label>
-
-      <Button
-        type="submit"
-        pending={saveMutation.isPending}
-        disabled={!canSave}
-      >
-        Save signature
-      </Button>
-    </form>
+    <form.AppForm>
+      <form.Form className="space-y-3">
+        {!lockHost ? (
+          <form.AppField name="host">
+            {(field) => (
+              <field.TextField
+                label="Domain"
+                placeholder="store.example.com"
+                className="font-mono"
+                required
+              />
+            )}
+          </form.AppField>
+        ) : null}
+        <form.AppField name="signatureInput">
+          {(field) => (
+            <field.TextField
+              label="Signature-Input"
+              type="password"
+              autoComplete="off"
+              data-ph-mask
+              className="font-mono"
+              placeholder="sig1=(...);expires=..."
+              required
+            />
+          )}
+        </form.AppField>
+        <form.AppField name="signature">
+          {(field) => (
+            <field.TextField
+              label="Signature"
+              type="password"
+              autoComplete="off"
+              data-ph-mask
+              className="font-mono"
+              placeholder="sig1=:...:"
+              required
+            />
+          )}
+        </form.AppField>
+        <form.SubmitButton disabled={!projectId}>
+          Save signature
+        </form.SubmitButton>
+      </form.Form>
+    </form.AppForm>
   );
 }

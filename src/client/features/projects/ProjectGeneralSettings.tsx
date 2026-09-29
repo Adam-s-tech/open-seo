@@ -125,7 +125,7 @@ function GeneralSection({ project }: { project: ProjectSummary }) {
                 />
               )}
             </form.Field>
-            <span className="text-xs text-base-content/50">
+            <span className="text-xs text-muted-foreground">
               Keyword, SERP, and domain data uses this country and language
               unless a call asks for a different one.
             </span>
