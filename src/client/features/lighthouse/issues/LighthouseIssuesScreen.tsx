@@ -1,6 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
   exportAuditLighthouseIssues,
@@ -8,6 +7,7 @@ import {
 } from "@/serverFunctions/lighthouse";
 import { downloadFile } from "@/client/lib/download";
 import { QueryError } from "@/client/components/QueryState";
+import { Card, CardContent } from "@/client/components/ui/card";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { exportRows } from "@/client/lib/exportRows";
 import type { CategoryTab, ExportPayload, LighthouseIssue } from "./types";
@@ -74,11 +74,11 @@ export function LighthouseIssuesScreen({
     allIssues: issuesQuery.data?.issues ?? [],
   });
 
-  const showsLegacyPayloadNotice =
-    issuesQuery.data != null && !issuesQuery.data.hasIssueDetails;
-  const emptyMessage = showsLegacyPayloadNotice
-    ? "This audit was saved without issue-level Lighthouse details. Re-run the audit to populate this screen."
-    : undefined;
+  // Runs stored before issue details were kept have no issues to list.
+  const emptyMessage =
+    issuesQuery.data != null && !issuesQuery.data.hasIssueDetails
+      ? "This Lighthouse run was saved without issue details. Re-run the audit to see them."
+      : undefined;
 
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 pb-24 md:pb-8 overflow-auto">
@@ -99,8 +99,8 @@ export function LighthouseIssuesScreen({
           severityCounts={severityCounts}
         />
 
-        <div className="card bg-base-100 border border-base-300">
-          <div className="card-body gap-4">
+        <Card>
+          <CardContent className="space-y-4">
             {issuesQuery.isError ? (
               <QueryError
                 error={issuesQuery.error}
@@ -113,17 +113,6 @@ export function LighthouseIssuesScreen({
                 }
                 isRetrying={issuesQuery.isFetching}
               />
-            ) : null}
-
-            {showsLegacyPayloadNotice ? (
-              <div className="alert alert-warning">
-                <TriangleAlert className="size-4" />
-                <span>
-                  This Lighthouse run was stored before issue details were
-                  preserved. Re-run the audit to see category counts and issue
-                  cards.
-                </span>
-              </div>
             ) : null}
 
             <LighthouseIssuesToolbar
@@ -145,20 +134,15 @@ export function LighthouseIssuesScreen({
               onExport={(data) => {
                 void runExport(data);
               }}
-              onExportCsv={(rows, variant) =>
-                runExportRows("csv", rows, variant)
-              }
-              onExportSheets={(rows, variant) =>
-                runExportRows("sheets", rows, variant)
-              }
+              onExportRows={runExportRows}
             />
             <LighthouseIssueList
               issues={visibleIssues}
               isLoading={issuesQuery.isLoading}
               emptyMessage={emptyMessage}
             />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

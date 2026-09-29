@@ -2,9 +2,18 @@ import { Link } from "@tanstack/react-router";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { ScanSearch, Trash2 } from "lucide-react";
 import type { getAuditHistory } from "@/serverFunctions/audit";
-import { PortalMenu } from "@/client/components/PortalMenu";
+import { EmptyState } from "@/client/components/EmptyState";
 import { QueryState } from "@/client/components/QueryState";
+import { RowActionsMenu } from "@/client/components/RowActionsMenu";
 import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/client/components/ui/card";
+import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -52,20 +61,17 @@ function AuditHistoryTable({
   onDelete: (auditId: string) => void;
 }) {
   if (history.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center text-base-content/40 space-y-3">
-          <ScanSearch className="size-12 mx-auto opacity-30" />
-          <p className="text-lg font-medium">No audits yet</p>
-        </div>
-      </div>
-    );
+    return <EmptyState icon={ScanSearch} title="No audits yet" />;
   }
 
   return (
-    <div className="card bg-base-100 border border-base-300">
-      <div className="card-body gap-3">
-        <h2 className="card-title text-base">Previous Audits</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h2>Previous Audits</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
@@ -108,8 +114,8 @@ function AuditHistoryTable({
             ))}
           </TableBody>
         </Table>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -124,30 +130,28 @@ function HistoryActions({
 }) {
   return (
     <div className="flex items-center justify-end gap-2 reveal-on-hover">
-      <Link
-        to="/p/$projectId/audit"
-        params={{ projectId }}
-        search={{ auditId, tab: "pages" }}
-        className="btn btn-primary btn-xs"
+      <Button
+        size="xs"
+        nativeButton={false}
+        render={
+          <Link
+            to="/p/$projectId/audit"
+            params={{ projectId }}
+            search={{ auditId, tab: "pages" }}
+          />
+        }
       >
         View
-      </Link>
-      <PortalMenu ariaLabel="Audit actions">
-        {(close) => (
-          <li>
-            <button
-              className="text-error"
-              onClick={() => {
-                close();
-                onDelete(auditId);
-              }}
-            >
-              <Trash2 className="size-3.5" />
-              Delete audit
-            </button>
-          </li>
-        )}
-      </PortalMenu>
+      </Button>
+      <RowActionsMenu label="Audit actions">
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => onDelete(auditId)}
+        >
+          <Trash2 />
+          Delete audit
+        </DropdownMenuItem>
+      </RowActionsMenu>
     </div>
   );
 }

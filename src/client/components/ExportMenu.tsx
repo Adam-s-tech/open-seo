@@ -35,8 +35,9 @@ const ACTION_ITEMS: Record<ExportAction, { label: string; icon: ReactNode }> = {
 /**
  * The toolbar Export button. The caller runs each action through
  * `exportRows()`, so every format shares the empty check and the analytics
- * event. With `scopes`, each scope is a labelled section with the same
- * actions, for example "Current category" and "All actionable".
+ * event. With `scopes`, each scope is a labelled section, for example
+ * "Current category" and "All actionable". A scope lists its own `actions`
+ * when it offers fewer than the menu.
  */
 export function ExportMenu<A extends ExportAction>({
   actions,
@@ -53,10 +54,10 @@ export function ExportMenu<A extends ExportAction>({
   disabled?: boolean;
   /** Label for "copy-list", for example "Copy keywords". */
   copyListLabel?: string;
-  scopes?: { id: string; label: string }[];
+  scopes?: { id: string; label: string; actions?: A[] }[];
 }) {
-  const renderItems = (scope?: string) =>
-    actions.map((action) => (
+  const renderItems = (scope?: string, scopeActions: A[] = actions) =>
+    scopeActions.map((action) => (
       <DropdownMenuItem key={action} onClick={() => onExport(action, scope)}>
         {ACTION_ITEMS[action].icon}
         {action === "copy-list" && copyListLabel
@@ -87,7 +88,7 @@ export function ExportMenu<A extends ExportAction>({
                 {index > 0 ? <DropdownMenuSeparator /> : null}
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>{scope.label}</DropdownMenuLabel>
-                  {renderItems(scope.id)}
+                  {renderItems(scope.id, scope.actions)}
                 </DropdownMenuGroup>
               </Fragment>
             ))

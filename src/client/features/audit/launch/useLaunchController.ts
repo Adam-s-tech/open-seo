@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -59,6 +60,9 @@ export function useLaunchController({
         : false,
   });
   const { startMutation, deleteMutation } = useLaunchMutations({ projectId });
+  // Pages of a large crawl waiting for the user to confirm it.
+  const [largeCrawlPages, setLargeCrawlPages] = useState<number | null>(null);
+  const largeCrawlConfirmed = useRef(false);
 
   const launchForm = useForm({
     defaultValues: { ...DEFAULT_LAUNCH_FORM_VALUES, url: initialUrl },
@@ -74,14 +78,11 @@ export function useLaunchController({
       const effectiveMaxPages = commitMaxPagesInput(launchForm, maxPagesLimit);
       formApi.setErrorMap({ onSubmit: undefined });
 
-      if (effectiveMaxPages > 500) {
-        const confirmed = window.confirm(
-          `You are about to crawl ${effectiveMaxPages.toLocaleString()} pages. This is okay, but it may take a while. Continue?`,
-        );
-        if (!confirmed) {
-          return;
-        }
+      if (effectiveMaxPages > 500 && !largeCrawlConfirmed.current) {
+        setLargeCrawlPages(effectiveMaxPages);
+        return;
       }
+      largeCrawlConfirmed.current = false;
 
       try {
         const result = await startMutation.mutateAsync({
@@ -108,6 +109,13 @@ export function useLaunchController({
     maxPagesLimit,
     commitMaxPagesInput: () => commitMaxPagesInput(launchForm, maxPagesLimit),
     deleteAudit: (auditId: string) => deleteMutation.mutate(auditId),
+    largeCrawlPages,
+    cancelLargeCrawl: () => setLargeCrawlPages(null),
+    confirmLargeCrawl: () => {
+      setLargeCrawlPages(null);
+      largeCrawlConfirmed.current = true;
+      void launchForm.handleSubmit();
+    },
   };
 }
 

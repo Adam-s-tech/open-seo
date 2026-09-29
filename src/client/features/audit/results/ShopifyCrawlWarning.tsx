@@ -6,6 +6,12 @@ import {
   crawlerCredentialsQueryKey,
   saveCrawlerCredentialMutationKey,
 } from "@/client/features/crawler-access/CrawlerAccessForm";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/client/components/ui/alert";
+import { Button } from "@/client/components/ui/button";
 import type { AuditResultsData } from "@/client/features/audit/results/types";
 import { extractHostname } from "@/client/features/audit/shared";
 import { startAudit } from "@/serverFunctions/audit";
@@ -82,14 +88,15 @@ export function ShopifyCrawlWarning({
   });
 
   const rerunButton = (
-    <button
-      type="button"
-      className="btn btn-ghost btn-sm"
-      disabled={rerunMutation.isPending || isSaving}
+    <Button
+      variant="outline"
+      size="sm"
+      pending={rerunMutation.isPending}
+      disabled={isSaving}
       onClick={() => rerunMutation.mutate()}
     >
       {rerunMutation.isPending ? "Starting…" : "Re-run audit"}
-    </button>
+    </Button>
   );
 
   // Until the list loads we can't tell which state applies; don't flash the
@@ -99,13 +106,9 @@ export function ShopifyCrawlWarning({
   if (liveCredential) {
     const signedAndStillLimited = liveCredential.id === usedCredentialId;
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-base-300 px-4 py-3 text-sm">
-        {signedAndStillLimited ? (
-          <ShieldAlert className="size-4 shrink-0 text-warning" />
-        ) : (
-          <ShieldCheck className="size-4 shrink-0 text-success" />
-        )}
-        <p className="min-w-0 flex-1">
+      <Alert variant={signedAndStillLimited ? "warning" : "success"}>
+        {signedAndStillLimited ? <ShieldAlert /> : <ShieldCheck />}
+        <AlertDescription className="text-foreground">
           {signedAndStillLimited ? (
             <>
               Shopify limited this crawl despite your signature. It may have
@@ -114,7 +117,6 @@ export function ShopifyCrawlWarning({
               <Link
                 to="/p/$projectId/settings/integrations"
                 params={{ projectId }}
-                className="link link-primary"
               >
                 Project settings
               </Link>
@@ -127,74 +129,72 @@ export function ShopifyCrawlWarning({
               crawl with it.
             </>
           )}
-        </p>
-        {rerunButton}
-      </div>
+        </AlertDescription>
+        <div className="col-start-2 mt-2">{rerunButton}</div>
+      </Alert>
     );
   }
 
   return (
-    <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-4 text-sm">
-      <div className="flex items-start gap-3">
-        <ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
-        <div className="min-w-0 space-y-3">
-          {expiredCredential?.expiresAt ? (
-            <>
-              <p className="font-medium">
-                Your Shopify signature for this store has expired.
-              </p>
-              <p className="text-base-content/70">
-                It ran out on{" "}
-                {new Date(expiredCredential.expiresAt).toLocaleDateString()}, so
-                requests after that went out unsigned and Shopify limited them.
-                Signatures can't be renewed: create a fresh one in Shopify admin
-                and paste it below to replace the stored values.
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-medium">Shopify limited this crawl.</p>
-              <p className="text-base-content/70">
-                Shopify rate-limits crawlers it hasn't authorized, so parts of
-                this report are missing. If you own this store, authorizing
-                OpenSEO takes about a minute.
-              </p>
-            </>
-          )}
+    <Alert variant="warning">
+      <ShieldAlert />
+      <div className="min-w-0 space-y-3">
+        {expiredCredential?.expiresAt ? (
+          <>
+            <AlertTitle>
+              Your Shopify signature for this store has expired.
+            </AlertTitle>
+            <p className="text-muted-foreground">
+              It ran out on{" "}
+              {new Date(expiredCredential.expiresAt).toLocaleDateString()}, so
+              requests after that went out unsigned and Shopify limited them.
+              Signatures can't be renewed: create a fresh one in Shopify admin
+              and paste it below to replace the stored values.
+            </p>
+          </>
+        ) : (
+          <>
+            <AlertTitle>Shopify limited this crawl.</AlertTitle>
+            <p className="text-muted-foreground">
+              Shopify rate-limits crawlers it hasn't authorized, so parts of
+              this report are missing. If you own this store, authorizing
+              OpenSEO takes about a minute.
+            </p>
+          </>
+        )}
 
-          <ol className="list-decimal space-y-1 pl-5 text-base-content/70">
-            <li>
-              In Shopify admin, go to Online Store &rarr; Preferences &rarr;
-              Crawler access and click Create signature.
-            </li>
-            <li>
-              Pick the domain <span className="font-mono">{host}</span> and an
-              expiry (up to 3 months).
-            </li>
-            <li>Paste the two values below.</li>
-          </ol>
+        <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
+          <li>
+            In Shopify admin, go to Online Store &rarr; Preferences &rarr;
+            Crawler access and click Create signature.
+          </li>
+          <li>
+            Pick the domain <span className="font-mono">{host}</span> and an
+            expiry (up to 3 months).
+          </li>
+          <li>Paste the two values below.</li>
+        </ol>
 
-          {/* Keyed by host: the report stays mounted when the audit changes. */}
-          <CrawlerAccessForm
-            key={host}
-            projectId={projectId}
-            initialHost={host}
-            lockHost
-          />
+        {/* Keyed by host: the report stays mounted when the audit changes. */}
+        <CrawlerAccessForm
+          key={host}
+          projectId={projectId}
+          initialHost={host}
+          lockHost
+        />
 
-          <div className="flex flex-wrap items-center gap-4">
-            {rerunButton}
-            <a
-              className="link link-primary"
-              href={SHOPIFY_CRAWLER_ACCESS_DOC_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Shopify's crawler access guide
-            </a>
-          </div>
+        <div className="flex flex-wrap items-center gap-4">
+          {rerunButton}
+          <a
+            className="text-primary underline underline-offset-3"
+            href={SHOPIFY_CRAWLER_ACCESS_DOC_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Shopify's crawler access guide
+          </a>
         </div>
       </div>
-    </div>
+    </Alert>
   );
 }

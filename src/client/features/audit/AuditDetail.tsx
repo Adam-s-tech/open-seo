@@ -1,8 +1,14 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/client/components/ui/alert";
 import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
 import {
   Card,
   CardAction,
@@ -24,6 +30,7 @@ import {
 } from "@/serverFunctions/audit";
 import { ResultsView } from "@/client/features/audit/results/ResultsView";
 import {
+  BotProtectionAdvice,
   extractHostname,
   extractPathname,
   formatStartedAt,
@@ -82,9 +89,10 @@ export function AuditDetail({
             onRetry={() => void statusQuery.refetch()}
             isRetrying={statusQuery.isFetching}
           />
-          <button className="btn btn-ghost btn-sm" onClick={onBack}>
-            &larr; Back to audits
-          </button>
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ChevronLeft data-icon="inline-start" />
+            Back to audits
+          </Button>
         </div>
       </div>
     );
@@ -107,16 +115,22 @@ export function AuditDetail({
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="space-y-1">
-          <button className="btn btn-ghost btn-sm px-0" onClick={onBack}>
-            &larr; All audits
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2.5"
+            onClick={onBack}
+          >
+            <ChevronLeft data-icon="inline-start" />
+            All audits
+          </Button>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="text-2xl font-semibold">
               {extractHostname(status.startUrl)}
             </h1>
             {!isRunning && <StatusBadge status={status.status} />}
           </div>
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm text-muted-foreground">
             Site audit &middot; Started {formatStartedAt(status.startedAt)}
           </p>
         </div>
@@ -130,86 +144,51 @@ export function AuditDetail({
         )}
 
         {failedWithoutResults && (
-          <div className="alert alert-error">
-            <AlertCircle className="size-5" />
-            <div className="space-y-1">
-              <p className="font-medium">
-                This audit stopped before it crawled any pages.
-              </p>
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>
+              This audit stopped before it crawled any pages.
+            </AlertTitle>
+            <AlertDescription>
               <p>
                 Run a new audit to try again, or email{" "}
-                <a
-                  className="link link-primary"
-                  href={`mailto:${SUPPORT_EMAIL}`}
-                >
-                  {SUPPORT_EMAIL}
-                </a>{" "}
-                if this keeps happening.
+                <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> if this
+                keeps happening.
               </p>
               {status.errorCode ? (
-                <p className="font-mono text-xs opacity-70">
-                  Code: {status.errorCode}
-                </p>
+                <p className="font-mono text-xs">Code: {status.errorCode}</p>
               ) : null}
-            </div>
-          </div>
+            </AlertDescription>
+          </Alert>
         )}
 
         {showBlockedCta && (
-          <div className="alert alert-warning">
-            <AlertCircle className="size-5" />
-            <div className="space-y-1">
-              <p className="font-medium">
-                Site audit couldn't fully crawl this website.
-              </p>
-              <p>
-                Sorry! This site's bot protection blocked our crawler. We don't
-                have a workaround for this yet. Desktop crawlers run from your
-                own machine and usually get past it: try{" "}
-                <a
-                  className="link link-primary"
-                  href="https://github.com/PhialsBasement/LibreCrawl"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  LibreCrawl
-                </a>{" "}
-                (free, open source) or{" "}
-                <a
-                  className="link link-primary"
-                  href="https://www.screamingfrog.co.uk/seo-spider/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Screaming Frog
-                </a>{" "}
-                (free up to 500 URLs).
-              </p>
-            </div>
-          </div>
+          <Alert variant="warning">
+            <AlertCircle />
+            <AlertTitle>
+              Site audit couldn't fully crawl this website.
+            </AlertTitle>
+            <AlertDescription>
+              Sorry! This site's bot protection blocked our crawler.{" "}
+              <BotProtectionAdvice />
+            </AlertDescription>
+          </Alert>
         )}
 
         {failedWithResults && (
-          <div className="alert alert-warning">
-            <AlertCircle className="size-5" />
-            <div className="space-y-1">
-              <p className="font-medium">
-                This audit stopped early after {partialPageCount} page
-                {partialPageCount === 1 ? "" : "s"}.
-              </p>
-              <p>
-                The results below cover everything crawled before it stopped.
-                Run a new audit to try again, or email{" "}
-                <a
-                  className="link link-primary"
-                  href={`mailto:${SUPPORT_EMAIL}`}
-                >
-                  {SUPPORT_EMAIL}
-                </a>{" "}
-                if this keeps happening.
-              </p>
-            </div>
-          </div>
+          <Alert variant="warning">
+            <AlertCircle />
+            <AlertTitle>
+              This audit stopped early after {partialPageCount} page
+              {partialPageCount === 1 ? "" : "s"}.
+            </AlertTitle>
+            <AlertDescription>
+              The results below cover everything crawled before it stopped. Run
+              a new audit to try again, or email{" "}
+              <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> if this
+              keeps happening.
+            </AlertDescription>
+          </Alert>
         )}
 
         {(isComplete || isFailed) && (
@@ -357,14 +336,14 @@ function ProgressRow({
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <HttpStatusBadge code={entry.statusCode} />
-        <span className="truncate text-base-content/80" title={entry.url}>
+        <span className="truncate text-foreground/80" title={entry.url}>
           {pathname}
         </span>
       </div>
       <div className="flex items-center gap-3 shrink-0">
         {entry.title && (
           <span
-            className="text-xs text-base-content/40 truncate max-w-[260px] hidden md:block"
+            className="text-xs text-muted-foreground truncate max-w-[260px] hidden md:block"
             title={entry.title}
           >
             {entry.title}

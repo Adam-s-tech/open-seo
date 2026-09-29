@@ -1,3 +1,5 @@
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { PageHeader } from "@/client/components/PageHeader";
 import { AuditHistorySection } from "@/client/features/audit/launch/AuditHistorySection";
 import { LaunchFormCard } from "@/client/features/audit/launch/LaunchFormCard";
 import { useLaunchController } from "@/client/features/audit/launch/useLaunchController";
@@ -27,7 +29,7 @@ export function LaunchView({
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto max-w-5xl space-y-4">
-        <h1 className="text-2xl font-semibold">Site Audit</h1>
+        <PageHeader title="Site Audit" />
 
         <LaunchFormCard
           launchForm={controller.launchForm}
@@ -40,6 +42,18 @@ export function LaunchView({
           historyQuery={controller.historyQuery}
           onDelete={controller.deleteAudit}
         />
+
+        {controller.largeCrawlPages != null ? (
+          <ConfirmDialog
+            title="Start a large audit?"
+            confirmLabel="Continue"
+            onConfirm={controller.confirmLargeCrawl}
+            onClose={controller.cancelLargeCrawl}
+          >
+            You are about to crawl {controller.largeCrawlPages.toLocaleString()}{" "}
+            pages. This is okay, but it may take a while. Continue?
+          </ConfirmDialog>
+        ) : null}
       </div>
     </div>
   );
