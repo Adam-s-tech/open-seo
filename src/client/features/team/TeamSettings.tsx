@@ -160,7 +160,7 @@ export function TeamSettings() {
       {teamQuery.isPending ? (
         <PageLoading />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-base-300">
+        <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
           <table className="table table-sm">
             <thead>
               <tr>

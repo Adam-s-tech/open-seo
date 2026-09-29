@@ -61,7 +61,7 @@ export function Provenance({ by, at }: { by: ContextAuthor; at?: string }) {
 }
 
 export const listClass =
-  "divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300";
+  "divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100";
 
 /** Row actions and footer buttons shared by the inline competitor/page forms. */
 export function RowActions({ children }: { children: ReactNode }) {

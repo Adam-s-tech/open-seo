@@ -65,7 +65,7 @@ export function CrawlerAccessSettings({ projectId }: { projectId: string }) {
       </div>
 
       {isAdding && (
-        <div className="rounded-lg border border-base-300 p-4">
+        <div className="rounded-lg border border-base-300 bg-base-100 p-4">
           <CrawlerAccessForm
             projectId={projectId}
             initialHost=""
@@ -79,7 +79,7 @@ export function CrawlerAccessSettings({ projectId }: { projectId: string }) {
           We couldn't load your crawler access.
         </p>
       ) : credentials.length > 0 ? (
-        <div className="overflow-x-auto rounded-lg border border-base-300">
+        <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
           <table className="table table-sm">
             <thead>
               <tr>

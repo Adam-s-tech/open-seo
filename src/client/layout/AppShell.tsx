@@ -96,7 +96,7 @@ export function AuthenticatedAppLayout({
     !showMissingSeoApiKeyModal;
 
   return (
-    <div className="flex h-[100dvh] bg-base-200">
+    <div className="flex h-[100dvh] bg-sidebar">
       <div className="hidden shrink-0 md:block">
         <Sidebar projectId={sidebarProjectId} />
       </div>
@@ -107,10 +107,11 @@ export function AuthenticatedAppLayout({
           onOpenDrawer={() => setDrawerOpen(true)}
         />
 
-        {/* PostHog-style cutout: the main content sits on a raised panel with a
-            thin strip of the sidebar background above it and a hairline border. */}
+        {/* PostHog-style cutout: the main content sits on an inset panel with a
+            thin strip of the sidebar background above it and a hairline border.
+            Cards inside the panel use bg-base-100 to stand out from it. */}
         <div className="flex min-h-0 flex-1 flex-col md:pt-2">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-base-100 md:rounded-tl-lg md:border-l md:border-t md:border-base-300">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background md:rounded-tl-lg md:border-l md:border-t md:border-sidebar-border">
             <SeoApiStatusBanners
               shouldShowSeoApiWarning={shouldShowSeoApiWarning}
               seoApiKeyStatusError={seoApiKeyStatusError}

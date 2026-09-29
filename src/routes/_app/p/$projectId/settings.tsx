@@ -19,7 +19,7 @@ function ProjectSettingsLayout() {
   const project = projectsQuery.data?.find((entry) => entry.id === projectId);
 
   return (
-    <div className="h-full overflow-auto bg-base-100">
+    <div className="h-full overflow-auto">
       <div className="mx-auto w-full max-w-2xl space-y-8 p-4 py-8 pb-24 sm:p-6 md:py-12 md:pb-12">
         <div className="space-y-4">
           <BackLink to="/projects">Projects</BackLink>

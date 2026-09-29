@@ -153,7 +153,9 @@ export function SamSidebarPanel({
                   <div
                     key={session.id}
                     className={`group flex items-center gap-1 rounded-md px-1 ${
-                      isActive ? "bg-base-300/50" : "hover:bg-base-300/40"
+                      isActive
+                        ? "bg-sidebar-accent"
+                        : "hover:bg-sidebar-accent/50"
                     }`}
                   >
                     <button

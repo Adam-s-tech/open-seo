@@ -130,7 +130,7 @@ export function ApiKeySettings() {
           apiKeys.length === 0 ? (
             <p className="text-sm text-base-content/60">No API keys yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-base-300">
+            <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
               <table className="table table-sm">
                 <thead>
                   <tr>

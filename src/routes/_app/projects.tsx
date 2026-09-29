@@ -28,7 +28,7 @@ function ProjectsPage() {
   const projectsQuery = useQuery(projectsQueryOptions());
 
   return (
-    <div className="h-full overflow-auto bg-base-100 px-4 py-8 pb-24 md:px-6 md:py-12 md:pb-8">
+    <div className="h-full overflow-auto px-4 py-8 pb-24 md:px-6 md:py-12 md:pb-8">
       <div className="mx-auto w-full max-w-2xl space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -53,7 +53,7 @@ function ProjectsPage() {
           errorFallback="Failed to load projects"
         >
           {(data) => (
-            <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300">
+            <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100">
               {data.map((project) => (
                 <li key={project.id}>
                   <Link
@@ -119,7 +119,7 @@ function ArchivedProjects() {
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-medium text-base-content/50">Archived</h2>
-      <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300">
+      <ul className="divide-y divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100">
         {archived.map((project) => (
           <li
             key={project.id}

@@ -49,7 +49,7 @@ function AiPage() {
   const prompt = getAgentSetupPrompt(origin);
 
   return (
-    <div className="h-full overflow-auto bg-base-100 px-4 py-12 md:px-6 md:py-16 pb-24 md:pb-12">
+    <div className="h-full overflow-auto px-4 py-12 md:px-6 md:py-16 pb-24 md:pb-12">
       <div className="mx-auto max-w-2xl">
         <h1 className="text-2xl font-semibold tracking-tight">Agent setup</h1>
         <p className="mt-3 text-pretty text-sm leading-relaxed text-base-content/70">
@@ -64,7 +64,7 @@ function AiPage() {
           </TabsList>
           <TabsContent value="setup">
             <div className="mt-6 space-y-5">
-              <section className="rounded-xl border border-base-300 p-5 sm:p-6">
+              <section className="rounded-xl border border-base-300 bg-base-100 p-5 sm:p-6">
                 <h2 className="text-base font-semibold">Set up your agent</h2>
                 <p className="mt-2 text-sm leading-relaxed text-base-content/60">
                   Paste the setup prompt into your agent to connect OpenSEO and
@@ -106,7 +106,7 @@ function AiPage() {
                 </p>
               </section>
 
-              <section className="rounded-xl border border-base-300 p-5 sm:p-6">
+              <section className="rounded-xl border border-base-300 bg-base-100 p-5 sm:p-6">
                 <h2 className="text-base font-semibold">Update your skills</h2>
                 <p className="mt-2 text-sm leading-relaxed text-base-content/60">
                   Already connected? Paste the update prompt into your agent to

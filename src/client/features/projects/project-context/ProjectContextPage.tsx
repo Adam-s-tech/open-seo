@@ -255,7 +255,7 @@ function CustomSections({
             ) : (
               <div
                 key={custom.slug}
-                className="space-y-2 rounded-lg border border-base-300 p-3"
+                className="space-y-2 rounded-lg border border-base-300 bg-base-100 p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
