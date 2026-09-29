@@ -8,6 +8,8 @@ import {
 } from "@/client/lib/error-messages";
 import { AuthErrorCard } from "@/client/components/AuthErrorCard";
 import { captureClientError } from "@/client/lib/posthog";
+import { Button } from "@/client/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/client/components/ui/card";
 
 export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
   const router = useRouter();
@@ -35,34 +37,49 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
   }, [error, errorCode, pathname]);
 
   const genericError = (
-    <div className="min-w-0 flex-1 p-4 flex flex-col items-center justify-center gap-6">
-      <p className="text-center text-error">{message}</p>
-      <div className="flex gap-2 items-center flex-wrap">
-        <button
-          onClick={() => {
-            void router.invalidate();
-          }}
-          className="btn btn-primary btn-sm"
-        >
-          Try Again
-        </button>
-        {isRoot ? (
-          <Link to="/" className="btn btn-sm">
-            Home
-          </Link>
-        ) : (
-          <Link
-            to="/"
-            className="btn btn-sm"
-            onClick={(e) => {
-              e.preventDefault();
-              window.history.back();
+    <div className="flex min-w-0 flex-1 items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="text-center text-destructive">
+          {message}
+        </CardContent>
+        <CardFooter className="flex flex-wrap justify-center gap-2">
+          <Button
+            onClick={() => {
+              void router.invalidate();
             }}
+            size="sm"
           >
-            Go Back
-          </Link>
-        )}
-      </div>
+            Try Again
+          </Button>
+          {isRoot ? (
+            <Button
+              nativeButton={false}
+              render={<Link to="/" />}
+              size="sm"
+              variant="outline"
+            >
+              Home
+            </Button>
+          ) : (
+            <Button
+              nativeButton={false}
+              render={
+                <Link
+                  to="/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.history.back();
+                  }}
+                />
+              }
+              size="sm"
+              variant="outline"
+            >
+              Go Back
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 

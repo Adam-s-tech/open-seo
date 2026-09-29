@@ -32,20 +32,6 @@ export function ThemePreferenceRadio() {
   );
 }
 
-export function ThemePreferenceMenuItems() {
-  return (
-    <>
-      <li className="menu-title pt-2">
-        <span>Theme</span>
-      </li>
-
-      <li>
-        <ThemePreferenceRadio />
-      </li>
-    </>
-  );
-}
-
 export function ThemePreferenceDropdownItems() {
   const { themePreference, setThemePreference } = useThemePreference();
 

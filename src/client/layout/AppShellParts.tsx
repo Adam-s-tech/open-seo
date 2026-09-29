@@ -1,9 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, ExternalLink } from "lucide-react";
-import { Modal } from "@/client/components/Modal";
-import { Sidebar } from "@/client/components/Sidebar";
 import { AppBanner } from "@/client/layout/AppBanner";
 import { dataforseoHelpLinkOptions } from "@/client/navigation/items";
+import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
 
 function SeoApiStatusBanners({
   shouldShowSeoApiWarning,
@@ -16,7 +23,7 @@ function SeoApiStatusBanners({
   const helpLink = (
     <Link
       {...dataforseoHelpLinkOptions}
-      className="link link-primary font-medium"
+      className="font-medium text-primary underline-offset-4 hover:underline"
     >
       help page
     </Link>
@@ -40,71 +47,36 @@ function SeoApiStatusBanners({
   );
 }
 
-function MobileSidebarDrawer({
-  open,
-  projectId,
-  onClose,
-}: {
-  open: boolean;
-  projectId: string | null;
-  onClose: () => void;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 md:hidden">
-      <button
-        type="button"
-        aria-label="Close sidebar"
-        className="absolute inset-0 bg-black/45"
-        onClick={onClose}
-      />
-      <div className="absolute left-0 top-0 h-full shadow-xl">
-        <Sidebar projectId={projectId} onNavigate={onClose} onClose={onClose} />
-      </div>
-    </div>
-  );
-}
-
 function MissingSeoSetupModal({ onClose }: { onClose: () => void }) {
   return (
-    <Modal
-      maxWidth="max-w-lg"
-      onClose={onClose}
-      labelledBy="dataforseo-setup-title"
-    >
-      <div className="flex items-start gap-3">
-        <div className="rounded-full bg-warning/20 p-2 text-warning">
-          <AlertTriangle className="size-5" />
-        </div>
-        <div className="space-y-2">
-          <h2
-            id="dataforseo-setup-title"
-            className="text-lg font-semibold text-base-content"
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader className="flex-row items-start gap-3 text-left">
+          <div className="rounded-full bg-warning/20 p-2 text-warning">
+            <AlertTriangle className="size-5" />
+          </div>
+          <div className="space-y-2">
+            <DialogTitle>One quick setup step</DialogTitle>
+            <DialogDescription>
+              Add your DataForSEO API key to start using OpenSEO.
+            </DialogDescription>
+          </div>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>
+            Dismiss
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link {...dataforseoHelpLinkOptions} onClick={onClose} />}
           >
-            One quick setup step
-          </h2>
-          <p className="text-sm text-base-content/75">
-            Add your DataForSEO API key to start using OpenSEO.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-1 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Dismiss
-        </button>
-        <Link
-          {...dataforseoHelpLinkOptions}
-          className="btn btn-primary"
-          onClick={onClose}
-        >
-          Open setup guide
-          <ExternalLink className="size-4" />
-        </Link>
-      </div>
-    </Modal>
+            Open setup guide
+            <ExternalLink className="size-4" />
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export { MissingSeoSetupModal, MobileSidebarDrawer, SeoApiStatusBanners };
+export { MissingSeoSetupModal, SeoApiStatusBanners };

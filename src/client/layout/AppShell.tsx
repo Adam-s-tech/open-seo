@@ -2,10 +2,8 @@ import * as React from "react";
 import { projectsQueryOptions } from "@/client/features/projects/projectQueries";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Menu } from "lucide-react";
 import {
   MissingSeoSetupModal,
-  MobileSidebarDrawer,
   SeoApiStatusBanners,
 } from "@/client/layout/AppShellParts";
 import { GscReEngagementModal } from "@/client/features/gsc/GscReEngagementModal";
@@ -14,6 +12,11 @@ import { BILLING_ROUTE } from "@/shared/billing";
 import { getSeoApiKeyStatus } from "@/serverFunctions/config";
 import { getLastProjectId } from "@/client/lib/active-project";
 import { dataforseoHelpLinkOptions } from "@/client/navigation/items";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/client/components/ui/sidebar";
 
 export function AuthenticatedAppLayout({
   children,
@@ -25,7 +28,6 @@ export function AuthenticatedAppLayout({
   banner?: React.ReactNode;
 }) {
   const location = useLocation();
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [showMissingSeoApiKeyModal, setShowMissingSeoApiKeyModal] =
     React.useState(false);
   // On non-project pages (e.g. /settings) there's no projectId in the URL, so
@@ -96,39 +98,17 @@ export function AuthenticatedAppLayout({
     !showMissingSeoApiKeyModal;
 
   return (
-    <div className="flex h-[100dvh] bg-sidebar">
-      <div className="hidden shrink-0 md:block">
-        <Sidebar projectId={sidebarProjectId} />
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <MobileTopBar
-          drawerOpen={drawerOpen}
-          onOpenDrawer={() => setDrawerOpen(true)}
+    <SidebarProvider className="h-[100dvh] min-h-0 overflow-hidden">
+      <Sidebar projectId={sidebarProjectId} />
+      <SidebarInset className="min-h-0 overflow-hidden md:!m-0 md:!mt-2 md:!rounded-none md:!rounded-tl-lg md:border-l md:border-t md:border-sidebar-border md:!shadow-none">
+        <MobileTopBar />
+        <SeoApiStatusBanners
+          shouldShowSeoApiWarning={shouldShowSeoApiWarning}
+          seoApiKeyStatusError={seoApiKeyStatusError}
         />
-
-        {/* PostHog-style cutout: the main content sits on an inset panel with a
-            thin strip of the sidebar background above it and a hairline border.
-            Cards inside the panel use bg-base-100 to stand out from it. */}
-        <div className="flex min-h-0 flex-1 flex-col md:pt-2">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background md:rounded-tl-lg md:border-l md:border-t md:border-sidebar-border">
-            <SeoApiStatusBanners
-              shouldShowSeoApiWarning={shouldShowSeoApiWarning}
-              seoApiKeyStatusError={seoApiKeyStatusError}
-            />
-
-            {banner}
-
-            <div className="min-h-0 flex-1 overflow-auto">{children}</div>
-          </div>
-        </div>
-      </div>
-
-      <MobileSidebarDrawer
-        open={drawerOpen}
-        projectId={sidebarProjectId}
-        onClose={() => setDrawerOpen(false)}
-      />
+        {banner}
+        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+      </SidebarInset>
 
       {showMissingSeoApiKeyModal ? (
         <MissingSeoSetupModal
@@ -140,29 +120,15 @@ export function AuthenticatedAppLayout({
         projectId={sidebarProjectId}
         suppressed={showMissingSeoApiKeyModal}
       />
-    </div>
+    </SidebarProvider>
   );
 }
 
-function MobileTopBar({
-  drawerOpen,
-  onOpenDrawer,
-}: {
-  drawerOpen: boolean;
-  onOpenDrawer: () => void;
-}) {
+function MobileTopBar() {
   return (
-    <div className="flex shrink-0 items-center gap-1 border-b border-base-300 bg-base-100 px-2 py-1.5 md:hidden">
-      <button
-        type="button"
-        className="btn btn-square btn-ghost btn-sm"
-        aria-label="Toggle sidebar"
-        aria-expanded={drawerOpen}
-        onClick={onOpenDrawer}
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-      <Link to="/" className="ml-1 font-semibold text-base-content">
+    <div className="flex shrink-0 items-center gap-1 border-b border-border bg-card px-2 py-1.5 md:hidden">
+      <SidebarTrigger aria-label="Toggle sidebar" />
+      <Link to="/" className="ml-1 font-semibold text-foreground">
         OpenSEO
       </Link>
     </div>
