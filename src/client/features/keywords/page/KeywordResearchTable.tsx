@@ -4,23 +4,23 @@ import {
   type ColumnDef,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
+import type { ReactNode } from "react";
 import {
+  DataTable,
   makeSelectionColumn,
   useDataTable,
   useSelectionAnchor,
 } from "@/client/components/table/DataTable";
 import {
   IntentBadge,
-  SortHeader,
   type SortDir,
   type SortField,
 } from "@/client/features/keywords/components";
+import { SortableHeader } from "@/client/components/table/SortableHeader";
 import { ScoreBadge } from "@/client/components/table/ScoreBadge";
 import { formatNumber } from "@/client/features/keywords/utils";
 import type { KeywordResearchDisplayRow } from "@/client/features/keywords/groupSharedVolumeRows";
 import type { KeywordResearchRow } from "@/types/keywords";
-import { EmptyFilterResults } from "./keywordResearchFilters";
 
 type Props = {
   filteredRows: KeywordResearchDisplayRow[];
@@ -30,8 +30,11 @@ type Props = {
   sortDir: SortDir;
   sortField: SortField;
   toggleSort: (field: SortField) => void;
+  isFiltered: boolean;
   resetFilters: () => void;
   handleRowClick: (row: KeywordResearchRow) => void;
+  toolbar: ReactNode;
+  footer: ReactNode;
 };
 
 const keywordColumnHelper = createColumnHelper<KeywordResearchDisplayRow>();
@@ -44,8 +47,11 @@ export function KeywordResearchTable({
   sortDir,
   sortField,
   toggleSort,
+  isFiltered,
   resetFilters,
   handleRowClick,
+  toolbar,
+  footer,
 }: Props) {
   const selectAnchorRef = useSelectionAnchor();
   const rowSelection = useMemo<RowSelectionState>(
@@ -55,17 +61,19 @@ export function KeywordResearchTable({
       ) as RowSelectionState,
     [selectedRows],
   );
-  const columns = useMemo<ColumnDef<KeywordResearchDisplayRow>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<KeywordResearchDisplayRow>[]>(() => {
+    // The controller sorts the rows, so each header reads and sets its sort.
+    const sortColumn = (field: SortField) => ({
+      getIsSorted: () => (field === sortField ? sortDir : false),
+      getToggleSortingHandler: () => () => toggleSort(field),
+    });
+    return [
       makeSelectionColumn<KeywordResearchDisplayRow>(selectAnchorRef),
       keywordColumnHelper.accessor("keyword", {
         header: () => (
-          <SortHeader
+          <SortableHeader
+            column={sortColumn("keyword")}
             label="Keyword"
-            field="keyword"
-            current={sortField}
-            dir={sortDir}
-            onToggle={toggleSort}
             className="min-w-48 md:min-w-0"
           />
         ),
@@ -85,20 +93,19 @@ export function KeywordResearchTable({
             </span>
           </div>
         ),
+        // From md, the keyword column takes the free width and truncates, so
+        // the metric columns stay in view.
         meta: {
-          headerClassName: "min-w-48 md:min-w-0",
-          cellClassName: "min-w-48 md:min-w-0",
+          headerClassName: "min-w-48 md:w-full md:max-w-0 md:min-w-0",
+          cellClassName: "min-w-48 md:w-full md:max-w-0 md:min-w-0",
         },
       }),
       keywordColumnHelper.accessor("searchVolume", {
         header: () => (
-          <SortHeader
+          <SortableHeader
+            column={sortColumn("searchVolume")}
             label="Volume"
-            field="searchVolume"
-            current={sortField}
-            dir={sortDir}
-            onToggle={toggleSort}
-            className="justify-end"
+            align="right"
           />
         ),
         cell: ({ row, getValue }) =>
@@ -106,19 +113,16 @@ export function KeywordResearchTable({
         meta: {
           headerClassName: "text-right",
           cellClassName:
-            "whitespace-nowrap text-right tabular-nums text-base-content/70",
+            "whitespace-nowrap text-right tabular-nums text-muted-foreground",
         },
       }),
       keywordColumnHelper.accessor("cpc", {
         header: () => (
-          <SortHeader
+          <SortableHeader
+            column={sortColumn("cpc")}
             label="CPC"
             helpText="Cost per click in USD."
-            field="cpc"
-            current={sortField}
-            dir={sortDir}
-            onToggle={toggleSort}
-            className="justify-end"
+            align="right"
           />
         ),
         cell: ({ row, getValue }) => {
@@ -129,19 +133,16 @@ export function KeywordResearchTable({
         meta: {
           headerClassName: "text-right",
           cellClassName:
-            "whitespace-nowrap text-right tabular-nums text-base-content/70",
+            "whitespace-nowrap text-right tabular-nums text-muted-foreground",
         },
       }),
       keywordColumnHelper.accessor("competition", {
         header: () => (
-          <SortHeader
+          <SortableHeader
+            column={sortColumn("competition")}
             label="Comp."
             helpText="Paid-search competition from Google Ads (0-1): higher means more advertisers bidding."
-            field="competition"
-            current={sortField}
-            dir={sortDir}
-            onToggle={toggleSort}
-            className="justify-end"
+            align="right"
           />
         ),
         cell: ({ row, getValue }) => {
@@ -152,19 +153,16 @@ export function KeywordResearchTable({
         meta: {
           headerClassName: "text-right",
           cellClassName:
-            "whitespace-nowrap text-right tabular-nums text-base-content/70",
+            "whitespace-nowrap text-right tabular-nums text-muted-foreground",
         },
       }),
       keywordColumnHelper.accessor("keywordDifficulty", {
         header: () => (
-          <SortHeader
+          <SortableHeader
+            column={sortColumn("keywordDifficulty")}
             label="Score"
             helpText="Organic ranking difficulty (0-100): higher means harder to reach Google's top 10."
-            field="keywordDifficulty"
-            current={sortField}
-            dir={sortDir}
-            onToggle={toggleSort}
-            className="justify-end"
+            align="right"
           />
         ),
         cell: ({ getValue }) => <ScoreBadge value={getValue()} />,
@@ -178,9 +176,8 @@ export function KeywordResearchTable({
           cellClassName: "whitespace-nowrap text-center",
         },
       }),
-    ],
-    [selectAnchorRef, sortDir, sortField, toggleSort],
-  );
+    ];
+  }, [selectAnchorRef, sortDir, sortField, toggleSort]);
   const table = useDataTable({
     data: filteredRows,
     columns,
@@ -201,24 +198,15 @@ export function KeywordResearchTable({
   });
 
   return (
-    <div className="flex-1 min-h-0">
-      {filteredRows.length === 0 ? (
-        <EmptyFilterResults resetFilters={resetFilters} />
-      ) : (
-        <AppDataTable
-          table={table}
-          className="table table-xs min-w-max md:w-full"
-          wrapperClassName="h-full overflow-auto"
-          getRowProps={(row) => ({
-            className: `cursor-pointer border-b border-base-200 hover:bg-base-200/50 ${
-              overviewKeyword?.keyword === row.original.keyword
-                ? "bg-primary/5 border-l-2 border-l-primary"
-                : ""
-            }`,
-            onClick: () => handleRowClick(row.original),
-          })}
-        />
-      )}
-    </div>
+    <DataTable
+      table={table}
+      toolbar={toolbar}
+      footer={footer}
+      empty={{ title: "No keywords" }}
+      isFiltered={isFiltered}
+      onClearFilters={resetFilters}
+      onRowClick={(row) => handleRowClick(row.original)}
+      activeRowId={overviewKeyword?.keyword}
+    />
   );
 }

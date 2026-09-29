@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
-import { AlertCircle } from "lucide-react";
+import { ErrorState } from "@/client/components/ErrorState";
+import { FormDialog } from "@/client/components/FormDialog";
+import { PageHeader } from "@/client/components/PageHeader";
 import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
+import { Button } from "@/client/components/ui/button";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
 import { formatLocationLabel } from "@/shared/keyword-locations";
@@ -197,12 +200,10 @@ export function KeywordResearchPage(input: Props) {
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <div>
-          <h1 className="text-2xl font-semibold">Keyword Research</h1>
-          <p className="text-sm text-base-content/70">
-            Discover keyword ideas, search demand, and ranking opportunities.
-          </p>
-        </div>
+        <PageHeader
+          title="Keyword Research"
+          description="Discover keyword ideas, search demand, and ranking opportunities."
+        />
 
         <KeywordResearchSearchBar controller={controller} />
         {controller.hasSearched ? (
@@ -249,7 +250,10 @@ function KeywordResearchContent({
   }
 
   const errorCard = controller.researchError ? (
-    <ResearchErrorCard controller={controller} />
+    <ResearchErrorCard
+      controller={controller}
+      message={controller.researchError}
+    />
   ) : null;
 
   if (controller.rows.length === 0) {
@@ -274,32 +278,34 @@ function KeywordResearchContent({
 
 function ResearchErrorCard({
   controller,
+  message,
 }: {
   controller: KeywordResearchControllerState;
+  message: string;
 }) {
   const errorCode = getErrorCode(controller.researchMutationError);
 
   return (
-    <div className="flex-1 flex items-center justify-center pt-1">
-      <div className="w-full max-w-xl rounded-xl border border-error/30 bg-error/10 p-5 text-error space-y-3">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          <p className="text-sm">{controller.researchError}</p>
-        </div>
-        {errorCode === "INSUFFICIENT_CREDITS" ? (
-          <Link to={BILLING_ROUTE} className="btn btn-sm">
-            Go to Billing
-          </Link>
-        ) : errorCode === "UNKNOWN_LOCATION" ? null : (
-          <button
-            className="btn btn-sm"
-            onClick={controller.retrySearch}
-            disabled={controller.researchRetrying}
-          >
-            {controller.researchRetrying ? "Retrying…" : "Try again"}
-          </button>
-        )}
-      </div>
+    <div className="mx-auto w-full max-w-xl pt-1">
+      <ErrorState
+        message={message}
+        onRetry={
+          errorCode === "UNKNOWN_LOCATION" ? undefined : controller.retrySearch
+        }
+        isRetrying={controller.researchRetrying}
+        action={
+          errorCode === "INSUFFICIENT_CREDITS" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link to={BILLING_ROUTE} />}
+            >
+              Go to Billing
+            </Button>
+          ) : undefined
+        }
+      />
     </div>
   );
 }
@@ -312,38 +318,35 @@ function KeywordSaveDialog({
   if (!controller.showSaveDialog) return null;
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
-        <h3 className="font-bold text-lg">
-          Save {controller.selectedKeywordRows.length} Keywords
-        </h3>
-        <div className="py-4">
-          <p className="text-base-content/70 text-sm">
-            These keywords will be saved to your current project.
-          </p>
-          {controller.locationName ? (
-            <p className="mt-2 text-base-content/70 text-sm">
-              Saved keywords show national metrics. The local volume for{" "}
-              {formatLocationLabel(controller.locationName)} is not saved.
-            </p>
-          ) : null}
-        </div>
-        <div className="modal-action">
-          <button
-            className="btn"
+    <FormDialog
+      title={`Save ${controller.selectedKeywordRows.length} Keywords`}
+      onClose={() => controller.setShowSaveDialog(false)}
+      actions={
+        <>
+          <Button
+            variant="outline"
             onClick={() => controller.setShowSaveDialog(false)}
           >
             Cancel
-          </button>
-          <button className="btn btn-primary" onClick={controller.confirmSave}>
+          </Button>
+          <Button
+            pending={controller.savePending}
+            onClick={controller.confirmSave}
+          >
             Save
-          </button>
-        </div>
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>These keywords will be saved to your current project.</p>
+        {controller.locationName ? (
+          <p>
+            Saved keywords show national metrics. The local volume for{" "}
+            {formatLocationLabel(controller.locationName)} is not saved.
+          </p>
+        ) : null}
       </div>
-      <div
-        className="modal-backdrop"
-        onClick={() => controller.setShowSaveDialog(false)}
-      />
-    </div>
+    </FormDialog>
   );
 }

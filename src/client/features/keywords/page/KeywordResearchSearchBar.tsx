@@ -3,6 +3,14 @@ import { getFieldError } from "@/client/lib/forms";
 import { MAX_KEYWORDS_PER_SUBMIT } from "@/client/features/keywords/keywordResearchTypes";
 import { isLabsLocationCode } from "@/client/features/keywords/locations";
 import { LocationSelect } from "@/client/components/LocationSelect";
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
+import { Button } from "@/client/components/ui/button";
+import { Card, CardContent } from "@/client/components/ui/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupTextarea,
+} from "@/client/components/ui/input-group";
 import { KeywordAreaField, LocalVolumeCostNote } from "./KeywordAreaField";
 import { KeywordSearchOptions } from "./KeywordSearchOptions";
 import type { KeywordResearchControllerState } from "./types";
@@ -21,9 +29,12 @@ export function KeywordResearchSearchBar({ controller }: Props) {
   const { controlsForm, handleSearchSubmit } = controller;
 
   return (
-    <div className="card border border-base-300 bg-base-100">
-      <div className="card-body gap-2">
+    // The city field opens an absolute menu below the row, so the card must
+    // not clip it.
+    <Card className="overflow-visible">
+      <CardContent className="space-y-2">
         <form
+          noValidate
           className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:gap-2"
           onSubmit={handleSearchSubmit}
         >
@@ -33,20 +44,19 @@ export function KeywordResearchSearchBar({ controller }: Props) {
               const rows = getTextareaRows(field.state.value);
 
               return (
-                // Same input styling as the location field beside it. Extra
-                // lines grow the field.
-                <label
-                  className={`input input-bordered flex w-full lg:flex-1 lg:min-w-0 lg:max-w-md gap-2 pr-3 ${
-                    rows > 1 ? "h-auto items-start py-2" : "items-center"
-                  } ${keywordError ? "input-error" : ""}`}
-                >
-                  <Search
-                    className={`size-4 shrink-0 text-base-content/50 ${rows > 1 ? "mt-1" : ""}`}
-                  />
-                  <textarea
-                    className="grow min-w-0 resize-none bg-transparent leading-6 outline-none placeholder:text-base-content/40"
+                // Extra lines grow the field.
+                <InputGroup className="min-h-10 w-full lg:max-w-md lg:min-w-0 lg:flex-1">
+                  <InputGroupAddon
+                    className={rows > 1 ? "self-start pt-3" : undefined}
+                  >
+                    <Search />
+                  </InputGroupAddon>
+                  <InputGroupTextarea
+                    className="min-h-0 leading-6 field-sizing-fixed"
                     rows={rows}
                     placeholder="Enter a keyword"
+                    aria-label="Keywords"
+                    aria-invalid={keywordError ? true : undefined}
                     value={field.state.value}
                     onChange={(event) => field.handleChange(event.target.value)}
                     onKeyDown={(event) => {
@@ -59,7 +69,7 @@ export function KeywordResearchSearchBar({ controller }: Props) {
                       }
                     }}
                   />
-                </label>
+                </InputGroup>
               );
             }}
           </controlsForm.Field>
@@ -97,12 +107,13 @@ export function KeywordResearchSearchBar({ controller }: Props) {
 
             <KeywordSearchOptions controller={controller} />
 
-            <button
+            <Button
               type="submit"
-              className="btn btn-primary w-full px-6 lg:w-auto lg:shrink-0"
+              size="lg"
+              className="h-10 w-full px-6 lg:w-auto lg:shrink-0"
             >
               Search
-            </button>
+            </Button>
           </div>
         </form>
         <controlsForm.Field name="keyword">
@@ -110,7 +121,9 @@ export function KeywordResearchSearchBar({ controller }: Props) {
             const keywordError = getFieldError(field.state.meta.errors);
 
             return keywordError ? (
-              <p className="text-sm text-error">{keywordError}</p>
+              <p role="alert" className="text-sm text-destructive">
+                {keywordError}
+              </p>
             ) : null;
           }}
         </controlsForm.Field>
@@ -122,23 +135,20 @@ export function KeywordResearchSearchBar({ controller }: Props) {
           {([locationCode, locationName]) => (
             <>
               {isLabsLocationCode(locationCode) ? null : (
-                <div
-                  className="flex items-start gap-2 rounded-lg border border-info/30 bg-info/10 px-3 py-2 text-sm text-base-content/80"
-                  role="status"
-                >
-                  <Info className="mt-0.5 size-4 shrink-0 text-info" />
-                  <span>
+                <Alert variant="info" role="status">
+                  <Info />
+                  <AlertDescription>
                     Keyword data for this country comes from Google Ads — search
                     volume, CPC, and trends are available, but difficulty and
                     intent are not.
-                  </span>
-                </div>
+                  </AlertDescription>
+                </Alert>
               )}
               {locationName ? <LocalVolumeCostNote /> : null}
             </>
           )}
         </controlsForm.Subscribe>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

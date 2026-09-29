@@ -2,6 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 import { searchSerpLocations } from "@/serverFunctions/serp-locations";
 import { formatLocationLabel } from "@/shared/keyword-locations";
+import { Badge } from "@/client/components/ui/badge";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/client/components/ui/input-group";
 import type { SerpLocationResult } from "@/server/lib/dataforseo/serp-locations";
 
 type Props = {
@@ -197,15 +203,12 @@ export function SerpLocationCombobox({
         setOpen(false);
       }}
     >
-      <label className="flex items-center gap-2 input input-bordered w-full pr-3">
-        {isLoading ? (
-          <Loader2 className="size-4 shrink-0 text-base-content/50 animate-spin" />
-        ) : (
-          <MapPin className="size-4 shrink-0 text-base-content/50" />
-        )}
-        <input
+      <InputGroup className="h-10">
+        <InputGroupAddon>
+          {isLoading ? <Loader2 className="animate-spin" /> : <MapPin />}
+        </InputGroupAddon>
+        <InputGroupInput
           type="text"
-          className="grow min-w-0 bg-transparent outline-none placeholder:text-base-content/40"
           placeholder={placeholder}
           value={inputValue}
           onChange={handleInputChange}
@@ -215,27 +218,27 @@ export function SerpLocationCombobox({
           }}
           autoComplete="off"
         />
-      </label>
+      </InputGroup>
 
       {open && (
         <div
-          className="absolute z-30 mt-1 w-full rounded-box border border-base-300 bg-base-100 shadow-lg p-1"
+          className="absolute z-30 mt-1 w-full rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10"
           // Keep focus in the input, so picking a result is not a blur.
           onMouseDown={(e) => e.preventDefault()}
         >
           {isError ? (
-            <p className="px-3 py-2 text-sm text-error">
+            <p className="px-3 py-2 text-sm text-destructive">
               Unable to load locations
             </p>
           ) : results.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-base-content/50">
+            <p className="px-3 py-2 text-sm text-muted-foreground">
               No locations found for "{debouncedQuery.text.trim()}"
             </p>
           ) : (
             <ul
               ref={listRef}
               role="listbox"
-              className="menu max-h-56 w-full flex-nowrap overflow-y-auto p-0"
+              className="max-h-56 w-full overflow-y-auto"
             >
               {results.map((loc, index) => (
                 <li
@@ -245,16 +248,16 @@ export function SerpLocationCombobox({
                 >
                   <button
                     type="button"
-                    className={`w-full flex items-center justify-between gap-2 ${index === activeIndex ? "menu-focus" : ""}`}
+                    className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm ${index === activeIndex ? "bg-accent text-accent-foreground" : ""}`}
                     onClick={() => select(loc)}
                     onMouseEnter={() => setActiveIndex(index)}
                   >
                     <span className="truncate text-left">
                       {loc.displayLabel}
                     </span>
-                    <span className="badge badge-xs bg-base-300 border-0 text-base-content/60 shrink-0">
+                    <Badge variant="secondary" size="sm">
                       {loc.locationType}
-                    </span>
+                    </Badge>
                   </button>
                 </li>
               ))}

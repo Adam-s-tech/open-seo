@@ -288,6 +288,7 @@ export function useKeywordResearchController(
     resetFilters,
     retrySerp,
     rows,
+    savePending: saveMutation.isPending,
     searchedKeyword,
     selectedRows,
     selectedKeywordRows,

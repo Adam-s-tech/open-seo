@@ -53,15 +53,16 @@ export function KeywordSearchOptions({ controller }: Props) {
 
         return (
           <>
-            <button
-              type="button"
-              className="btn w-full gap-2 border-base-300 bg-base-100 font-normal lg:w-auto lg:shrink-0"
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-10 w-full font-normal lg:w-auto lg:shrink-0"
               aria-haspopup="dialog"
               onClick={() => setOpen(true)}
             >
-              <SlidersHorizontal className="size-4" />
+              <SlidersHorizontal data-icon="inline-start" />
               Options
-            </button>
+            </Button>
 
             {open ? (
               <FormDialog

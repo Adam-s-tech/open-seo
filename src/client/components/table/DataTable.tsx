@@ -10,7 +10,12 @@ import {
   type Table as TanStackTable,
   type TableOptions,
 } from "@tanstack/react-table";
-import { useRef, type MutableRefObject, type ReactNode } from "react";
+import {
+  useRef,
+  type ComponentProps,
+  type MutableRefObject,
+  type ReactNode,
+} from "react";
 import { EmptyState } from "@/client/components/EmptyState";
 import { Button } from "@/client/components/ui/button";
 import { Checkbox } from "@/client/components/ui/checkbox";
@@ -150,10 +155,19 @@ export function DataTable<TData>({
   error,
   toolbar,
   footer,
+  onRowClick,
+  activeRowId,
 }: DataTableFrameProps & {
   table: TanStackTable<TData>;
   /** Shown when there are no rows and no filters. */
-  empty: { title: ReactNode; description?: ReactNode; action?: ReactNode };
+  empty: Pick<
+    ComponentProps<typeof EmptyState>,
+    "kind" | "title" | "description" | "action"
+  >;
+  /** Makes each row clickable, for example to open its details beside the table. */
+  onRowClick?: (row: Row<TData>) => void;
+  /** Highlights the row whose details are open. */
+  activeRowId?: string;
 }) {
   const columns = table.getVisibleLeafColumns();
   const rows = table.getRowModel().rows;
@@ -229,6 +243,13 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
+                  data-active={row.id === activeRowId ? "" : undefined}
+                  className={
+                    onRowClick
+                      ? "cursor-pointer data-active:bg-primary/5 data-active:shadow-[inset_2px_0_0_var(--color-primary)]"
+                      : undefined
+                  }
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta?.cellClassName;

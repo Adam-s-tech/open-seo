@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Globe, Search } from "lucide-react";
+import { EmptyState } from "@/client/components/EmptyState";
 import { RecentSearches } from "@/client/components/RecentSearches";
 import { LOCATIONS } from "@/client/features/keywords/utils";
 import type { KeywordResearchControllerState } from "./types";
@@ -26,26 +27,25 @@ function NoResultsState({
   const { lastSearchKeyword, lastSearchLocationCode } = controller;
 
   return (
-    <div className="pt-1">
-      <div className="w-full max-w-2xl rounded-2xl border border-base-300 bg-base-100 p-6 md:p-8 text-center space-y-4 mx-auto">
-        <Globe className="size-10 mx-auto text-base-content/40" />
-        <div className="space-y-2">
-          <p className="text-lg font-semibold text-base-content">
-            Not enough keyword data for this query yet
-          </p>
-          <p className="text-sm text-base-content/70">
+    <div className="mx-auto w-full max-w-2xl pt-1">
+      <EmptyState
+        variant="card"
+        icon={Globe}
+        title="Not enough keyword data for this query yet"
+        description={
+          <>
             We could not find keyword opportunities for
-            <span className="font-medium text-base-content">
+            <span className="font-medium text-foreground">
               {` "${lastSearchKeyword}" `}
             </span>
             in
-            <span className="font-medium text-base-content">
+            <span className="font-medium text-foreground">
               {` ${LOCATIONS[lastSearchLocationCode] || "this location"}`}
             </span>
             .
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
     </div>
   );
 }

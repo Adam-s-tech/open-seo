@@ -1,16 +1,20 @@
 import type { KeywordIntent } from "@/types/keywords";
+import { Badge } from "@/client/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/client/components/ui/tooltip";
 
-const COLORS: Record<KeywordIntent, string> = {
-  informational: "border-info/30 bg-info/15 text-info",
-  commercial: "border-warning/35 bg-warning/20 text-warning",
-  transactional: "border-success/30 bg-success/15 text-success",
-  navigational: "border-primary/30 bg-primary/15 text-primary",
-  unknown: "border-base-300 bg-base-200 text-base-content/60",
+const VARIANTS: Record<
+  KeywordIntent,
+  "info" | "warning" | "success" | "soft" | "secondary"
+> = {
+  informational: "info",
+  commercial: "warning",
+  transactional: "success",
+  navigational: "soft",
+  unknown: "secondary",
 };
 
 const SHORT_LABELS: Record<KeywordIntent, string> = {
@@ -68,8 +72,13 @@ export function IntentBadge({ intent }: { intent: KeywordIntent }) {
     <Tooltip>
       <TooltipTrigger
         delay={0}
-        render={<span tabIndex={0} />}
-        className={`inline-flex h-6 min-w-11 cursor-help items-center justify-center rounded-full border px-2 text-xs font-semibold leading-none ${COLORS[intent]}`}
+        render={
+          <Badge
+            variant={VARIANTS[intent]}
+            tabIndex={0}
+            className="h-6 min-w-11 cursor-help font-semibold"
+          />
+        }
         aria-label={`${details.label} search intent`}
       >
         {SHORT_LABELS[intent]}

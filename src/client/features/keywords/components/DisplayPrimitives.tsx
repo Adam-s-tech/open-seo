@@ -1,4 +1,3 @@
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { Area, AreaChart } from "recharts";
 import {
   ChartGrid,
@@ -17,11 +16,6 @@ import {
   lastTwelveMonths,
   MONTH_SHORT_LABELS,
 } from "../utils";
-import {
-  Tooltip as HelpTooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/client/components/ui/tooltip";
 
 export type SortField =
   | "keyword"
@@ -89,57 +83,5 @@ export function AreaTrendChart({ trend }: { trend: MonthlySearch[] }) {
         />
       </AreaChart>
     </ChartContainer>
-  );
-}
-
-export function SortHeader({
-  label,
-  helpText,
-  field,
-  current,
-  dir,
-  onToggle,
-  className,
-}: {
-  label: string;
-  helpText?: string;
-  field: SortField;
-  current: SortField;
-  dir: SortDir;
-  onToggle: (f: SortField) => void;
-  className?: string;
-}) {
-  const isActive = field === current;
-  const content = (
-    <>
-      {label}
-      {isActive &&
-        (dir === "asc" ? (
-          <ChevronUp className="size-3" />
-        ) : (
-          <ChevronDown className="size-3" />
-        ))}
-    </>
-  );
-  const buttonClassName = `inline-flex items-center gap-0.5 hover:text-primary transition-colors cursor-pointer select-none ${className ?? ""}`;
-
-  if (!helpText) {
-    return (
-      <button className={buttonClassName} onClick={() => onToggle(field)}>
-        {content}
-      </button>
-    );
-  }
-  return (
-    <HelpTooltip>
-      <TooltipTrigger
-        delay={150}
-        className={buttonClassName}
-        onClick={() => onToggle(field)}
-      >
-        {content}
-      </TooltipTrigger>
-      <TooltipContent>{helpText}</TooltipContent>
-    </HelpTooltip>
   );
 }
