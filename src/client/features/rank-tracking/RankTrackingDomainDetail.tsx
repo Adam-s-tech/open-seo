@@ -10,8 +10,11 @@ import {
   getRankPositionMatrix,
   estimateRankCheckCost,
 } from "@/serverFunctions/rank-tracking";
-import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { BackLink } from "@/client/components/PageHeader";
 import { QueryState } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
+import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { FreePlanAlert } from "./FreePlanAlert";
@@ -78,14 +81,12 @@ export function RankTrackingDomainDetail({
   projectId,
   search,
   onSearchChange,
-  onBack,
   onEdit,
 }: {
   config: RankTrackingConfig;
   projectId: string;
   search: RankTrackingDetailSearch;
   onSearchChange: (update: Partial<RankTrackingDetailSearch>) => void;
-  onBack: () => void;
   onEdit: () => void;
 }) {
   const planStatus = useHostedPlanGate();
@@ -234,47 +235,45 @@ export function RankTrackingDomainDetail({
 
   return (
     <div className="space-y-3">
-      <button
-        className="btn btn-ghost btn-xs gap-1 -ml-2 text-base-content/60"
-        onClick={onBack}
-      >
-        <ArrowLeft className="size-3" />
+      <BackLink to="/p/$projectId/rank-tracking" params={{ projectId }}>
         Back to domains
-      </button>
+      </BackLink>
 
       {config.lastSkipReason === "insufficient_credits" && (
-        <div className="alert alert-warning text-sm py-2">
-          <AlertTriangle className="size-4" />
-          <span>
+        <Alert variant="warning">
+          <AlertTriangle />
+          <AlertDescription className="text-foreground">
             Last scheduled check was skipped due to insufficient credits. Top up
             your balance to resume automatic tracking.
-          </span>
-        </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       {latestRun?.maybeStale && (
-        <div className="alert alert-warning text-sm py-2">
-          <AlertTriangle className="size-4" />
-          <span>
+        <Alert variant="warning">
+          <AlertTriangle />
+          <AlertDescription className="text-foreground">
             This run may be unresponsive and will be cleaned up automatically.
-          </span>
-        </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       {latestRun?.status === "failed" && (
-        <div className="alert alert-error text-sm py-2">
-          <AlertTriangle className="size-4" />
-          <span>
-            <span className="font-medium">Last check failed.</span>{" "}
-            {latestRun.errorMessage}
-          </span>
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle />
+          <AlertDescription className="text-foreground">
+            <p>
+              <span className="font-medium">Last check failed.</span>{" "}
+              {latestRun.errorMessage}
+            </p>
+          </AlertDescription>
+        </Alert>
       )}
 
       <FreePlanAlert visible={planStatus === "free"} />
 
       {/* Results card */}
-      <div className="flex-1 flex flex-col min-w-0 border border-base-300 rounded-xl bg-base-100 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         {/* Domain header */}
         <RankTrackingDetailHeader
           config={config}
@@ -362,16 +361,13 @@ export function RankTrackingDomainDetail({
                 trackingKeywordId: r.trackingKeywordId,
                 keyword: r.keyword,
               }))}
+              onClearFilters={() => setFilters(EMPTY_FILTERS)}
             />
           ) : (
             <QueryState
               query={resultsQuery}
               errorFallback="Failed to load rank data"
-              loading={
-                <div className="flex items-center justify-center p-8">
-                  <Loader2 className="size-5 animate-spin text-base-content/50" />
-                </div>
-              }
+              loading={<PageLoading />}
             >
               {(results) => (
                 <RankTrackingTable
@@ -399,7 +395,8 @@ export function RankTrackingDomainDetail({
                   locationCode={config.locationCode}
                   locationName={config.locationName}
                   serpDepth={config.serpDepth}
-                  canCheck={planStatus === "paid"}
+                  onAddKeywords={() => setShowAddKeywords(true)}
+                  onClearFilters={() => setFilters(EMPTY_FILTERS)}
                 />
               )}
             </QueryState>

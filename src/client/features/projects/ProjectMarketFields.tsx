@@ -1,12 +1,5 @@
 import { useId } from "react";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/client/components/ui/combobox";
+import { CountryCombobox } from "@/client/components/CountryCombobox";
 import { Field, FieldLabel } from "@/client/components/ui/field";
 import {
   Select,
@@ -20,21 +13,6 @@ import {
   getLanguageOptions,
 } from "@/client/features/keywords/locations";
 import type { ProjectMarket } from "@/client/features/projects/types";
-import { LOCATION_OPTIONS } from "@/shared/keyword-locations";
-
-type LocationOption = (typeof LOCATION_OPTIONS)[number];
-
-// Matches the start of the name or of any word in it, so "uni" finds United
-// States, not Tunisia, and "united states" still finds United States.
-function matchesCountry(option: LocationOption, query: string) {
-  const needle = query.trim().toLowerCase();
-  const label = option.label.toLowerCase();
-  return (
-    label.startsWith(needle) ||
-    label.split(/[\s-]+/).some((word) => word.startsWith(needle)) ||
-    option.shortLabel.toLowerCase().startsWith(needle)
-  );
-}
 
 /**
  * The project's default market: country plus the language served for it.
@@ -53,9 +31,6 @@ export function ProjectMarketFields({
 }) {
   const countryId = useId();
   const languageId = useId();
-  const country =
-    LOCATION_OPTIONS.find((option) => option.code === value.locationCode) ??
-    null;
   const languageItems = getLanguageOptions(value.locationCode).map(
     (option) => ({ value: option.code, label: option.label }),
   );
@@ -67,36 +42,16 @@ export function ProjectMarketFields({
     <div className="grid gap-4 sm:grid-cols-2">
       <Field>
         <FieldLabel htmlFor={countryId}>Country</FieldLabel>
-        <Combobox
-          items={LOCATION_OPTIONS}
-          value={country}
-          itemToStringLabel={(option) => option.label}
-          autoHighlight
-          filter={matchesCountry}
-          onValueChange={(option) => {
-            if (!option) return;
+        <CountryCombobox
+          id={countryId}
+          value={value.locationCode}
+          onChange={(locationCode) =>
             onChange({
-              locationCode: option.code,
-              languageCode: getLanguageCode(option.code),
-            });
-          }}
-        >
-          <ComboboxInput
-            id={countryId}
-            className="w-full"
-            placeholder="Search countries"
-          />
-          <ComboboxContent>
-            <ComboboxEmpty>No countries match.</ComboboxEmpty>
-            <ComboboxList>
-              {(option: LocationOption) => (
-                <ComboboxItem key={option.code} value={option}>
-                  {option.label}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+              locationCode,
+              languageCode: getLanguageCode(locationCode),
+            })
+          }
+        />
       </Field>
       <Field
         className={hideLanguageOnMobile ? "hidden sm:flex" : undefined}

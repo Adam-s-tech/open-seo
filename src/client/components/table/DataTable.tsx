@@ -13,6 +13,7 @@ import {
 import {
   useRef,
   type ComponentProps,
+  type MouseEvent,
   type MutableRefObject,
   type ReactNode,
 } from "react";
@@ -157,6 +158,7 @@ export function DataTable<TData>({
   footer,
   onRowClick,
   activeRowId,
+  scrollClassName,
 }: DataTableFrameProps & {
   table: TanStackTable<TData>;
   /** Shown when there are no rows and no filters. */
@@ -165,9 +167,14 @@ export function DataTable<TData>({
     "kind" | "title" | "description" | "action"
   >;
   /** Makes each row clickable, for example to open its details beside the table. */
-  onRowClick?: (row: Row<TData>) => void;
+  onRowClick?: (
+    row: Row<TData>,
+    event: MouseEvent<HTMLTableRowElement>,
+  ) => void;
   /** Highlights the row whose details are open. */
   activeRowId?: string;
+  /** Caps the table height, for example `max-h-96`. The header stays in view while the rows scroll. */
+  scrollClassName?: string;
 }) {
   const columns = table.getVisibleLeafColumns();
   const rows = table.getRowModel().rows;
@@ -177,8 +184,12 @@ export function DataTable<TData>({
       {toolbar}
       {error ? <div className="p-4">{error}</div> : null}
       {error && !isLoading && rows.length === 0 ? null : (
-        <Table>
-          <TableHeader>
+        <Table containerClassName={scrollClassName}>
+          <TableHeader
+            className={
+              scrollClassName ? "sticky top-0 z-10 bg-card" : undefined
+            }
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
@@ -249,7 +260,9 @@ export function DataTable<TData>({
                       ? "cursor-pointer data-active:bg-primary/5 data-active:shadow-[inset_2px_0_0_var(--color-primary)]"
                       : undefined
                   }
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onClick={
+                    onRowClick ? (event) => onRowClick(row, event) : undefined
+                  }
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta?.cellClassName;

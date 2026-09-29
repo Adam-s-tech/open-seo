@@ -70,10 +70,6 @@ export function costPerSerpAtDepth(
     : LIVE_BASE_PAGE_COST_USD + (pages - 1) * LIVE_EXTRA_PAGE_COST_USD;
 }
 
-export function depthToPages(depth: number): number {
-  return depth / 10;
-}
-
 export function pagesToDepth(pages: number): number {
   return pages * 10;
 }

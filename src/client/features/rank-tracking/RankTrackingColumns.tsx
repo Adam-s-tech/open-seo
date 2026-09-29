@@ -2,6 +2,7 @@ import { useMemo, type MutableRefObject } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { makeSelectionColumn } from "@/client/components/table/DataTable";
 import { ScoreBadge } from "@/client/components/table/ScoreBadge";
+import { Badge } from "@/client/components/ui/badge";
 import { SortableHeader } from "@/client/components/table/SortableHeader";
 import type { RankTrackingRow } from "@/types/schemas/rank-tracking";
 import { formatLocationLabel } from "@/shared/keyword-locations";
@@ -15,7 +16,7 @@ import {
 import type { SelectionAnchor } from "@/client/components/table/tableSelection";
 
 export const RANK_TRACKING_HEADER_CLASS =
-  "text-xs uppercase tracking-wide text-base-content/60";
+  "text-xs uppercase tracking-wide text-muted-foreground";
 
 const HEADER_TOOLTIPS: Record<string, string> = {
   keyword: "The search term being tracked in Google",
@@ -111,19 +112,21 @@ function makeKeywordColumn(
       <div className="flex items-center gap-1.5">
         <button
           type="button"
-          className="font-medium text-left link link-hover decoration-dotted underline-offset-2"
+          className="text-left font-medium decoration-dotted underline-offset-2 hover:underline"
           onClick={() => onKeywordClick(row.original)}
           title="View position history"
         >
           {row.original.keyword}
         </button>
         {row.original.matchCase && (
-          <span
-            className="badge badge-xs cursor-help bg-base-300 border-0 text-base-content/70"
+          <Badge
+            variant="secondary"
+            size="sm"
+            className="cursor-help"
             title="Tracked exactly as typed, not lowercased"
           >
             Aa
-          </span>
+          </Badge>
         )}
       </div>
     ),
@@ -162,7 +165,7 @@ function makeUrlColumn(
     enableSorting: false,
     header: () => (
       <span
-        className="text-xs uppercase tracking-wide font-medium text-base-content/60 cursor-help"
+        className="cursor-help text-xs font-medium tracking-wide uppercase text-muted-foreground"
         title={HEADER_TOOLTIPS.url}
       >
         URL
@@ -183,7 +186,7 @@ function makeSerpColumn(
     enableSorting: false,
     header: () => (
       <span
-        className="text-xs uppercase tracking-wide font-medium text-base-content/60 cursor-help"
+        className="cursor-help text-xs font-medium tracking-wide uppercase text-muted-foreground"
         title={HEADER_TOOLTIPS.serp}
       >
         SERP Features

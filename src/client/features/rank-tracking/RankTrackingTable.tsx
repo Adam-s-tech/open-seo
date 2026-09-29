@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { FileDown, Loader2, Sheet, Trash2 } from "lucide-react";
-import { Modal } from "@/client/components/Modal";
-import { AppDataTable } from "@/client/components/table/AppDataTable";
-import { useDataTable } from "@/client/components/table/DataTable";
+import { FileDown, Plus, Sheet, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/client/components/ConfirmDialog";
+import { Button } from "@/client/components/ui/button";
+import { DataTable, useDataTable } from "@/client/components/table/DataTable";
 import {
   TableBulkActionBar,
   TableBulkActionButton,
@@ -34,7 +34,8 @@ export function RankTrackingTable({
   locationCode,
   locationName,
   serpDepth,
-  canCheck,
+  onAddKeywords,
+  onClearFilters,
 }: {
   totalCount: number;
   rows: RankTrackingRow[];
@@ -48,7 +49,8 @@ export function RankTrackingTable({
   locationCode: number;
   locationName?: string | null;
   serpDepth: number;
-  canCheck: boolean;
+  onAddKeywords: () => void;
+  onClearFilters: () => void;
 }) {
   const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -124,18 +126,6 @@ export function RankTrackingTable({
     },
   });
 
-  if (rows.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-base-300 p-10 text-center text-sm text-base-content/55">
-        {totalCount === 0
-          ? canCheck
-            ? 'No rank data yet. Use "Check rankings" in the More actions menu to run the first check.'
-            : "No rank data yet."
-          : "No keywords match your search."}
-      </div>
-    );
-  }
-
   return (
     <>
       <TableBulkActionBar
@@ -168,42 +158,19 @@ export function RankTrackingTable({
         }
       />
 
-      {/* Confirm modal */}
       {showConfirm && (
-        <Modal
+        <ConfirmDialog
+          title="Remove keywords?"
+          confirmLabel={`Remove ${selectedCount} keyword${selectedCount !== 1 ? "s" : ""}`}
+          destructive
+          pending={removeMutation.isPending}
+          onConfirm={() => removeMutation.mutate(selectedRows.map((r) => r.id))}
           onClose={() => setShowConfirm(false)}
-          labelledBy="remove-keywords-title"
         >
-          <h3 id="remove-keywords-title" className="text-lg font-semibold">
-            Remove keywords?
-          </h3>
-          <p className="text-sm text-base-content/70">
-            This will stop tracking {selectedCount} keyword
-            {selectedCount !== 1 ? "s" : ""}. Historical ranking data is
-            preserved but won't appear in the table.
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setShowConfirm(false)}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-error btn-sm gap-1"
-              onClick={() =>
-                removeMutation.mutate(selectedRows.map((r) => r.id))
-              }
-              disabled={removeMutation.isPending}
-            >
-              {removeMutation.isPending && (
-                <Loader2 className="size-3 animate-spin" />
-              )}
-              Remove {selectedCount} keyword
-              {selectedCount !== 1 ? "s" : ""}
-            </button>
-          </div>
-        </Modal>
+          This will stop tracking {selectedCount} keyword
+          {selectedCount !== 1 ? "s" : ""}. Historical ranking data is preserved
+          but won't appear in the table.
+        </ConfirmDialog>
       )}
 
       {trendTarget && (
@@ -219,10 +186,28 @@ export function RankTrackingTable({
         />
       )}
 
-      <AppDataTable table={table} getCellClassName={() => "align-top"} />
-      <p className="text-xs text-base-content/60 pt-2">
-        {rows.length} of {totalCount} keywords
-      </p>
+      <DataTable
+        table={table}
+        isFiltered={totalCount > 0}
+        onClearFilters={onClearFilters}
+        empty={{
+          title: "No keywords yet",
+          description: "Add the keywords you want to track for this domain.",
+          action: (
+            <Button size="sm" onClick={onAddKeywords}>
+              <Plus data-icon="inline-start" />
+              Add Keywords
+            </Button>
+          ),
+        }}
+        footer={
+          rows.length > 0 ? (
+            <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
+              {rows.length} of {totalCount} keywords
+            </p>
+          ) : null
+        }
+      />
     </>
   );
 }

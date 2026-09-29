@@ -1,5 +1,19 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Info } from "lucide-react";
+import { Button } from "@/client/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@/client/components/ui/field";
+import { Input } from "@/client/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/client/components/ui/select";
 import type { RankTrackingConfig } from "@/types/schemas/rank-tracking";
 import {
   WEEKDAYS,
@@ -8,9 +22,23 @@ import {
   type LocalScheduleTime,
 } from "./scheduleTime";
 
+type Schedule = RankTrackingConfig["scheduleInterval"];
+
+const SCHEDULE_ITEMS: { value: Schedule; label: string }[] = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly (end of month)" },
+  { value: "manual", label: "Manual only" },
+];
+
+const WEEKDAY_ITEMS = WEEKDAYS.map((day, index) => ({
+  value: index,
+  label: day,
+}));
+
 type Props = {
-  schedule: RankTrackingConfig["scheduleInterval"];
-  onScheduleChange: (schedule: RankTrackingConfig["scheduleInterval"]) => void;
+  schedule: Schedule;
+  onScheduleChange: (schedule: Schedule) => void;
   scheduleTime: LocalScheduleTime;
   onScheduleTimeChange: (scheduleTime: LocalScheduleTime) => void;
 };
@@ -21,76 +49,77 @@ export function ScheduleField({
   scheduleTime,
   onScheduleTimeChange,
 }: Props) {
+  const id = useId();
   const [showScheduleTime, setShowScheduleTime] = useState(false);
 
   return (
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text font-medium">Schedule</span>
-      </label>
-      <select
-        className="select select-bordered w-full"
+    <Field>
+      <FieldLabel htmlFor={id}>Schedule</FieldLabel>
+      <Select
+        items={SCHEDULE_ITEMS}
         value={schedule}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (
-            value === "daily" ||
-            value === "weekly" ||
-            value === "monthly" ||
-            value === "manual"
-          ) {
-            onScheduleChange(value);
-          }
+        onValueChange={(value) => {
+          if (value) onScheduleChange(value);
         }}
       >
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly (end of month)</option>
-        <option value="manual">Manual only</option>
-      </select>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SCHEDULE_ITEMS.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {schedule !== "manual" && (
-        <div className="mt-1.5 text-xs text-base-content/60">
+        <FieldDescription>
           {describeSchedule(schedule, scheduleTime)}
           {!showScheduleTime && (
             <>
               {" "}
               &middot;{" "}
-              <button
+              <Button
                 type="button"
-                className="link"
+                variant="link"
+                className="h-auto p-0 text-xs"
                 onClick={() => setShowScheduleTime(true)}
               >
                 change
-              </button>
+              </Button>
             </>
           )}
-        </div>
+        </FieldDescription>
       )}
       {schedule !== "manual" && showScheduleTime && (
         <>
-          <div className="mt-2 flex gap-2">
+          <div className="flex gap-2">
             {schedule === "weekly" && (
-              <select
-                className="select select-bordered select-sm"
-                aria-label="Day of week"
+              <Select
+                items={WEEKDAY_ITEMS}
                 value={scheduleTime.weekday}
-                onChange={(e) =>
-                  onScheduleTimeChange({
-                    ...scheduleTime,
-                    weekday: Number(e.target.value),
-                  })
-                }
+                onValueChange={(weekday) => {
+                  if (weekday !== null) {
+                    onScheduleTimeChange({ ...scheduleTime, weekday });
+                  }
+                }}
               >
-                {WEEKDAYS.map((day, index) => (
-                  <option key={day} value={index}>
-                    {day}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger aria-label="Day of week">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEKDAY_ITEMS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-            <input
+            <Input
               type="time"
-              className="input input-bordered input-sm"
+              className="w-auto"
               aria-label="Time of day"
               value={`${String(scheduleTime.hour).padStart(2, "0")}:${String(scheduleTime.minute).padStart(2, "0")}`}
               onChange={(e) => {
@@ -101,17 +130,17 @@ export function ScheduleField({
               }}
             />
           </div>
-          <div className="mt-1.5 text-xs text-base-content/50">
+          <FieldDescription>
             In your local timezone: {browserTimeZoneLabel()}
-          </div>
+          </FieldDescription>
         </>
       )}
       {schedule === "daily" && (
-        <div className="mt-1.5 flex items-start gap-1.5 text-xs text-warning">
-          <Info className="size-3.5 shrink-0 mt-0.5" />
-          <span>Daily checks use 7x more credits than weekly</span>
-        </div>
+        <p className="flex items-start gap-1.5 text-xs text-warning">
+          <Info className="mt-0.5 size-3.5 shrink-0" />
+          Daily checks use 7x more credits than weekly
+        </p>
       )}
-    </div>
+    </Field>
   );
 }

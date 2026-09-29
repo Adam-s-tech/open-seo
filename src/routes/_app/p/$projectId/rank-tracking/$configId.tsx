@@ -5,6 +5,8 @@ import { getRankTrackingConfigs } from "@/serverFunctions/rank-tracking";
 import { RankTrackingDomainDetail } from "@/client/features/rank-tracking/RankTrackingDomainDetail";
 import { PageLoading } from "@/client/components/Spinner";
 import { QueryError } from "@/client/components/QueryState";
+import { EmptyState } from "@/client/components/EmptyState";
+import { Button } from "@/client/components/ui/button";
 import { RankTrackingConfigModal } from "@/client/features/rank-tracking/RankTrackingConfigModal";
 import { rankTrackingDetailSearchSchema } from "@/types/schemas/rank-tracking-search";
 
@@ -62,14 +64,16 @@ function RankTrackingConfigRoute() {
 
   if (!config) {
     return (
-      <>
-        <p className="text-sm text-base-content/70">
-          Domain configuration not found.
-        </p>
-        <button className="btn btn-ghost btn-sm" onClick={handleBack}>
-          Back to domains
-        </button>
-      </>
+      <EmptyState
+        kind="no-data"
+        title="Domain configuration not found"
+        description="This domain was archived or does not exist in this project."
+        action={
+          <Button variant="outline" size="sm" onClick={handleBack}>
+            Back to domains
+          </Button>
+        }
+      />
     );
   }
 
@@ -87,7 +91,6 @@ function RankTrackingConfigRoute() {
             replace: true,
           });
         }}
-        onBack={handleBack}
         onEdit={() => setShowConfigModal(true)}
       />
 

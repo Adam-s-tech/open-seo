@@ -1,7 +1,10 @@
-import { CalendarDays, Loader2, SlidersHorizontal, Table } from "lucide-react";
+import { CalendarDays, SlidersHorizontal, Table } from "lucide-react";
 import { SegmentedToggle } from "@/client/components/SegmentedToggle";
 import { ExportMenu } from "@/client/components/ExportMenu";
+import { Badge } from "@/client/components/ui/badge";
+import { Button } from "@/client/components/ui/button";
 import { Progress } from "@/client/components/ui/progress";
+import { Spinner } from "@/client/components/ui/spinner";
 import { MoreMenu } from "./ToolbarMenus";
 
 export function RankTrackingTableToolbar({
@@ -45,7 +48,7 @@ export function RankTrackingTableToolbar({
   hasData: boolean;
 }) {
   return (
-    <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-y border-base-300">
+    <div className="shrink-0 flex flex-wrap items-center gap-2 px-4 py-2 border-y border-border">
       {/* History needs at least two checks to compare; until then the toggle
           would only offer a worse copy of the Latest table. */}
       {historyAvailable && (
@@ -68,23 +71,22 @@ export function RankTrackingTableToolbar({
         />
       )}
 
-      <button
-        className={`btn btn-ghost btn-sm gap-1.5 ${showFilters ? "btn-active" : ""}`}
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-pressed={showFilters}
+        className="aria-pressed:bg-muted aria-pressed:text-foreground"
         onClick={onToggleFilters}
         title="Toggle table filters"
       >
-        <SlidersHorizontal className="size-3.5" />
+        <SlidersHorizontal data-icon="inline-start" />
         Filters
-        {activeFilterCount > 0 && (
-          <span className="badge badge-xs badge-primary border-0 text-primary-content">
-            {activeFilterCount}
-          </span>
-        )}
-      </button>
+        {activeFilterCount > 0 && <Badge size="sm">{activeFilterCount}</Badge>}
+      </Button>
 
       {isRunning && latestRun ? (
-        <div className="flex items-center gap-2 text-sm text-base-content/70">
-          <Loader2 className="size-3.5 animate-spin text-primary" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner className="size-3.5 text-primary" />
           <span>
             {latestRun.status === "pending"
               ? "Preparing..."
@@ -101,7 +103,7 @@ export function RankTrackingTableToolbar({
           )}
         </div>
       ) : (
-        <span className="text-sm text-base-content/60">
+        <span className="text-sm text-muted-foreground">
           {keywordCount} keywords
         </span>
       )}

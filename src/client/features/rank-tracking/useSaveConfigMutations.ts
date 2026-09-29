@@ -10,7 +10,8 @@ import type {
   RankTrackingConfig,
 } from "@/types/schemas/rank-tracking";
 
-type ConfigFields = {
+export type SaveConfigInput = {
+  domain: string;
   devices: "both" | "desktop" | "mobile";
   serpDepth: number;
   locationCode: number;
@@ -21,30 +22,32 @@ type ConfigFields = {
   scheduleTime: RankCheckScheduleTime | undefined;
 };
 
+function commonFields(input: SaveConfigInput) {
+  return {
+    domain: input.domain,
+    devices: input.devices,
+    serpDepth: input.serpDepth,
+    locationCode: input.locationCode,
+    languageCode: input.languageCode,
+    scheduleInterval: input.schedule,
+    scheduleTime: input.scheduleTime,
+  };
+}
+
 export function useSaveConfigMutations(input: {
   projectId: string;
   existingConfig?: RankTrackingConfig | null;
-  fields: ConfigFields;
   onCreated: (configId: string) => void;
   onUpdated: () => void;
 }) {
-  const { projectId, existingConfig, fields, onCreated, onUpdated } = input;
-  const common = {
-    devices: fields.devices,
-    serpDepth: fields.serpDepth,
-    locationCode: fields.locationCode,
-    languageCode: fields.languageCode,
-    scheduleInterval: fields.schedule,
-    scheduleTime: fields.scheduleTime,
-  };
+  const { projectId, existingConfig, onCreated, onUpdated } = input;
 
   const createMutation = useMutation({
-    mutationFn: (normalizedDomain: string) =>
+    mutationFn: (fields: SaveConfigInput) =>
       createRankTrackingConfig({
         data: {
           projectId,
-          domain: normalizedDomain,
-          ...common,
+          ...commonFields(fields),
           locationName:
             fields.targetingMode === "local" ? fields.locationName : undefined,
         },
@@ -57,13 +60,12 @@ export function useSaveConfigMutations(input: {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (normalizedDomain: string) =>
+    mutationFn: (fields: SaveConfigInput) =>
       updateRankTrackingConfig({
         data: {
           projectId,
           configId: existingConfig!.id,
-          domain: normalizedDomain,
-          ...common,
+          ...commonFields(fields),
           // null clears a previously-set local target; undefined would leave
           // the old location_name in the DB and silently keep city targeting.
           locationName:

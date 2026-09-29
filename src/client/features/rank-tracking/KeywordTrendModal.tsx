@@ -1,10 +1,27 @@
 import { useMemo, useState } from "react";
-import { Copy, Download, Loader2 } from "lucide-react";
+import { Copy, Download } from "lucide-react";
 import { reverse, sortBy } from "remeda";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { Modal } from "@/client/components/Modal";
 import { QueryState } from "@/client/components/QueryState";
+import { PageLoading } from "@/client/components/Spinner";
+import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/client/components/ui/table";
 import { buildCsv, type CsvValue } from "@/client/lib/csv";
 import { exportRows } from "@/client/lib/exportRows";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -15,6 +32,7 @@ import { formatLocationLabel } from "@/shared/keyword-locations";
 import { csvChange, DeviceRankCell } from "./RankTrackingTableParts";
 import {
   RankTrendChart,
+  TrendEmptyState,
   TrendRangeToggle,
   type TrendSeries,
 } from "./RankTrackingTrendChart";
@@ -136,175 +154,152 @@ export function KeywordTrendModal({
   };
 
   return (
-    <Modal
-      onClose={onClose}
-      labelledBy="keyword-trend-title"
-      maxWidth="max-w-3xl"
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 id="keyword-trend-title" className="text-lg font-semibold">
-            {target.keyword}
-          </h3>
-          <p className="text-xs text-base-content/60">
-            {domain} &middot;{" "}
-            {locationName
-              ? formatLocationLabel(locationName, 2)
-              : (LOCATIONS[locationCode] ?? "US")}{" "}
-            &middot; Position over time
-          </p>
-        </div>
-        <TrendRangeToggle value={sinceDays} onChange={setSinceDays} />
-      </div>
-
-      <QueryState
-        query={historyQuery}
-        errorFallback="Failed to load keyword history"
-        loading={
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="size-5 animate-spin text-base-content/50" />
+      <DialogContent showCloseButton={false} className="sm:max-w-3xl">
+        <DialogHeader className="flex-row items-start justify-between gap-3">
+          <div className="space-y-1">
+            <DialogTitle>{target.keyword}</DialogTitle>
+            <DialogDescription className="text-xs">
+              {domain} &middot;{" "}
+              {locationName
+                ? formatLocationLabel(locationName, 2)
+                : (LOCATIONS[locationCode] ?? "US")}{" "}
+              &middot; Position over time
+            </DialogDescription>
           </div>
-        }
-      >
-        {() =>
-          maxPerDevice <= 1 ? (
-            <EmptyState count={maxPerDevice} />
-          ) : (
-            <>
-              <RankTrendChart
-                data={chartData}
-                series={series}
-                serpDepth={serpDepth}
-                showBottomBand
-                valueFormatter={(value, item) => {
-                  // The payload is the chart row, typed `any` upstream.
-                  const row: unknown = item.payload;
-                  const checkedAt =
-                    typeof row === "object" &&
-                    row !== null &&
-                    "checkedAt" in row
-                      ? row.checkedAt
-                      : undefined;
-                  return typeof checkedAt === "number" &&
-                    typeof item.dataKey === "string" &&
-                    bottomBandKeys.has(`${checkedAt}:${item.dataKey}`) ? (
-                    <span className="font-normal text-muted-foreground">
-                      Not in top {serpDepth}
-                    </span>
-                  ) : (
-                    String(value)
-                  );
-                }}
-              />
+          <TrendRangeToggle value={sinceDays} onChange={setSinceDays} />
+        </DialogHeader>
 
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  className="btn btn-ghost btn-xs gap-1"
-                  onClick={handleCopy}
-                >
-                  <Copy className="size-3.5" />
-                  Copy
-                </button>
-                <button
-                  className="btn btn-ghost btn-xs gap-1"
-                  onClick={handleExport}
-                >
-                  <Download className="size-3.5" />
-                  Export CSV
-                </button>
-              </div>
+        <QueryState
+          query={historyQuery}
+          errorFallback="Failed to load keyword history"
+          loading={<PageLoading />}
+        >
+          {() =>
+            maxPerDevice <= 1 ? (
+              <TrendEmptyState checks={maxPerDevice} />
+            ) : (
+              <>
+                <RankTrendChart
+                  data={chartData}
+                  series={series}
+                  serpDepth={serpDepth}
+                  showBottomBand
+                  valueFormatter={(value, item) => {
+                    // The payload is the chart row, typed `any` upstream.
+                    const row: unknown = item.payload;
+                    const checkedAt =
+                      typeof row === "object" &&
+                      row !== null &&
+                      "checkedAt" in row
+                        ? row.checkedAt
+                        : undefined;
+                    return typeof checkedAt === "number" &&
+                      typeof item.dataKey === "string" &&
+                      bottomBandKeys.has(`${checkedAt}:${item.dataKey}`) ? (
+                      <span className="font-normal text-muted-foreground">
+                        Not in top {serpDepth}
+                      </span>
+                    ) : (
+                      String(value)
+                    );
+                  }}
+                />
 
-              <div className="max-h-64 overflow-auto rounded-lg border border-base-300">
-                <table className="table table-sm">
-                  <thead className="sticky top-0 bg-base-100">
-                    <tr>
-                      <th>Date</th>
-                      {devices.length > 1 && <th>Device</th>}
-                      <th>Position</th>
-                      <th>Δ vs previous check</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyRows.map((r, idx) => {
-                      // No prior ranking to compare against (first check, or the
-                      // previous check was unranked): show the lone position as a
-                      // centered neutral pill so it doesn't look like a stray number
-                      // next to the "before → after" rows.
-                      const noPrevious =
-                        r.position !== null && r.previousPosition === null;
-                      return (
-                        <tr key={`${r.device}-${r.checkedAt}-${idx}`}>
-                          <td className="whitespace-nowrap text-xs">
-                            {new Date(r.checkedAt).toLocaleDateString()}
-                          </td>
-                          {devices.length > 1 && (
-                            <td className="text-xs">
-                              {DEVICE_STYLE[r.device].label}
-                            </td>
-                          )}
-                          <td>
-                            {r.position === null ? (
-                              <span className="text-base-content/40 text-xs">
-                                Not in top {serpDepth}
-                              </span>
-                            ) : (
-                              <span className="font-mono text-sm">
-                                {r.position}
-                              </span>
+                <div className="flex items-center justify-end gap-2">
+                  <Button variant="ghost" size="xs" onClick={handleCopy}>
+                    <Copy data-icon="inline-start" />
+                    Copy
+                  </Button>
+                  <Button variant="ghost" size="xs" onClick={handleExport}>
+                    <Download data-icon="inline-start" />
+                    Export CSV
+                  </Button>
+                </div>
+
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <Table containerClassName="max-h-64">
+                    <TableHeader className="sticky top-0 z-10 bg-popover">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead>Date</TableHead>
+                        {devices.length > 1 && <TableHead>Device</TableHead>}
+                        <TableHead>Position</TableHead>
+                        <TableHead>Δ vs previous check</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {historyRows.map((r, idx) => {
+                        // No prior ranking to compare against (first check, or the
+                        // previous check was unranked): show the lone position as a
+                        // centered neutral pill so it doesn't look like a stray number
+                        // next to the "before → after" rows.
+                        const noPrevious =
+                          r.position !== null && r.previousPosition === null;
+                        return (
+                          <TableRow key={`${r.device}-${r.checkedAt}-${idx}`}>
+                            <TableCell className="text-xs whitespace-nowrap">
+                              {new Date(r.checkedAt).toLocaleDateString()}
+                            </TableCell>
+                            {devices.length > 1 && (
+                              <TableCell className="text-xs">
+                                {DEVICE_STYLE[r.device].label}
+                              </TableCell>
                             )}
-                          </td>
-                          <td>
-                            {noPrevious ? (
-                              // Invisible placeholders matching the "before → after"
-                              // layout so the lone pill lines up under the position
-                              // badge column instead of floating.
-                              <span className="inline-flex items-center gap-1.5">
-                                <span className="w-6" aria-hidden />
-                                <span aria-hidden className="opacity-0">
-                                  →
+                            <TableCell>
+                              {r.position === null ? (
+                                <span className="text-xs text-muted-foreground">
+                                  Not in top {serpDepth}
                                 </span>
-                                <span className="font-mono rounded bg-base-200 px-1.5 py-0.5 text-xs font-semibold text-base-content/70">
+                              ) : (
+                                <span className="font-mono text-sm">
                                   {r.position}
                                 </span>
-                              </span>
-                            ) : (
-                              <DeviceRankCell
-                                result={{
-                                  position: r.position,
-                                  previousPosition: r.previousPosition,
-                                  rankingUrl: null,
-                                  serpFeatures: [],
-                                }}
-                              />
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )
-        }
-      </QueryState>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {noPrevious ? (
+                                // Invisible placeholders matching the "before → after"
+                                // layout so the lone pill lines up under the position
+                                // badge column instead of floating.
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="w-6" aria-hidden />
+                                  <span aria-hidden className="opacity-0">
+                                    →
+                                  </span>
+                                  <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+                                    {r.position}
+                                  </span>
+                                </span>
+                              ) : (
+                                <DeviceRankCell
+                                  result={{
+                                    position: r.position,
+                                    previousPosition: r.previousPosition,
+                                    rankingUrl: null,
+                                    serpFeatures: [],
+                                  }}
+                                />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )
+          }
+        </QueryState>
 
-      <div className="flex justify-end">
-        <button className="btn btn-ghost btn-sm" onClick={onClose}>
-          Close
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-function EmptyState({ count }: { count: number }) {
-  return (
-    <div className="rounded-lg border border-dashed border-base-300 p-10 text-center text-sm text-base-content/60">
-      {count === 0
-        ? "No history yet — run a check to start tracking position over time."
-        : "Only 1 check so far — the trend chart fills in after the next check."}
-    </div>
+        <DialogFooter showCloseButton />
+      </DialogContent>
+    </Dialog>
   );
 }
 

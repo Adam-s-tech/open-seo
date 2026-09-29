@@ -1,5 +1,13 @@
 import { Monitor, Plus, Settings, Smartphone } from "lucide-react";
 import { SegmentedToggle } from "@/client/components/SegmentedToggle";
+import { Button } from "@/client/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/client/components/ui/select";
 import { LOCATIONS } from "@/client/features/keywords/locations";
 import { devicesLabel, scheduleLabel } from "@/shared/rank-tracking";
 import { formatNextCheck } from "./scheduleTime";
@@ -9,6 +17,13 @@ import {
   comparePeriodSchema,
   type ComparePeriod,
 } from "@/types/schemas/rank-tracking-search";
+
+const COMPARE_ITEMS: { value: ComparePeriod; label: string }[] = [
+  { value: "1d", label: "vs yesterday" },
+  { value: "7d", label: "vs last week" },
+  { value: "30d", label: "vs last month" },
+  { value: "90d", label: "vs 90 days ago" },
+];
 
 export function RankTrackingDetailHeader({
   config,
@@ -37,7 +52,7 @@ export function RankTrackingDetailHeader({
     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 px-4 pt-4 pb-3">
       <div>
         <h2 className="text-lg font-semibold">{config.domain}</h2>
-        <p className="text-xs text-base-content/60">
+        <p className="text-xs text-muted-foreground">
           {config.locationName
             ? formatLocationLabel(config.locationName, 2)
             : (LOCATIONS[config.locationCode] ?? "US")}{" "}
@@ -76,32 +91,39 @@ export function RankTrackingDetailHeader({
             onChange={onActiveDeviceChange}
           />
         )}
-        <select
-          className="select select-bordered select-sm text-xs w-auto"
-          title="Comparison period"
+        <Select
+          items={COMPARE_ITEMS}
           value={comparePeriod}
-          onChange={(e) => {
-            const parsed = comparePeriodSchema.safeParse(e.target.value);
+          onValueChange={(value) => {
+            const parsed = comparePeriodSchema.safeParse(value);
             if (parsed.success) onComparePeriodChange(parsed.data);
           }}
         >
-          <option value="1d">vs yesterday</option>
-          <option value="7d">vs last week</option>
-          <option value="30d">vs last month</option>
-          <option value="90d">vs 90 days ago</option>
-        </select>
-        <div className="hidden sm:block h-6 w-px bg-base-300" />
-        <button className="btn btn-sm gap-1" onClick={onEdit}>
-          <Settings className="size-3.5" />
+          <SelectTrigger
+            size="sm"
+            aria-label="Comparison period"
+            title="Comparison period"
+            className="text-xs"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {COMPARE_ITEMS.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="hidden h-6 w-px bg-border sm:block" />
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          <Settings data-icon="inline-start" />
           Configure
-        </button>
-        <button
-          className="btn btn-primary btn-sm gap-1"
-          onClick={onToggleAddKeywords}
-        >
-          <Plus className="size-3.5" />
+        </Button>
+        <Button size="sm" onClick={onToggleAddKeywords}>
+          <Plus data-icon="inline-start" />
           Add Keywords
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import type { ComponentProps } from "react";
 import { Line, LineChart, ReferenceArea } from "recharts";
+import { TrendingUp } from "lucide-react";
+import { EmptyState } from "@/client/components/EmptyState";
+import { SegmentedToggle } from "@/client/components/SegmentedToggle";
 import {
   ChartGrid,
   ChartXAxis,
@@ -49,7 +52,7 @@ export function RankTrendChart({
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between text-[11px] text-base-content/50">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
         <span>Google position (1 = best)</span>
         <span className="inline-flex items-center gap-1">
           Better <span aria-hidden>↑</span>
@@ -135,10 +138,10 @@ export function formatDateLabel(label: unknown): string {
 
 /** 30d / 90d / All range toggle shared by the modal and overview charts. */
 const TREND_RANGES = [
-  { label: "30d", sinceDays: 30 },
-  { label: "90d", sinceDays: 90 },
-  { label: "All", sinceDays: 730 },
-] as const;
+  { value: "30", icon: null, label: "30d" },
+  { value: "90", icon: null, label: "90d" },
+  { value: "730", icon: null, label: "All" },
+];
 
 export function TrendRangeToggle({
   value,
@@ -148,19 +151,27 @@ export function TrendRangeToggle({
   onChange: (sinceDays: number) => void;
 }) {
   return (
-    <div className="join">
-      {TREND_RANGES.map((range) => (
-        <button
-          key={range.label}
-          type="button"
-          className={`btn btn-xs join-item ${
-            value === range.sinceDays ? "btn-active" : "btn-ghost"
-          }`}
-          onClick={() => onChange(range.sinceDays)}
-        >
-          {range.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedToggle
+      showLabels
+      items={TREND_RANGES}
+      value={String(value)}
+      onChange={(next) => onChange(Number(next))}
+    />
+  );
+}
+
+/** Shown instead of a trend chart until there are two checks to connect. */
+export function TrendEmptyState({ checks }: { checks: number }) {
+  return (
+    <EmptyState
+      icon={TrendingUp}
+      size="sm"
+      title={checks === 0 ? "No history yet" : "Only 1 check so far"}
+      description={
+        checks === 0
+          ? "Run a check to start tracking positions over time."
+          : "The trend fills in after the next check."
+      }
+    />
   );
 }
