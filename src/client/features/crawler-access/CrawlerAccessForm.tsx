@@ -49,11 +49,12 @@ export function CrawlerAccessForm({
       saveCrawlerCredential({
         data: { projectId, ...values },
       }),
-    onSuccess: async (saved) => {
+    onSuccess: async (result) => {
+      if ("problem" in result) return;
       await queryClient.invalidateQueries({
         queryKey: crawlerCredentialsQueryKey,
       });
-      toast.success(`Crawler access saved for ${saved.host}`);
+      toast.success(`Crawler access saved for ${result.credential.host}`);
       onSaved?.();
     },
   });
@@ -63,7 +64,21 @@ export function CrawlerAccessForm({
     validationLogic: revalidateLogic(),
     validators: { onDynamic: signatureSchema },
     onSubmit: async ({ value, formApi }) => {
-      await saveMutation.mutateAsync(value);
+      const result = await saveMutation.mutateAsync(value);
+      if ("problem" in result) {
+        const { problem } = result;
+        formApi.setErrorMap({
+          onSubmit: {
+            fields: {
+              signatureInput:
+                problem.reason === "wrong_domain"
+                  ? `This signature was created for ${problem.signedHost}, not ${problem.host}. In Shopify admin, create a signature for ${problem.host}.`
+                  : `Shopify won't accept this signature for ${problem.host}. Check that you created it for ${problem.host} and copied both values in full.`,
+            },
+          },
+        });
+        return;
+      }
       formApi.reset({ ...value, signatureInput: "", signature: "" });
     },
   });
@@ -100,6 +115,7 @@ export function CrawlerAccessForm({
           {(field) => (
             <field.TextField
               label="Signature"
+              description="Shopify also shows a Signature-Agent value. You don't need to paste it: OpenSEO sends it with every request."
               type="password"
               autoComplete="off"
               data-ph-mask

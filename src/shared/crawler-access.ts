@@ -11,7 +11,7 @@
  */
 
 /** Constant Shopify expects, quotes included. We supply it; users never see it. */
-const SHOPIFY_SIGNATURE_AGENT = '"https://shopify.com"';
+export const SHOPIFY_SIGNATURE_AGENT = '"https://shopify.com"';
 
 export const SHOPIFY_CRAWLER_ACCESS_DOC_URL =
   "https://help.shopify.com/en/manual/promoting-marketing/seo/crawling-your-store";

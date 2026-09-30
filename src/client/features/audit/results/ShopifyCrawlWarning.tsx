@@ -111,16 +111,17 @@ export function ShopifyCrawlWarning({
         <AlertDescription className="text-foreground">
           {signedAndStillLimited ? (
             <>
-              Shopify limited this crawl despite your signature. It may have
-              been created for a different domain than{" "}
-              <span className="font-mono">{host}</span>. You can replace it in{" "}
+              Shopify limited this crawl despite your signature. To check that
+              it was created for <span className="font-mono">{host}</span>,
+              paste it again in{" "}
               <Link
                 to="/p/$projectId/settings/integrations"
                 params={{ projectId }}
               >
                 Project settings
               </Link>
-              .
+              . If it was, Shopify is still throttling this store: re-run the
+              audit later or with fewer pages.
             </>
           ) : (
             <>

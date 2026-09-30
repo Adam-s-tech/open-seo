@@ -1,5 +1,9 @@
 import { symmetricDecrypt, symmetricEncrypt } from "better-auth/crypto";
 import { CrawlerCredentialRepository } from "@/server/features/audit/repositories/CrawlerCredentialRepository";
+import {
+  checkShopifySignature,
+  type ShopifySignatureProblem,
+} from "@/server/features/audit/services/shopifySignature";
 import { AppError } from "@/server/lib/errors";
 import { getOptionalEnvValue } from "@/server/lib/runtime-env";
 import {
@@ -72,6 +76,10 @@ async function listCrawlerCredentials(
   return rows.map(toSummary);
 }
 
+/**
+ * A signature Shopify would ignore on this host comes back as a problem to
+ * show next to the form, instead of being stored and failing as 429s.
+ */
 async function saveCrawlerCredential(input: {
   organizationId: string;
   projectId: string;
@@ -79,8 +87,18 @@ async function saveCrawlerCredential(input: {
   host: string;
   signatureInput: string;
   signature: string;
-}): Promise<CrawlerCredentialSummary> {
+}): Promise<
+  | { credential: CrawlerCredentialSummary }
+  | { problem: ShopifySignatureProblem }
+> {
   const key = await getEncryptionKey();
+  const problem = await checkShopifySignature({
+    host: input.host,
+    signatureInput: input.signatureInput,
+    signature: input.signature,
+  });
+  if (problem) return { problem };
+
   await CrawlerCredentialRepository.upsert({
     id: crypto.randomUUID(),
     projectId: input.projectId,
@@ -96,7 +114,7 @@ async function saveCrawlerCredential(input: {
     await CrawlerCredentialRepository.listForOrganization(input.organizationId)
   ).find((row) => row.projectId === input.projectId && row.host === input.host);
   if (!saved) throw new AppError("INTERNAL_ERROR");
-  return toSummary(saved);
+  return { credential: toSummary(saved) };
 }
 
 async function deleteCrawlerCredential(input: {
