@@ -7,10 +7,11 @@ import {
 } from "lucide-react";
 import { cn } from "cn";
 import { MarkdownAnswer } from "@/client/features/ai-search/components/MarkdownAnswer";
+import { getModelAccent } from "@/client/features/ai-search/platformLabels";
 import {
   formatModelLabel,
-  getModelAccent,
-} from "@/client/features/ai-search/platformLabels";
+  formatCountryLabel,
+} from "@/shared/prompt-explorer-labels";
 import { formatUrlForDisplay } from "@/client/components/table/url";
 import { ExpandableList } from "@/client/components/ExpandableList";
 import { Badge } from "@/client/components/ui/badge";
@@ -51,6 +52,7 @@ function ModelResultCard({
   const accent = getModelAccent(modelResult.model);
 
   if (modelResult.status === "error") {
+    const skipped = modelResult.errorCode === "UNSUPPORTED_COUNTRY";
     return (
       <article className={cn(ARTICLE_CLASS, accent.border)}>
         <ModelHeader
@@ -60,10 +62,15 @@ function ModelResultCard({
           webSearch={null}
           brandMentioned={null}
           highlightBrand={null}
-          status="error"
+          status={skipped ? "skipped" : "error"}
         />
-        <div className="flex items-start gap-2 px-5 py-4 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+        <div
+          className={cn(
+            "flex items-start gap-2 px-5 py-4 text-sm",
+            skipped ? "text-muted-foreground" : "text-destructive",
+          )}
+        >
+          {!skipped ? <AlertCircle className="mt-0.5 size-4 shrink-0" /> : null}
           <span>{modelResult.message}</span>
         </div>
       </article>
@@ -82,6 +89,11 @@ function ModelResultCard({
         status="success"
       />
 
+      <p className="px-5 pt-3 text-xs text-muted-foreground">
+        {modelResult.webSearchCountryCode
+          ? `Country hint sent: ${formatCountryLabel(modelResult.webSearchCountryCode)}. This is not a verified search location.`
+          : "No country hint sent. Any search uses the provider’s default location."}
+      </p>
       <div className="px-5 py-5">
         <MarkdownAnswer text={modelResult.text} />
       </div>
@@ -175,7 +187,7 @@ function ModelHeader({
   webSearch: boolean | null;
   brandMentioned: boolean | null;
   highlightBrand: string | null;
-  status: "success" | "error";
+  status: "success" | "error" | "skipped";
 }) {
   const accent = getModelAccent(model);
   return (
@@ -187,6 +199,9 @@ function ModelHeader({
           <code className="text-xs text-muted-foreground">{modelName}</code>
         ) : null}
         {status === "error" ? <Badge variant="destructive">Error</Badge> : null}
+        {status === "skipped" ? (
+          <Badge variant="secondary">Skipped</Badge>
+        ) : null}
         <BrandMentionBadge
           mentioned={brandMentioned}
           highlightBrand={highlightBrand}

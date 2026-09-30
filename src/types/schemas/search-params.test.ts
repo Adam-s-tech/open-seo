@@ -39,7 +39,7 @@ describe("table view search params", () => {
         cc: "??",
         web: "maybe",
       }),
-    ).toEqual({ models: undefined, cc: undefined, web: undefined });
+    ).toEqual({ models: undefined, cc: "default", web: undefined });
   });
 
   it("keeps a text filter that the router parsed as a number", () => {
@@ -48,4 +48,28 @@ describe("table view search params", () => {
       "42",
     );
   });
+});
+
+it("preserves Bulgarian prompts and country choices in Prompt Explorer URLs", () => {
+  const q = "Кое студио в София бихте препоръчали за PPF защитно фолио?";
+  expect(promptExplorerSearchSchema.parse({ q, cc: "BG" })).toMatchObject({
+    q,
+    cc: "BG",
+  });
+  expect(promptExplorerSearchSchema.parse({ cc: "default" }).cc).toBe(
+    "default",
+  );
+});
+
+it("starts new prompt searches without a country while preserving older US links", () => {
+  expect(promptExplorerSearchSchema.parse({}).cc).toBe("default");
+  expect(
+    promptExplorerSearchSchema.parse({ q: "Find a local studio" }).cc,
+  ).toBe("US");
+  expect(
+    promptExplorerSearchSchema.parse({
+      q: "Find a local studio",
+      cc: "default",
+    }).cc,
+  ).toBe("default");
 });

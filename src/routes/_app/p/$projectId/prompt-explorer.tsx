@@ -26,7 +26,7 @@ function PromptExplorerRoute() {
             ? search.models
             : [...PROMPT_EXPLORER_MODELS],
         webSearch: search.web ?? true,
-        webSearchCountryCode: search.cc ?? "US",
+        webSearchCountryCode: search.cc,
       }}
       onSubmit={(values) => {
         void navigate({
@@ -34,10 +34,7 @@ function PromptExplorerRoute() {
             q: values.prompt,
             models: values.models,
             web: values.webSearch ? undefined : false,
-            cc:
-              values.webSearchCountryCode === "US"
-                ? undefined
-                : values.webSearchCountryCode,
+            cc: values.webSearchCountryCode,
             hb: values.highlightBrand || undefined,
           },
           replace: true,

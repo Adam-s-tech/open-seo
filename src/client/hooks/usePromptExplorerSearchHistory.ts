@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useTimestampedSearchHistory } from "@/client/hooks/useTimestampedSearchHistory";
 import {
   promptExplorerModelSchema,
-  webSearchCountryCodeSchema,
+  webSearchCountrySelectionSchema,
 } from "@/types/schemas/ai-search";
 
 const promptExplorerSearchBodySchema = z.object({
@@ -11,7 +11,7 @@ const promptExplorerSearchBodySchema = z.object({
   highlightBrand: z.string(),
   models: z.array(promptExplorerModelSchema),
   webSearch: z.boolean(),
-  webSearchCountryCode: webSearchCountryCodeSchema,
+  webSearchCountryCode: webSearchCountrySelectionSchema,
 });
 
 type PromptExplorerSearchBody = z.infer<typeof promptExplorerSearchBodySchema>;

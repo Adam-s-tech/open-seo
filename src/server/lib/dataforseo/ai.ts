@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { supportsWebSearchCountry } from "@/shared/prompt-search-countries";
 import {
   llmAggregatedTotalSchema,
   llmCrossAggregatedItemSchema,
@@ -297,10 +298,19 @@ export async function fetchLlmResponse(
   // "this model does not support 'force_web_search'" (verified 2026-08-25),
   // and Gemini/Perplexity don't document it, so only Claude gets the field.
   const webSearch = input.webSearch ?? LLM_RESPONSE_WEB_SEARCH_DEFAULT;
+  if (
+    webSearch &&
+    input.webSearchCountryCode &&
+    !supportsWebSearchCountry(input.modelSlug, input.webSearchCountryCode)
+  ) {
+    throw new AppError(
+      "VALIDATION_ERROR",
+      `Unsupported web-search country ${input.webSearchCountryCode} for ${input.modelSlug}`,
+    );
+  }
   // The country only geolocates the search: every model rejects it with 40501
   // "you must enable 'web_search'" when search is off (verified 2026-09-30).
   // DataForSEO's Gemini endpoint rejects it with a 40501 "Invalid Field" error.
-  const sendCountry = webSearch && input.modelSlug !== "gemini";
   const fields: LlmResponseRequestFields = {
     user_prompt: input.userPrompt,
     model_name: input.modelName,
@@ -309,7 +319,7 @@ export async function fetchLlmResponse(
       ? { force_web_search: true }
       : {}),
     max_output_tokens: clampLimit(input.maxOutputTokens ?? 1024, 256, 4096),
-    ...(sendCountry && input.webSearchCountryCode
+    ...(webSearch && input.webSearchCountryCode
       ? { web_search_country_iso_code: input.webSearchCountryCode }
       : {}),
   };

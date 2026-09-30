@@ -10,6 +10,11 @@ import {
   getCached,
   setCached,
 } from "@/server/lib/r2-cache";
+import {
+  formatCountryLabel,
+  formatModelLabel,
+} from "@/shared/prompt-explorer-labels";
+import { supportsWebSearchCountry } from "@/shared/prompt-search-countries";
 import { safeHostname, safeHttpUrl } from "@/shared/safe-url";
 import {
   promptExplorerModelResultSchema,
@@ -94,6 +99,22 @@ type RunModelArgs = {
 async function runModel(
   args: RunModelArgs,
 ): Promise<PromptExplorerModelResult> {
+  const country = args.input.webSearch
+    ? args.input.webSearchCountryCode
+    : undefined;
+  if (country && !supportsWebSearchCountry(args.model, country)) {
+    const modelLabel = formatModelLabel(args.model);
+    const limitation =
+      args.model === "gemini"
+        ? `${modelLabel} doesn’t support country selection.`
+        : `${modelLabel} doesn’t support ${formatCountryLabel(country)} as a search country.`;
+    return {
+      status: "error",
+      model: args.model,
+      errorCode: "UNSUPPORTED_COUNTRY",
+      message: `${limitation} Select “No country preference” above, then run again to include ${modelLabel}.`,
+    };
+  }
   // Part of the cache key so a model upgrade refetches rather than serving
   // cached answers from the previous model.
   const modelName = await resolveLatestLlmModelName(args.model);
@@ -107,9 +128,9 @@ async function runModel(
     // not collide with their lowercase twins.
     prompt: normalizePromptForCache(args.input.prompt),
     webSearch: args.input.webSearch,
-    webSearchCountryCode: args.input.webSearchCountryCode ?? null,
+    webSearchCountryCode: country ?? null,
     // Bumped when prompt/payload shape changes — busts stale cache entries.
-    systemPromptV: 6,
+    systemPromptV: 7,
   });
 
   const cached = promptExplorerModelResultSchema.safeParse(
@@ -139,7 +160,10 @@ async function runModel(
     });
     if (retried?.web_search) rawResponse = retried;
   }
-  const shaped = shapeSuccess(args.model, rawResponse);
+  const shaped = {
+    ...shapeSuccess(args.model, rawResponse),
+    webSearchCountryCode: country ?? null,
+  };
 
   waitUntil(
     setCached(cacheKey, shaped, PROMPT_RESPONSE_TTL_SECONDS, {
@@ -193,6 +217,7 @@ function shapeSuccess(
         ? Math.round(response.output_tokens)
         : null,
     webSearch: response.web_search ?? false,
+    webSearchCountryCode: null,
   };
 }
 

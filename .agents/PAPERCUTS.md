@@ -10,6 +10,8 @@ data, or sensitive paths.
 
 ## Open
 
+- [ ] `2026-09-30T19:03:30Z` — `codex` — The `no-array-sort` lint diagnostic recommends `toSorted()`, but the configured TypeScript library rejects it. Use the existing Remeda `sortBy` helper; align the lint guidance with the supported library target.
+
 - [ ] `2026-09-27T19:32:00Z` — `claude` — Through the `pnpm dev:agents` portless `.localhost` URL, SAM chat opens then fails with "Failed to fetch": the agents client loads history over a URL that ends in `ERR_SSL_PROTOCOL_ERROR`. The same chat works at `http://127.0.0.1:<port>` from `.logs/dev-server.log`. Document that SAM QA needs the direct origin, or make the portless proxy carry the agents HTTP and WebSocket routes.
 - [ ] `2026-09-24T21:20:00Z` — `claude` — `pnpm format:write` is `prettier . --write`, so passing file paths (`pnpm format:write src/foo.ts`) silently formats the whole repository instead of the named files, which surprises agents working in parallel on one checkout. Use `pnpm exec prettier --write <files>` for targeted runs, or make the script forward arguments.
 - [ ] `2026-09-23T05:50:00Z` — `claude` — `pnpm install --frozen-lockfile` in `web/` rewrites the tracked `web/pnpm-workspace.yaml`, adding an `allowBuilds` block with `esbuild`/`workerd` set to the placeholder "set this to true or false". This leaves a dirty tree that is easy to commit by accident. Commit explicit `allowBuilds` values for those two packages.

@@ -10,13 +10,13 @@ import { PromptExplorerForm } from "@/client/features/ai-search/components/Promp
 import { PromptExplorerResults } from "@/client/features/ai-search/components/PromptExplorerResults";
 import { RecentSearches } from "@/client/components/RecentSearches";
 import { BackLink } from "@/client/components/PageHeader";
-import { formatModelLabel } from "@/client/features/ai-search/platformLabels";
+import { formatModelLabel } from "@/shared/prompt-explorer-labels";
 import { usePromptExplorerSearchHistory } from "@/client/hooks/usePromptExplorerSearchHistory";
 import {
   BRAND_LOOKUP_MAX_INPUT_LENGTH,
   PROMPT_EXPLORER_MAX_PROMPT_LENGTH,
   type PromptExplorerModel,
-  type WebSearchCountryCode,
+  type WebSearchCountrySelection,
 } from "@/types/schemas/ai-search";
 
 type PromptExplorerFormValues = {
@@ -24,7 +24,7 @@ type PromptExplorerFormValues = {
   highlightBrand: string;
   models: PromptExplorerModel[];
   webSearch: boolean;
-  webSearchCountryCode: WebSearchCountryCode;
+  webSearchCountryCode: WebSearchCountrySelection;
 };
 
 type Props = {
@@ -84,7 +84,10 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
           models: urlState.models,
           highlightBrand: urlState.highlightBrand.trim() || undefined,
           webSearch: urlState.webSearch,
-          webSearchCountryCode: urlState.webSearchCountryCode,
+          webSearchCountryCode:
+            urlState.webSearchCountryCode === "default"
+              ? undefined
+              : urlState.webSearchCountryCode,
         },
       }),
     // Client-side gate is a UX optimization only; the paywall is enforced
@@ -221,10 +224,7 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
                 q: item.prompt,
                 models: item.models,
                 web: item.webSearch ? undefined : false,
-                cc:
-                  item.webSearchCountryCode === "US"
-                    ? undefined
-                    : item.webSearchCountryCode,
+                cc: item.webSearchCountryCode,
                 hb: item.highlightBrand || undefined,
               }}
               replace

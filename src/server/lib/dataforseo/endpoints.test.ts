@@ -281,3 +281,75 @@ describe("fetchLlmResponse model_name validation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("LLM response country requests", () => {
+  it.each([
+    ["chat_gpt", "gpt-5", "BG"],
+    ["perplexity", "sonar", "BG"],
+    ["claude", "claude-sonnet-4-6", "FI"],
+  ] as const)(
+    "sends the Bulgarian prompt and supported %s country hint unchanged",
+    async (modelSlug, modelName, country) => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(okLlmResponse());
+      vi.stubGlobal("fetch", fetchMock);
+      const prompt =
+        "Кое студио в София бихте препоръчали за PPF защитно фолио?";
+      await fetchLlmResponse({
+        userPrompt: prompt,
+        modelSlug,
+        modelName,
+        webSearch: true,
+        webSearchCountryCode: country,
+      });
+      expect(parseDataforseoRequestBody(fetchMock.mock.calls[0]?.[1])).toEqual([
+        expect.objectContaining({
+          user_prompt: prompt,
+          web_search_country_iso_code: country,
+        }),
+      ]);
+    },
+  );
+
+  it.each([
+    ["claude", "claude-sonnet-4-6", "BG"],
+    ["gemini", "gemini-2.5-pro", "US"],
+    ["chat_gpt", "gpt-5", "XX"],
+  ] as const)(
+    "rejects unsupported %s country hints before a paid dispatch",
+    async (modelSlug, modelName, country) => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(okLlmResponse());
+      vi.stubGlobal("fetch", fetchMock);
+      await expect(
+        fetchLlmResponse({
+          userPrompt: "Find local studios",
+          modelSlug,
+          modelName,
+          webSearchCountryCode: country,
+        }),
+      ).rejects.toThrow(/Unsupported web-search country/);
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("runs Gemini with provider defaults when no country was requested", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(okLlmResponse());
+    vi.stubGlobal("fetch", fetchMock);
+    await fetchLlmResponse({
+      userPrompt: "Find local studios",
+      modelSlug: "gemini",
+      modelName: "gemini-2.5-pro",
+    });
+    expect(parseDataforseoRequestBody(fetchMock.mock.calls[0]?.[1])).toEqual([
+      {
+        user_prompt: "Find local studios",
+        model_name: "gemini-2.5-pro",
+        web_search: true,
+        max_output_tokens: 1024,
+      },
+    ]);
+  });
+});

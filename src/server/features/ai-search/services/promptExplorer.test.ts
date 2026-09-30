@@ -1,4 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getCached, setCached, buildCacheKey } from "@/server/lib/r2-cache";
+import { promptExplorerInputSchema } from "@/types/schemas/ai-search";
 import type { LlmResponseResult } from "@/server/lib/dataforseoLlmSchemas";
 import { explorePrompt, extractCitations } from "./promptExplorer";
 
@@ -144,6 +146,92 @@ describe("explorePrompt web-search retry", () => {
       status: "success",
       webSearch: false,
       text: "answer",
+    });
+  });
+});
+
+describe("Prompt Explorer countries", () => {
+  const billing = {
+    organizationId: "org_1",
+    userId: "user_1",
+    userEmail: "a@b.c",
+  };
+  const input = {
+    projectId: "p1",
+    prompt: "Кое студио в София бихте препоръчали за PPF защитно фолио?",
+    models: ["chat_gpt", "claude", "gemini", "perplexity"] as const,
+    webSearch: true,
+    webSearchCountryCode: "BG" as const,
+  };
+
+  beforeEach(() => {
+    llmResponse.mockResolvedValue(modelResponse(true));
+    vi.mocked(getCached).mockResolvedValue(null);
+    vi.mocked(setCached).mockResolvedValue(undefined);
+    vi.mocked(buildCacheKey).mockImplementation(async (_namespace, params) =>
+      JSON.stringify(params),
+    );
+  });
+
+  it("runs supported models and identifies skipped models without spending on them", async () => {
+    const result = await explorePrompt(
+      promptExplorerInputSchema.parse(input),
+      billing,
+    );
+    expect(result.results).toMatchObject([
+      { model: "chat_gpt", status: "success", webSearchCountryCode: "BG" },
+      { model: "claude", status: "error", errorCode: "UNSUPPORTED_COUNTRY" },
+      { model: "gemini", status: "error", errorCode: "UNSUPPORTED_COUNTRY" },
+      { model: "perplexity", status: "success", webSearchCountryCode: "BG" },
+    ]);
+    expect(llmResponse).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([false, true])(
+    "runs all models without a hint when webSearch=%s and no country applies",
+    async (webSearch) => {
+      const result = await explorePrompt(
+        promptExplorerInputSchema.parse({
+          ...input,
+          webSearch,
+          webSearchCountryCode: webSearch ? undefined : "BG",
+        }),
+        billing,
+      );
+      expect(
+        result.results.every(
+          (r) => r.status === "success" && r.webSearchCountryCode === null,
+        ),
+      ).toBe(true);
+      expect(llmResponse).toHaveBeenCalledTimes(4);
+    },
+  );
+
+  it("keeps country-specific cached answers separate and restores their hint", async () => {
+    const cache = new Map<string, unknown>();
+    vi.mocked(getCached).mockImplementation(
+      async (key) => cache.get(key) ?? null,
+    );
+    vi.mocked(setCached).mockImplementation(async (key, value) => {
+      cache.set(key, value);
+    });
+    const run = (cc: string | undefined) =>
+      explorePrompt(
+        promptExplorerInputSchema.parse({
+          ...input,
+          models: ["chat_gpt"],
+          webSearchCountryCode: cc,
+        }),
+        billing,
+      );
+    await run("US");
+    await run("BG");
+    await run(undefined);
+    const repeated = await run("BG");
+    expect(llmResponse).toHaveBeenCalledTimes(3);
+    expect(repeated.results[0]).toMatchObject({
+      status: "success",
+      webSearchCountryCode: "BG",
     });
   });
 });
