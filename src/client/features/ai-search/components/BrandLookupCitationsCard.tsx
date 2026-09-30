@@ -156,55 +156,12 @@ export function CitationTabsCard({
           />
         }
       >
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) =>
-            setActiveTab(value === "pages" ? "pages" : "queries")
-          }
-        >
-          <TabsList variant="line">
-            <TabsTrigger value="queries">Queries</TabsTrigger>
-            <TabsTrigger value="pages">Cited sources</TabsTrigger>
-          </TabsList>
-        </Tabs>
         <DataTableFilterToggle
           open={filters.showFilters}
           activeCount={currentFilterCount}
           onToggle={() => filters.setShowFilters((current) => !current)}
         />
       </DataTableToolbar>
-
-      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
-        <span>
-          {pagesActive ? (
-            <>
-              {isUrlScoped ? "Cited pages within " : "Pages cited alongside "}
-              <strong className="text-foreground">
-                {result.resolvedTarget}
-              </strong>
-              {isUrlScoped ? "." : " in AI answers."} Prompt examples come from
-              the fetched sample.
-            </>
-          ) : (
-            <>
-              Fetched sample of prompts whose AI answer cited{" "}
-              {isUrlScoped ? "a page within " : null}
-              <strong className="text-foreground">
-                {result.resolvedTarget}
-              </strong>
-              {isUrlScoped ? "." : " in its text or sources."}
-            </>
-          )}
-        </span>
-        {captionPlatform ? (
-          <span className="inline-flex shrink-0 items-center gap-1.5">
-            <span
-              className={`size-1.5 rounded-full ${PLATFORM_DOT_CLASS[captionPlatform]}`}
-            />
-            {formatPlatformLabel(captionPlatform)}
-          </span>
-        ) : null}
-      </div>
 
       {filters.showFilters ? (
         <BrandLookupFilterPanel activeTab={activeTab} filters={filters} />
@@ -221,7 +178,7 @@ export function CitationTabsCard({
   // The provider only returns the domain's top cited pages, so a URL scope can
   // filter every sampled row away without meaning zero citations exist for
   // that section.
-  return pagesActive ? (
+  const table = pagesActive ? (
     <DataTable
       table={pagesTable}
       empty={{
@@ -247,5 +204,55 @@ export function CitationTabsCard({
       }}
       {...tableProps}
     />
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value === "pages" ? "pages" : "queries")
+          }
+        >
+          <TabsList variant="line">
+            <TabsTrigger value="queries">Queries</TabsTrigger>
+            <TabsTrigger value="pages">Cited sources</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <p className="min-w-0 break-words">
+            {pagesActive ? (
+              <>
+                {isUrlScoped ? "Cited pages within " : "Pages cited alongside "}
+                <strong className="text-foreground">
+                  {result.resolvedTarget}
+                </strong>
+                {isUrlScoped ? "." : " in AI answers."} Prompt examples come
+                from the fetched sample.
+              </>
+            ) : (
+              <>
+                Fetched sample of prompts whose AI answer cited{" "}
+                {isUrlScoped ? "a page within " : null}
+                <strong className="text-foreground">
+                  {result.resolvedTarget}
+                </strong>
+                {isUrlScoped ? "." : " in its text or sources."}
+              </>
+            )}
+          </p>
+          {captionPlatform ? (
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs">
+              <span
+                className={`size-1.5 rounded-full ${PLATFORM_DOT_CLASS[captionPlatform]}`}
+              />
+              {formatPlatformLabel(captionPlatform)}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      {table}
+    </div>
   );
 }
