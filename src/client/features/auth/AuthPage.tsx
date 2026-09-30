@@ -1,14 +1,6 @@
 import { z } from "zod";
 import { Button } from "@/client/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/client/components/ui/card";
-import {
   getCurrentAuthRedirect,
   getOAuthSignedQuery,
 } from "@/lib/auth-redirect";
@@ -17,6 +9,13 @@ import { isHostedClientAuthMode } from "@/lib/auth-mode";
 export const authRedirectSearchSchema = z.object({
   redirect: z.string().optional(),
 });
+
+// The auth forms keep their pre-shadcn look: white inputs with 16px text, and a
+// soft grey submit button.
+export const authInputClassName =
+  "border-foreground/20 bg-card text-base md:text-base";
+export const authSubmitClassName =
+  "w-full border-border bg-[color-mix(in_oklab,var(--card),var(--foreground)_8%)] font-semibold hover:bg-[color-mix(in_oklab,var(--card),var(--foreground)_12%)]";
 
 export function useAuthPageState(redirect: string | undefined) {
   const redirectTo = getCurrentAuthRedirect(redirect);
@@ -53,7 +52,7 @@ export function AuthMethodChooser({
       <Button
         type="button"
         variant="outline"
-        className="w-full !bg-white !text-neutral-900 hover:!bg-neutral-50"
+        className="w-full border-black/10 !bg-white font-semibold !text-neutral-900 hover:border-black/20 hover:!bg-neutral-50"
         onClick={onContinueWithGoogle}
         disabled={disabled || isBusy}
       >
@@ -63,8 +62,8 @@ export function AuthMethodChooser({
 
       <Button
         type="button"
-        variant="secondary"
-        className="w-full"
+        variant="outline"
+        className="w-full bg-card font-semibold dark:border-border dark:bg-card"
         onClick={onContinueWithEmail}
         disabled={disabled || isBusy}
       >
@@ -109,29 +108,25 @@ export function AuthPageCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <Card className="w-full max-w-xs">
-      <CardHeader className="text-center space-y-3">
+    <div className="w-full max-w-xs space-y-6">
+      <div className="space-y-3 text-center">
         <img
           src="/transparent-logo.png"
           alt="OpenSEO"
           className="mx-auto size-10 rounded-lg"
         />
         <div>
-          <CardTitle className="text-xl">
-            <h1>{title}</h1>
-          </CardTitle>
+          <h1 className="text-xl font-semibold">{title}</h1>
           {helperText ? (
-            <CardDescription className="mt-1">{helperText}</CardDescription>
+            <p className="mt-1 text-sm text-muted-foreground">{helperText}</p>
           ) : null}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-4">{children}</CardContent>
+      <div className="space-y-4">{children}</div>
 
-      {footer ? (
-        <CardFooter className="justify-center text-center">{footer}</CardFooter>
-      ) : null}
-    </Card>
+      {footer ? <div className="text-center">{footer}</div> : null}
+    </div>
   );
 }
 

@@ -13,9 +13,9 @@ export function AgentSetupPanel({
 }) {
   return (
     <>
-      <div className="rounded-xl border border-border bg-muted/25 p-5">
+      <div className="rounded-xl border border-border bg-background/25 p-5">
         <div className="mb-5 flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
             <Package className="size-5 text-muted-foreground" />
           </span>
           <div>

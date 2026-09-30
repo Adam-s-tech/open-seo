@@ -142,7 +142,7 @@ function GscConnect({
   const showPicker = hasGrant && !connected;
 
   return (
-    <fieldset disabled={busy}>
+    <fieldset disabled={busy} className="min-w-0">
       {connectionQuery.isLoading ? (
         <Spinner size="sm" label="Checking…" />
       ) : connectionQuery.isError && !connection ? (
@@ -156,9 +156,9 @@ function GscConnect({
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
             <Check className="size-3.5" />
           </span>
-          <span className="text-foreground/80">
+          <span className="min-w-0 text-foreground/80">
             Connected to{" "}
-            <span className="font-mono">{connection?.property}</span>.
+            <span className="font-mono break-all">{connection?.property}</span>.
           </span>
         </div>
       ) : (
@@ -193,7 +193,7 @@ function GscConnect({
             <Button
               type="button"
               variant="outline"
-              size="lg"
+              className="h-auto gap-2.5 bg-card px-4 py-2.5 font-semibold shadow-sm hover:bg-background hover:shadow dark:border-border dark:bg-card dark:hover:bg-background"
               onClick={handleConnect}
               disabled={linking}
               aria-busy={linking}

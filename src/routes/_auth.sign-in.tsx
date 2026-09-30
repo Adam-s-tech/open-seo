@@ -1,11 +1,12 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAppForm } from "@/client/components/form/useAppForm";
-import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { Button } from "@/client/components/ui/button";
 import {
   AuthPageCard,
   AuthMethodChooser,
+  authInputClassName,
+  authSubmitClassName,
   authRedirectSearchSchema,
   useAuthPageState,
 } from "@/client/features/auth/AuthPage";
@@ -107,8 +108,8 @@ function SignInPage() {
           <div
             className={
               showEmailForm
-                ? "flex w-full justify-between text-sm text-muted-foreground"
-                : "w-full text-sm text-muted-foreground"
+                ? "flex w-full justify-between text-sm text-foreground/50"
+                : "w-full text-sm text-foreground/50"
             }
           >
             {showEmailForm ? (
@@ -146,9 +147,7 @@ function SignInPage() {
             }}
           />
           {google.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{google.error}</AlertDescription>
-            </Alert>
+            <p className="text-sm text-destructive">{google.error}</p>
           ) : null}
         </>
       ) : (
@@ -158,6 +157,8 @@ function SignInPage() {
               {(field) => (
                 <field.TextField
                   label="Email address"
+                  hideLabel
+                  className={authInputClassName}
                   type="email"
                   placeholder="Email address..."
                   autoComplete="email"
@@ -169,6 +170,8 @@ function SignInPage() {
               {(field) => (
                 <field.TextField
                   label="Password"
+                  hideLabel
+                  className={authInputClassName}
                   type="password"
                   placeholder="Password..."
                   autoComplete="current-password"
@@ -188,14 +191,12 @@ function SignInPage() {
                 return (
                   <>
                     {errorMessage ? (
-                      <Alert variant="destructive">
-                        <AlertDescription>{errorMessage}</AlertDescription>
-                      </Alert>
+                      <p className="text-sm text-destructive">{errorMessage}</p>
                     ) : null}
                     <Button
                       type="submit"
                       variant="secondary"
-                      className="w-full"
+                      className={authSubmitClassName}
                       pending={isSubmitting}
                     >
                       {isSubmitting ? "Signing in..." : "Sign in"}

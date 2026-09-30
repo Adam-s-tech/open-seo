@@ -57,7 +57,7 @@ export function PostSignupOnboarding({
     <>
       {accountMenu}
       <OnboardingCard step={step + 1} total={ONBOARDING_LAST_STEP + 1}>
-        <fieldset disabled={isSaving}>
+        <fieldset disabled={isSaving} className="min-w-0">
           {step === 0 ? (
             <OnboardingChoiceGroup
               title="What brings you here?"
@@ -181,12 +181,12 @@ function OnboardingChoiceGroup({
               <Toggle
                 variant="outline"
                 pressed={selected}
-                className={`min-h-11 gap-3 rounded-full px-4 py-2.5 text-left ${selected ? "border-primary bg-primary/5 text-primary" : "border-border"}`}
+                className={`h-auto min-h-11 gap-3 rounded-full px-4 py-2.5 text-left font-normal disabled:opacity-35 ${selected ? "border-primary bg-primary/5 text-primary aria-pressed:bg-primary/5" : "border-border hover:bg-background"}`}
                 disabled={disabled}
                 onPressedChange={() => onToggle(option)}
               >
                 <span
-                  className={`flex size-4 shrink-0 items-center justify-center border ${multiple ? "rounded" : "rounded-full"} ${selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}
+                  className={`flex size-4 shrink-0 items-center justify-center border ${multiple ? "rounded" : "rounded-full"} ${selected ? "border-primary bg-primary text-primary-foreground" : "border-foreground/30"}`}
                 >
                   {selected && <Check className="size-3" />}
                 </span>
@@ -204,7 +204,7 @@ function OnboardingChoiceGroup({
       {isOtherSelected ? (
         <Input
           type="text"
-          className="mt-4"
+          className="mt-4 border-foreground/20 bg-card text-base md:text-base"
           aria-label={multiple ? "Other tasks" : "Other answer"}
           placeholder={multiple ? "Tell us what else..." : "Tell us more..."}
           value={otherValue}
@@ -223,8 +223,8 @@ function ClientWebsiteCountPicker({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="w-full rounded-lg border border-border bg-muted/40 p-4">
-      <p className="text-sm text-muted-foreground">
+    <div className="w-full rounded-lg border border-border bg-background/40 p-4">
+      <p className="text-sm text-foreground/70">
         About how many client sites do you work on?
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -236,7 +236,7 @@ function ClientWebsiteCountPicker({
               key={option}
               variant="outline"
               pressed={selected}
-              className="rounded-md"
+              className={`h-auto rounded-md px-3 py-1.5 font-normal ${selected ? "border-foreground aria-pressed:bg-background" : "border-border text-foreground/75 hover:border-foreground/40 hover:bg-background/60"}`}
               onPressedChange={() => onChange(selected ? "" : option)}
             >
               {option}

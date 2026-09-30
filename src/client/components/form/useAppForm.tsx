@@ -74,15 +74,24 @@ function useFieldControl(description: ReactNode) {
 
 function TextField({
   label,
+  hideLabel = false,
   description,
   ...inputProps
-}: FieldText & Omit<ComponentProps<typeof Input>, BoundProps>) {
+}: FieldText & {
+  /** Keeps the label for screen readers only, for forms that use placeholders. */
+  hideLabel?: boolean;
+} & Omit<ComponentProps<typeof Input>, BoundProps>) {
   const field = useFieldContext<string>();
   const control = useFieldControl(description);
 
   return (
     <Field data-invalid={control.invalid}>
-      <FieldLabel htmlFor={control.controlProps.id}>{label}</FieldLabel>
+      <FieldLabel
+        htmlFor={control.controlProps.id}
+        className={hideLabel ? "sr-only" : undefined}
+      >
+        {label}
+      </FieldLabel>
       <Input
         {...inputProps}
         {...control.controlProps}

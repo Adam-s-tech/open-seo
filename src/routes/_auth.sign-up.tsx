@@ -1,11 +1,12 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAppForm } from "@/client/components/form/useAppForm";
-import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { Button } from "@/client/components/ui/button";
 import {
   AuthPageCard,
   AuthMethodChooser,
+  authInputClassName,
+  authSubmitClassName,
   authRedirectSearchSchema,
   useAuthPageState,
 } from "@/client/features/auth/AuthPage";
@@ -136,16 +137,16 @@ function SignUpPage() {
       footer={
         isHostedMode ? (
           showEmailForm ? (
-            <Button
+            <button
               type="button"
-              variant="link"
+              className="text-sm text-foreground underline underline-offset-2 hover:text-foreground/80 transition-colors"
               onClick={() => {
                 setShowEmailForm(false);
                 google.clearError();
               }}
             >
               Back to signup
-            </Button>
+            </button>
           ) : (
             <div className="space-y-4">
               <p className="text-sm leading-relaxed text-muted-foreground">
@@ -170,7 +171,7 @@ function SignUpPage() {
                 .
               </p>
 
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/50">
                 Already have an account?{" "}
                 <Link
                   to="/sign-in"
@@ -200,9 +201,7 @@ function SignUpPage() {
             }}
           />
           {google.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{google.error}</AlertDescription>
-            </Alert>
+            <p className="text-sm text-destructive">{google.error}</p>
           ) : null}
         </>
       ) : (
@@ -212,6 +211,8 @@ function SignUpPage() {
               {(field) => (
                 <field.TextField
                   label="Name (optional)"
+                  hideLabel
+                  className={authInputClassName}
                   placeholder="Name (optional)..."
                   autoComplete="name"
                 />
@@ -221,6 +222,8 @@ function SignUpPage() {
               {(field) => (
                 <field.TextField
                   label="Email address"
+                  hideLabel
+                  className={authInputClassName}
                   type="email"
                   placeholder="Email address..."
                   autoComplete="email"
@@ -232,6 +235,8 @@ function SignUpPage() {
               {(field) => (
                 <field.TextField
                   label="Password"
+                  hideLabel
+                  className={authInputClassName}
                   type="password"
                   placeholder="Password..."
                   autoComplete="new-password"
@@ -243,6 +248,8 @@ function SignUpPage() {
               {(field) => (
                 <field.TextField
                   label="Confirm password"
+                  hideLabel
+                  className={authInputClassName}
                   type="password"
                   placeholder="Confirm password..."
                   autoComplete="new-password"
@@ -269,14 +276,12 @@ function SignUpPage() {
                 return (
                   <>
                     {errorMessage ? (
-                      <Alert variant="destructive">
-                        <AlertDescription>{errorMessage}</AlertDescription>
-                      </Alert>
+                      <p className="text-sm text-destructive">{errorMessage}</p>
                     ) : null}
                     <Button
                       type="submit"
                       variant="secondary"
-                      className="w-full"
+                      className={authSubmitClassName}
                       pending={isSubmitting}
                       disabled={isTurnstileEnabled && !captcha.hasToken}
                     >

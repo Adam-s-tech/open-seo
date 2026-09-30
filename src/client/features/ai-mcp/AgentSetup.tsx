@@ -1,8 +1,10 @@
+import { ArrowRight } from "lucide-react";
 import { AgentList } from "./AgentList";
 import { AgentSetupPanel, AGENT_SETUP_DESCRIPTION } from "./AgentSetupPanel";
 import { getAgentSetupPrompt } from "./agentSetupPrompt";
 import { captureClientEvent } from "@/client/lib/posthog";
 import { WizardFooter } from "@/client/features/onboarding/WizardFooter";
+import { Button } from "@/client/components/ui/button";
 
 export function AgentSetup({
   onComplete,
@@ -32,10 +34,18 @@ export function AgentSetup({
       />
       <div className="mt-7 border-t border-border pt-5">
         <WizardFooter
+          className="mt-0"
           onBack={onBack}
-          onContinue={onComplete}
-          continueLabel="Finish"
-          continueDisabled={disabled}
+          continueAction={
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 gap-2 px-3 text-xs font-semibold"
+              onClick={onComplete}
+            >
+              Finish <ArrowRight className="size-4" />
+            </Button>
+          }
         />
       </div>
     </fieldset>
