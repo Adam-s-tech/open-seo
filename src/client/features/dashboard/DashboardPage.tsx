@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { sort } from "remeda";
 import { DashboardOnboarding } from "./DashboardOnboarding";
@@ -168,11 +168,12 @@ export function DashboardPage({ projectId }: { projectId: string }) {
         ) : null}
 
         {/* Every card is half width on large screens (only the checklist spans).
-          Cards with data render before setup pitches and empty states. */}
-        <div className="grid items-start gap-5 lg:grid-cols-2">
+          Cards with data render before setup pitches and empty states. Cards in
+          a row stretch to the same height. */}
+        <div className="grid gap-5 lg:grid-cols-2">
           {sort(cards, (a, b) => Number(b.hasData) - Number(a.hasData)).map(
             (card) => (
-              <div key={card.key}>{card.node}</div>
+              <Fragment key={card.key}>{card.node}</Fragment>
             ),
           )}
         </div>

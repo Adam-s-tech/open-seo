@@ -24,9 +24,9 @@ export function EmptyCardBody({
   cta: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start gap-3">
+    <div className="flex flex-1 flex-col gap-3">
       <p className="text-sm text-muted-foreground">{message}</p>
-      {cta}
+      <div className="mt-auto flex justify-end">{cta}</div>
     </div>
   );
 }

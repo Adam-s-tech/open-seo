@@ -7,7 +7,11 @@ import {
   CardTitle,
 } from "@/client/components/ui/card";
 
-/** Card with a header row and a divided body: dashboard and connection cards. */
+/**
+ * Card with a header row and a divided body: dashboard and connection cards.
+ * It fills its grid cell, and the body grows so content marked `mt-auto`
+ * (action rows, the stamp) sits at the bottom of equal-height cards.
+ */
 export function CardShell({
   title,
   icon,
@@ -22,7 +26,7 @@ export function CardShell({
   children: ReactNode;
 }) {
   return (
-    <Card size="lg">
+    <Card size="lg" className="h-full">
       <CardHeader className="border-b">
         <CardTitle className="flex min-w-0 items-center gap-2.5">
           {icon ? (
@@ -36,10 +40,12 @@ export function CardShell({
           <CardAction className="self-center">{action}</CardAction>
         ) : null}
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 flex-col">
         {children}
         {stamp ? (
-          <p className="mt-4 text-[11px] text-muted-foreground">{stamp}</p>
+          <p className="mt-auto pt-4 text-[11px] text-muted-foreground">
+            {stamp}
+          </p>
         ) : null}
       </CardContent>
     </Card>

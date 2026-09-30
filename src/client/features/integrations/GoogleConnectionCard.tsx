@@ -136,6 +136,7 @@ export function GoogleConnectionCard({
       type="button"
       variant="ghost"
       size="sm"
+      className="text-muted-foreground"
       onClick={onDismiss}
       disabled={dismissing || changingConnection}
     >
@@ -181,7 +182,7 @@ export function GoogleConnectionCard({
           isRetrying={connectionQuery.isFetching}
         />
       ) : needsGoogleOAuthSetup ? (
-        <div className="space-y-3">
+        <div className="flex flex-1 flex-col items-start justify-between gap-3">
           <GoogleOAuthSetupWarning
             integrationName={config.name}
             docsUrl={config.docsUrl}

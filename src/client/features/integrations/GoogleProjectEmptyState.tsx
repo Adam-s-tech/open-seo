@@ -22,13 +22,16 @@ export function GoogleProjectEmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-1 flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         {hasGrant
           ? `Choose a ${name} property to finish connecting this project.`
           : `Connect ${name} to see this project’s data.`}
       </p>
-      <div className="flex flex-wrap items-center gap-1">
+      {/* Actions sit bottom-right, with Dismiss (children) just left of the
+          connect action. */}
+      <div className="mt-auto flex flex-wrap items-center justify-end gap-1">
+        {children}
         {canManage || hasGrant ? (
           <Button
             variant={prominent ? "default" : "outline"}
@@ -54,7 +57,6 @@ export function GoogleProjectEmptyState({
                 : "Manage Google accounts"}
           </Button>
         ) : null}
-        {children}
       </div>
     </div>
   );
