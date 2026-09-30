@@ -14,6 +14,7 @@ import { Button } from "@/client/components/ui/button";
 import {
   Table,
   TableBody,
+  TableCard,
   TableHead,
   TableHeader,
   TableRow,
@@ -171,7 +172,7 @@ export function TeamSettings() {
       {teamQuery.isPending ? (
         <PageLoading />
       ) : (
-        <div className="rounded-lg border border-border bg-card">
+        <TableCard>
           <Table>
             <TableHeader>
               <TableRow>
@@ -209,7 +210,7 @@ export function TeamSettings() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableCard>
       )}
 
       {transferTarget ? (

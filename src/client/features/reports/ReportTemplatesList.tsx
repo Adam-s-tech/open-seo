@@ -5,6 +5,7 @@ import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -33,7 +34,7 @@ export function ReportTemplatesList({
   }
 
   return (
-    <div className="rounded-lg border border-border">
+    <TableCard>
       <Table>
         <TableHeader>
           <TableRow>
@@ -80,6 +81,6 @@ export function ReportTemplatesList({
           ))}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }

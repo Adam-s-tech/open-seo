@@ -22,6 +22,7 @@ import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -149,7 +150,7 @@ export function ApiKeySettings() {
           apiKeys.length === 0 ? (
             <p className="text-sm text-muted-foreground">No API keys yet.</p>
           ) : (
-            <div className="rounded-lg border border-border bg-card">
+            <TableCard>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -202,7 +203,7 @@ export function ApiKeySettings() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </TableCard>
           )
         }
       </QueryState>

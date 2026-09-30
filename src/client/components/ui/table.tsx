@@ -5,6 +5,20 @@ import { cn } from "cn";
 // page background in the light theme, so it would not show on a card.
 // Cells wrap, because tables hold long URLs and titles.
 
+/** The card around a table and its toolbar or footer. The table runs edge to edge. */
+function TableCard({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="table-card"
+      className={cn(
+        "overflow-hidden rounded-xl border border-border bg-card",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function Table({
   className,
   containerClassName,
@@ -28,7 +42,10 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b [&_tr]:border-border", className)}
+      className={cn(
+        "[&_tr]:border-b [&_tr]:border-border [&_tr]:hover:bg-transparent",
+        className,
+      )}
       {...props}
     />
   );
@@ -111,6 +128,7 @@ function TableCaption({
 
 export {
   Table,
+  TableCard,
   TableHeader,
   TableBody,
   TableFooter,

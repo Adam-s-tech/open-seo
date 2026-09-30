@@ -24,6 +24,7 @@ import { Skeleton } from "@/client/components/ui/skeleton";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -180,7 +181,7 @@ export function DataTable<TData>({
   const rows = table.getRowModel().rows;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <TableCard>
       {toolbar}
       {error ? <div className="p-4">{error}</div> : null}
       {error && !isLoading && rows.length === 0 ? null : (
@@ -191,7 +192,7 @@ export function DataTable<TData>({
             }
           >
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -287,6 +288,6 @@ export function DataTable<TData>({
         </Table>
       )}
       {footer}
-    </div>
+    </TableCard>
   );
 }

@@ -150,7 +150,7 @@ export function LighthouseIssuesToolbar({
   ];
 
   return (
-    <div className="sticky top-0 z-[2] -mx-2 px-2 py-2 bg-card/95 backdrop-blur-sm border-b border-border">
+    <div className="border-b border-border px-4 py-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <CategoryTabs
           category={category}
@@ -217,11 +217,11 @@ export function LighthouseIssueList({
   emptyMessage?: string;
 }) {
   if (isLoading) {
-    return <Spinner label="Loading issues..." />;
+    return <Spinner label="Loading issues..." className="p-4" />;
   }
   if (!issues.length) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="p-4 text-sm text-muted-foreground">
         {emptyMessage ?? "No actionable issues for this category."}
       </p>
     );
@@ -229,7 +229,7 @@ export function LighthouseIssueList({
   return (
     <Table>
       <TableHeader>
-        <TableRow className="hover:bg-transparent">
+        <TableRow>
           <TableHead className="w-8" />
           <TableHead className="w-24">Severity</TableHead>
           <TableHead>Issue</TableHead>

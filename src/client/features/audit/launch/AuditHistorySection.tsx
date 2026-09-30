@@ -5,18 +5,14 @@ import type { getAuditHistory } from "@/serverFunctions/audit";
 import { EmptyState } from "@/client/components/EmptyState";
 import { QueryState } from "@/client/components/QueryState";
 import { RowActionsMenu } from "@/client/components/RowActionsMenu";
+import { DataTableToolbar } from "@/client/components/table/DataTableToolbar";
 import { Badge } from "@/client/components/ui/badge";
 import { Button } from "@/client/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/client/components/ui/card";
 import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -65,57 +61,53 @@ function AuditHistoryTable({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <h2>Previous Audits</h2>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>URL</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Pages</TableHead>
-              <TableHead>Lighthouse</TableHead>
-              <TableHead />
+    <TableCard>
+      <DataTableToolbar>
+        <h2 className="text-sm font-semibold">Previous Audits</h2>
+      </DataTableToolbar>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>URL</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Pages</TableHead>
+            <TableHead>Lighthouse</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {history.map((audit) => (
+            <TableRow key={audit.id} className="group">
+              <TableCell className="text-xs text-muted-foreground">
+                {formatDate(audit.startedAt)}
+              </TableCell>
+              <TableCell className="max-w-[220px] truncate">
+                {audit.startUrl}
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={audit.status} />
+              </TableCell>
+              <TableCell>{audit.pagesTotal || audit.pagesCrawled}</TableCell>
+              <TableCell>
+                {audit.ranLighthouse ? (
+                  <Badge variant="outline" size="sm">
+                    Yes
+                  </Badge>
+                ) : null}
+              </TableCell>
+              <TableCell>
+                <HistoryActions
+                  projectId={projectId}
+                  auditId={audit.id}
+                  onDelete={onDelete}
+                />
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {history.map((audit) => (
-              <TableRow key={audit.id} className="group">
-                <TableCell className="text-xs text-muted-foreground">
-                  {formatDate(audit.startedAt)}
-                </TableCell>
-                <TableCell className="max-w-[220px] truncate">
-                  {audit.startUrl}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={audit.status} />
-                </TableCell>
-                <TableCell>{audit.pagesTotal || audit.pagesCrawled}</TableCell>
-                <TableCell>
-                  {audit.ranLighthouse ? (
-                    <Badge variant="outline" size="sm">
-                      Yes
-                    </Badge>
-                  ) : null}
-                </TableCell>
-                <TableCell>
-                  <HistoryActions
-                    projectId={projectId}
-                    auditId={audit.id}
-                    onDelete={onDelete}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          ))}
+        </TableBody>
+      </Table>
+    </TableCard>
   );
 }
 

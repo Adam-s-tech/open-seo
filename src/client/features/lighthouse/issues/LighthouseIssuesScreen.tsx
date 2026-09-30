@@ -7,7 +7,7 @@ import {
 } from "@/serverFunctions/lighthouse";
 import { downloadFile } from "@/client/lib/download";
 import { QueryError } from "@/client/components/QueryState";
-import { Card, CardContent } from "@/client/components/ui/card";
+import { TableCard } from "@/client/components/ui/table";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { exportRows } from "@/client/lib/exportRows";
 import type { CategoryTab, ExportPayload, LighthouseIssue } from "./types";
@@ -99,9 +99,9 @@ export function LighthouseIssuesScreen({
           severityCounts={severityCounts}
         />
 
-        <Card>
-          <CardContent className="space-y-4">
-            {issuesQuery.isError ? (
+        <TableCard>
+          {issuesQuery.isError ? (
+            <div className="p-4">
               <QueryError
                 error={issuesQuery.error}
                 fallback="Failed to load Lighthouse issues."
@@ -113,36 +113,36 @@ export function LighthouseIssuesScreen({
                 }
                 isRetrying={issuesQuery.isFetching}
               />
-            ) : null}
+            </div>
+          ) : null}
 
-            <LighthouseIssuesToolbar
-              category={category}
-              categoryCounts={categoryCounts}
-              selectedCategoryLabel={selectedCategoryLabel}
-              isBusy={exportMutation.isPending}
-              visibleIssues={visibleIssues}
-              allIssues={allIssues}
-              onCategoryChange={(next) =>
-                void navigate({
-                  search: (prev) => ({ ...prev, category: next }),
-                  replace: true,
-                })
-              }
-              onCopy={(data, message) => {
-                void runCopy(data, message);
-              }}
-              onExport={(data) => {
-                void runExport(data);
-              }}
-              onExportRows={runExportRows}
-            />
-            <LighthouseIssueList
-              issues={visibleIssues}
-              isLoading={issuesQuery.isLoading}
-              emptyMessage={emptyMessage}
-            />
-          </CardContent>
-        </Card>
+          <LighthouseIssuesToolbar
+            category={category}
+            categoryCounts={categoryCounts}
+            selectedCategoryLabel={selectedCategoryLabel}
+            isBusy={exportMutation.isPending}
+            visibleIssues={visibleIssues}
+            allIssues={allIssues}
+            onCategoryChange={(next) =>
+              void navigate({
+                search: (prev) => ({ ...prev, category: next }),
+                replace: true,
+              })
+            }
+            onCopy={(data, message) => {
+              void runCopy(data, message);
+            }}
+            onExport={(data) => {
+              void runExport(data);
+            }}
+            onExportRows={runExportRows}
+          />
+          <LighthouseIssueList
+            issues={visibleIssues}
+            isLoading={issuesQuery.isLoading}
+            emptyMessage={emptyMessage}
+          />
+        </TableCard>
       </div>
     </div>
   );

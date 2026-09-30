@@ -6,6 +6,7 @@ import { Button } from "@/client/components/ui/button";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -46,10 +47,10 @@ export function RankTrackingHistoryMatrix({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <TableCard>
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
+          <TableRow>
             {/* Unconstrained keyword column absorbs the slack when only a few
                 check columns exist, so sparse history doesn't stretch oddly. */}
             <TableHead className="sticky left-0 z-10 w-full bg-card">
@@ -85,7 +86,7 @@ export function RankTrackingHistoryMatrix({
           })}
         </TableBody>
       </Table>
-    </div>
+    </TableCard>
   );
 }
 

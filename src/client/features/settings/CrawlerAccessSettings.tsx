@@ -15,6 +15,7 @@ import { Button } from "@/client/components/ui/button";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -87,7 +88,7 @@ export function CrawlerAccessSettings({ projectId }: { projectId: string }) {
           We couldn't load your crawler access.
         </p>
       ) : credentials.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <TableCard>
           <Table>
             <TableHeader>
               <TableRow>
@@ -131,7 +132,7 @@ export function CrawlerAccessSettings({ projectId }: { projectId: string }) {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableCard>
       ) : null}
     </section>
   );

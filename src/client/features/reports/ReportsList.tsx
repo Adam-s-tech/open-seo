@@ -6,6 +6,7 @@ import { DropdownMenuItem } from "@/client/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
+  TableCard,
   TableCell,
   TableHead,
   TableHeader,
@@ -37,7 +38,7 @@ export function ReportsList({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-border">
+      <TableCard>
         <Table>
           <TableHeader>
             <TableRow>
@@ -87,7 +88,7 @@ export function ReportsList({
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableCard>
       {reports.length === REPORT_APP_LIST_LIMIT ? (
         <p className="text-xs text-muted-foreground">
           Showing the {REPORT_APP_LIST_LIMIT} most recent reports.

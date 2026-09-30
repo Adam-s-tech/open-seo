@@ -225,7 +225,7 @@ export function KeywordTrendModal({
                 <div className="overflow-hidden rounded-lg border border-border">
                   <Table containerClassName="max-h-64">
                     <TableHeader className="sticky top-0 z-10 bg-popover">
-                      <TableRow className="hover:bg-transparent">
+                      <TableRow>
                         <TableHead>Date</TableHead>
                         {devices.length > 1 && <TableHead>Device</TableHead>}
                         <TableHead>Position</TableHead>
