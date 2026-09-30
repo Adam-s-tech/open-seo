@@ -23,7 +23,7 @@ export function KeywordAreaField({ locationCode, value, onChange }: Props) {
 
   return (
     <div
-      className="col-span-2 w-full lg:w-60 lg:shrink-0"
+      className="col-span-2 w-full lg:w-44 lg:shrink-0"
       onFocus={() => setFocused(true)}
       title="Get search volume for one city, county, or region. Leave empty for the whole country."
     >
@@ -31,7 +31,7 @@ export function KeywordAreaField({ locationCode, value, onChange }: Props) {
         value={value}
         onChange={onChange}
         countryCode={countryCode}
-        placeholder="City or county (optional)"
+        placeholder="City (optional)"
       />
     </div>
   );

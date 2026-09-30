@@ -31,7 +31,7 @@ export function SavedKeywordsHeader({
         actions={
           <>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               title="Fetch new volume, difficulty, and CPC"
               disabled={disabled || metricsRefreshing}

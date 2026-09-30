@@ -35,7 +35,7 @@ export function DataTableFilterToggle({
   onToggle: () => void;
 }) {
   return (
-    <Button variant="ghost" size="sm" aria-expanded={open} onClick={onToggle}>
+    <Button variant="outline" size="sm" aria-expanded={open} onClick={onToggle}>
       <SlidersHorizontal data-icon="inline-start" />
       Filters
       {activeCount > 0 ? (

@@ -2,11 +2,12 @@ import { useMemo } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { ExternalLink, Globe } from "lucide-react";
 import { ErrorState } from "@/client/components/ErrorState";
+import { ExportMenu } from "@/client/components/ExportMenu";
 import { Button } from "@/client/components/ui/button";
 import { DataTable, useDataTable } from "@/client/components/table/DataTable";
 import { DataTableToolbar } from "@/client/components/table/DataTableToolbar";
-import { ExportToSheetsButton } from "@/client/components/table/ExportToSheetsButton";
 import { TablePagination } from "@/client/components/table/TablePagination";
+import { exportRows } from "@/client/lib/exportRows";
 import type { SerpResultItem } from "@/types/keywords";
 import { safeHttpUrl } from "@/shared/safe-url";
 
@@ -107,33 +108,42 @@ export function SerpAnalysisCard({
           <DataTableToolbar
             actions={
               hasItems ? (
-                <ExportToSheetsButton
-                  headers={["Rank", "Title", "URL", "Domain"]}
-                  rows={items.map((item) => [
-                    item.rank,
-                    item.title ?? "",
-                    item.url,
-                    item.domain,
-                  ])}
-                  feature="serp_analysis"
+                <ExportMenu
+                  actions={["sheets", "csv"]}
+                  onExport={(format) =>
+                    void exportRows({
+                      format,
+                      feature: "serp_analysis",
+                      headers: ["Rank", "Title", "URL", "Domain"],
+                      rows: items.map((item) => [
+                        item.rank,
+                        item.title ?? "",
+                        item.url,
+                        item.domain,
+                      ]),
+                      filename: "serp-analysis",
+                    })
+                  }
                 />
               ) : null
             }
           >
-            <h3 className="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
-              <Globe className="size-3.5 shrink-0" />
-              SERP Analysis
-              {keyword ? (
-                <span className="truncate font-normal text-muted-foreground">
-                  : {keyword}
+            <div className="flex min-w-0 flex-col">
+              <h3 className="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
+                <Globe className="size-3.5 shrink-0" />
+                SERP Analysis
+                {keyword ? (
+                  <span className="truncate font-normal text-muted-foreground">
+                    : {keyword}
+                  </span>
+                ) : null}
+              </h3>
+              {hasItems ? (
+                <span className="text-xs text-muted-foreground">
+                  {items.length} organic results
                 </span>
               ) : null}
-            </h3>
-            {hasItems ? (
-              <span className="text-xs text-muted-foreground">
-                {items.length} organic results
-              </span>
-            ) : null}
+            </div>
           </DataTableToolbar>
           {error && hasItems ? (
             <div className="border-b border-border px-4 py-3">

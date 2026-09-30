@@ -116,7 +116,9 @@ export function SerpLocationCombobox({
           </InputGroupAddon>
         </ComboboxInput>
       </div>
-      <ComboboxContent anchor={anchor}>
+      {/* Full labels such as "Orange County, California, United States" are
+          wider than a compact field, so the list sizes to its content. */}
+      <ComboboxContent anchor={anchor} className="w-max">
         <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
         <ComboboxList>
           {(item: LocationItem) => (

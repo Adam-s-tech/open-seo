@@ -72,7 +72,7 @@ export function ExportMenu<A extends ExportAction>({
       <DropdownMenuTrigger
         render={
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             pending={busy}
             disabled={disabled}

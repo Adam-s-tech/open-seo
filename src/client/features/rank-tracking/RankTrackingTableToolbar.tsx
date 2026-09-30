@@ -72,7 +72,7 @@ export function RankTrackingTableToolbar({
       )}
 
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         aria-pressed={showFilters}
         className="aria-pressed:bg-muted aria-pressed:text-foreground"
