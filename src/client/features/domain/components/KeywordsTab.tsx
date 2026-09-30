@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Download, Save, Sheet } from "lucide-react";
 import {
@@ -71,6 +77,8 @@ type Props = {
   hostname: string;
   scope: ResearchScope;
   routeState: DomainOverviewRouteState;
+  /** The Top Keywords / Top Pages tabs, shown at the top of the table card. */
+  tabs: ReactNode;
   canSaveKeywords: boolean;
   setSearchParams: (updates: SearchUpdate) => void;
   onSortClick: (sort: DomainSortMode) => void;
@@ -84,6 +92,7 @@ export function KeywordsTab({
   hostname,
   scope,
   routeState,
+  tabs,
   canSaveKeywords,
   setSearchParams,
   onSortClick,
@@ -274,36 +283,39 @@ export function KeywordsTab({
           ) : null
         }
         toolbar={
-          <DomainTableToolbar
-            overBudgetLimit={filtersOverBudget ? maxConditions : null}
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters((prev) => !prev)}
-            activeFilterCount={activeFilterCount}
-            countLabel="keywords"
-            totalCount={totalCount}
-            fallbackCount={rows.length}
-            onExport={exportAll}
-            filterPanel={
-              <DomainFilterPanel
-                activeFilterCount={activeFilterCount}
-                appliedFilters={restoredFilters}
-                fields={KEYWORD_FILTER_FIELDS}
-                textFields={KEYWORD_TEXT_FILTERS}
-                rangeFields={KEYWORD_RANGE_FILTERS}
-                countConditions={countKeywordFilterConditions}
-                maxConditions={maxConditions}
-                onApply={applyFilters}
-                onClear={resetFilters}
-              />
-            }
-          >
-            <span className="text-sm text-muted-foreground">
-              ·{" "}
-              {selectedKeywords.size > 0
-                ? `${selectedKeywords.size} selected`
-                : "Select keywords to save"}
-            </span>
-          </DomainTableToolbar>
+          <>
+            {tabs}
+            <DomainTableToolbar
+              overBudgetLimit={filtersOverBudget ? maxConditions : null}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters((prev) => !prev)}
+              activeFilterCount={activeFilterCount}
+              countLabel="keywords"
+              totalCount={totalCount}
+              fallbackCount={rows.length}
+              onExport={exportAll}
+              filterPanel={
+                <DomainFilterPanel
+                  activeFilterCount={activeFilterCount}
+                  appliedFilters={restoredFilters}
+                  fields={KEYWORD_FILTER_FIELDS}
+                  textFields={KEYWORD_TEXT_FILTERS}
+                  rangeFields={KEYWORD_RANGE_FILTERS}
+                  countConditions={countKeywordFilterConditions}
+                  maxConditions={maxConditions}
+                  onApply={applyFilters}
+                  onClear={resetFilters}
+                />
+              }
+            >
+              <span className="text-sm text-muted-foreground">
+                ·{" "}
+                {selectedKeywords.size > 0
+                  ? `${selectedKeywords.size} selected`
+                  : "Select keywords to save"}
+              </span>
+            </DomainTableToolbar>
+          </>
         }
         footer={
           <TablePagination

@@ -4,9 +4,10 @@ import { ExportMenu } from "@/client/components/ExportMenu";
 import { DataTable, useDataTable } from "@/client/components/table/DataTable";
 import {
   DataTableFilterToggle,
+  DataTableTabs,
   DataTableToolbar,
 } from "@/client/components/table/DataTableToolbar";
-import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
+import { TabsTrigger } from "@/client/components/ui/tabs";
 import { exportRows } from "@/client/lib/exportRows";
 import {
   buildBrandLookupExport,
@@ -147,6 +148,50 @@ export function CitationTabsCard({
 
   const toolbar = (
     <>
+      <DataTableTabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value === "pages" ? "pages" : "queries")
+        }
+        description={
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <p className="min-w-0 break-words">
+              {pagesActive ? (
+                <>
+                  {isUrlScoped
+                    ? "Cited pages within "
+                    : "Pages cited alongside "}
+                  <strong className="text-foreground">
+                    {result.resolvedTarget}
+                  </strong>
+                  {isUrlScoped ? "." : " in AI answers."} Prompt examples come
+                  from the fetched sample.
+                </>
+              ) : (
+                <>
+                  Fetched sample of prompts whose AI answer cited{" "}
+                  {isUrlScoped ? "a page within " : null}
+                  <strong className="text-foreground">
+                    {result.resolvedTarget}
+                  </strong>
+                  {isUrlScoped ? "." : " in its text or sources."}
+                </>
+              )}
+            </p>
+            {captionPlatform ? (
+              <span className="inline-flex shrink-0 items-center gap-1.5 text-xs">
+                <span
+                  className={`size-1.5 rounded-full ${PLATFORM_DOT_CLASS[captionPlatform]}`}
+                />
+                {formatPlatformLabel(captionPlatform)}
+              </span>
+            ) : null}
+          </div>
+        }
+      >
+        <TabsTrigger value="queries">Queries</TabsTrigger>
+        <TabsTrigger value="pages">Cited sources</TabsTrigger>
+      </DataTableTabs>
       <DataTableToolbar
         actions={
           <ExportMenu
@@ -178,7 +223,7 @@ export function CitationTabsCard({
   // The provider only returns the domain's top cited pages, so a URL scope can
   // filter every sampled row away without meaning zero citations exist for
   // that section.
-  const table = pagesActive ? (
+  return pagesActive ? (
     <DataTable
       table={pagesTable}
       empty={{
@@ -204,55 +249,5 @@ export function CitationTabsCard({
       }}
       {...tableProps}
     />
-  );
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) =>
-            setActiveTab(value === "pages" ? "pages" : "queries")
-          }
-        >
-          <TabsList variant="line">
-            <TabsTrigger value="queries">Queries</TabsTrigger>
-            <TabsTrigger value="pages">Cited sources</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          <p className="min-w-0 break-words">
-            {pagesActive ? (
-              <>
-                {isUrlScoped ? "Cited pages within " : "Pages cited alongside "}
-                <strong className="text-foreground">
-                  {result.resolvedTarget}
-                </strong>
-                {isUrlScoped ? "." : " in AI answers."} Prompt examples come
-                from the fetched sample.
-              </>
-            ) : (
-              <>
-                Fetched sample of prompts whose AI answer cited{" "}
-                {isUrlScoped ? "a page within " : null}
-                <strong className="text-foreground">
-                  {result.resolvedTarget}
-                </strong>
-                {isUrlScoped ? "." : " in its text or sources."}
-              </>
-            )}
-          </p>
-          {captionPlatform ? (
-            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs">
-              <span
-                className={`size-1.5 rounded-full ${PLATFORM_DOT_CLASS[captionPlatform]}`}
-              />
-              {formatPlatformLabel(captionPlatform)}
-            </span>
-          ) : null}
-        </div>
-      </div>
-      {table}
-    </div>
   );
 }

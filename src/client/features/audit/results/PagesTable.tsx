@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   createColumnHelper,
   type ColumnDef,
@@ -185,10 +185,12 @@ export function PagesTable({
   pages,
   startUrl,
   issues,
+  tabs,
 }: {
   pages: AuditResultsData["pages"];
   startUrl: string;
   issues: AuditResultsData["issues"];
+  tabs: ReactNode;
 }) {
   const [filters, setFilters] = useState<PagesFilters>(EMPTY_PAGES_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -233,6 +235,7 @@ export function PagesTable({
       onClearFilters={resetFilters}
       toolbar={
         <>
+          {tabs}
           <ResultsTableToolbar
             showFilters={showFilters}
             onToggle={() => setShowFilters((current) => !current)}

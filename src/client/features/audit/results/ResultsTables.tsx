@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   createColumnHelper,
   type ColumnDef,
@@ -36,11 +36,13 @@ export function PerformanceTable({
   projectId,
   lighthouse,
   pages,
+  tabs,
 }: {
   auditId: string;
   projectId: string;
   lighthouse: AuditResultsData["lighthouse"];
   pages: AuditResultsData["pages"];
+  tabs: ReactNode;
 }) {
   const [filters, setFilters] = useState<PerformanceFilters>(
     EMPTY_PERFORMANCE_FILTERS,
@@ -92,6 +94,7 @@ export function PerformanceTable({
       onClearFilters={resetFilters}
       toolbar={
         <>
+          {tabs}
           <ResultsTableToolbar
             showFilters={showFilters}
             onToggle={() => setShowFilters((current) => !current)}

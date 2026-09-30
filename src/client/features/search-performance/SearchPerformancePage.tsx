@@ -12,7 +12,8 @@ import { ExportMenu } from "@/client/components/ExportMenu";
 import { Badge } from "@/client/components/ui/badge";
 import { Button } from "@/client/components/ui/button";
 import { Spinner } from "@/client/components/ui/spinner";
-import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
+import { DataTableTabs } from "@/client/components/table/DataTableToolbar";
+import { TabsTrigger } from "@/client/components/ui/tabs";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { DimensionSection } from "@/client/features/search-performance/SearchPerformanceDimensionSection";
 import { SearchPerformanceSelects } from "@/client/features/search-performance/SearchPerformanceSelects";
@@ -254,33 +255,33 @@ export function SearchPerformancePage({
             ) : (
               <TotalsCards report={report} />
             )}
-            <Tabs
-              value={tab}
-              onValueChange={(value) => {
-                const nextTab = SEARCH_PERFORMANCE_TABS.find(
-                  (item) => item === value,
-                );
-                if (nextTab) onSearchChange({ tab: nextTab, page: undefined });
-              }}
-              className="overflow-hidden rounded-xl border border-border bg-card gap-0"
-            >
-              <div className="flex flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-                <TabsList variant="line">
-                  <TabsTrigger value="striking">
-                    {reportQuery.isPlaceholderData
-                      ? "Striking distance"
-                      : `Striking distance (${report.strikingDistance.length})`}
-                  </TabsTrigger>
-                  <TabsTrigger value="queries">Queries</TabsTrigger>
-                  <TabsTrigger value="pages">Pages</TabsTrigger>
-                </TabsList>
-                <ExportMenu
-                  actions={["sheets", "csv"]}
-                  onExport={(target) => void handleExport(target)}
-                  busy={isExporting}
-                  disabled={reportQuery.isPlaceholderData}
-                />
-              </div>
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              <DataTableTabs
+                value={tab}
+                onValueChange={(value) => {
+                  const nextTab = SEARCH_PERFORMANCE_TABS.find(
+                    (item) => item === value,
+                  );
+                  if (nextTab)
+                    onSearchChange({ tab: nextTab, page: undefined });
+                }}
+                actions={
+                  <ExportMenu
+                    actions={["sheets", "csv"]}
+                    onExport={(target) => void handleExport(target)}
+                    busy={isExporting}
+                    disabled={reportQuery.isPlaceholderData}
+                  />
+                }
+              >
+                <TabsTrigger value="striking">
+                  {reportQuery.isPlaceholderData
+                    ? "Striking distance"
+                    : `Striking distance (${report.strikingDistance.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="queries">Queries</TabsTrigger>
+                <TabsTrigger value="pages">Pages</TabsTrigger>
+              </DataTableTabs>
               <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2">
                 <Button
                   type="button"
@@ -344,7 +345,7 @@ export function SearchPerformancePage({
                   onClearFilters={resetFilters}
                 />
               )}
-            </Tabs>
+            </div>
           </>
         )}
       </div>

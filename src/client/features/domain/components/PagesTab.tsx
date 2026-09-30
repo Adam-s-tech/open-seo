@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
 import { DomainPageLink } from "@/client/features/domain/components/DomainPageLink";
@@ -60,6 +60,8 @@ type Props = {
   hostname: string;
   scope: ResearchScope;
   routeState: DomainOverviewRouteState;
+  /** The Top Keywords / Top Pages tabs, shown at the top of the table card. */
+  tabs: ReactNode;
   setSearchParams: (updates: SearchUpdate) => void;
   onSortClick: (sort: DomainSortMode) => void;
   onPageChange: (nextPage: number) => void;
@@ -72,6 +74,7 @@ export function PagesTab({
   hostname,
   scope,
   routeState,
+  tabs,
   setSearchParams,
   onSortClick,
   onPageChange,
@@ -180,29 +183,32 @@ export function PagesTab({
         ) : null
       }
       toolbar={
-        <DomainTableToolbar
-          overBudgetLimit={filtersOverBudget ? maxConditions : null}
-          showFilters={showFilters}
-          onToggleFilters={() => setShowFilters((prev) => !prev)}
-          activeFilterCount={activeFilterCount}
-          countLabel="pages"
-          totalCount={totalCount}
-          fallbackCount={rows.length}
-          onExport={exportAll}
-          filterPanel={
-            <DomainFilterPanel
-              activeFilterCount={activeFilterCount}
-              appliedFilters={restoredFilters}
-              fields={PAGE_FILTER_FIELDS}
-              textFields={PAGE_TEXT_FILTERS}
-              rangeFields={PAGE_RANGE_FILTERS}
-              countConditions={countPageFilterConditions}
-              maxConditions={maxConditions}
-              onApply={applyFilters}
-              onClear={resetFilters}
-            />
-          }
-        />
+        <>
+          {tabs}
+          <DomainTableToolbar
+            overBudgetLimit={filtersOverBudget ? maxConditions : null}
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters((prev) => !prev)}
+            activeFilterCount={activeFilterCount}
+            countLabel="pages"
+            totalCount={totalCount}
+            fallbackCount={rows.length}
+            onExport={exportAll}
+            filterPanel={
+              <DomainFilterPanel
+                activeFilterCount={activeFilterCount}
+                appliedFilters={restoredFilters}
+                fields={PAGE_FILTER_FIELDS}
+                textFields={PAGE_TEXT_FILTERS}
+                rangeFields={PAGE_RANGE_FILTERS}
+                countConditions={countPageFilterConditions}
+                maxConditions={maxConditions}
+                onApply={applyFilters}
+                onClear={resetFilters}
+              />
+            }
+          />
+        </>
       }
       footer={
         <TablePagination

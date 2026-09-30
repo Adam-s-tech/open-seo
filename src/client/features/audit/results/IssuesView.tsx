@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { sort } from "remeda";
 import {
@@ -73,7 +73,13 @@ function groupIssues(issues: AuditIssueRow[]): IssueGroup[] {
   );
 }
 
-export function IssuesView({ issues }: { issues: AuditIssueRow[] }) {
+export function IssuesView({
+  issues,
+  tabs,
+}: {
+  issues: AuditIssueRow[];
+  tabs: ReactNode;
+}) {
   const groups = useMemo(() => groupIssues(issues), [issues]);
 
   const sections = useMemo(
@@ -87,20 +93,22 @@ export function IssuesView({ issues }: { issues: AuditIssueRow[] }) {
     [groups],
   );
 
-  if (issues.length === 0) {
-    return (
-      <EmptyState
-        title="No issues recorded for this audit."
-        description="Either the site is in great shape, or this audit ran before issue checks existed — run a new audit to get the full report."
-      />
-    );
-  }
-
   return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
-      {sections.map((section) => (
-        <IssueSection key={section.severity} section={section} />
-      ))}
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      {tabs}
+      {issues.length === 0 ? (
+        <EmptyState
+          variant="plain"
+          title="No issues recorded for this audit."
+          description="Either the site is in great shape, or this audit ran before issue checks existed — run a new audit to get the full report."
+        />
+      ) : (
+        <div>
+          {sections.map((section) => (
+            <IssueSection key={section.severity} section={section} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

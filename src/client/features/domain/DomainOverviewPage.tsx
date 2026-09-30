@@ -5,12 +5,8 @@ import { Globe, Info } from "lucide-react";
 import { PageHeader } from "@/client/components/PageHeader";
 import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { Badge } from "@/client/components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/client/components/ui/tabs";
+import { DataTableTabs } from "@/client/components/table/DataTableToolbar";
+import { TabsTrigger } from "@/client/components/ui/tabs";
 import {
   DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE,
   type DomainSearchParams,
@@ -517,6 +513,18 @@ export function DomainOverviewPage({
       ? "Whole domain incl. subdomains"
       : undefined;
 
+  const tabs = (
+    <DataTableTabs
+      value={routeState.tab}
+      onValueChange={(value) =>
+        state.handleTabChange(value === "pages" ? "pages" : "keywords")
+      }
+    >
+      <TabsTrigger value="keywords">Top Keywords</TabsTrigger>
+      <TabsTrigger value="pages">Top Pages</TabsTrigger>
+    </DataTableTabs>
+  );
+
   // The error stays until the query for this search succeeds; editing the
   // form doesn't clear it.
   const overviewError = state.overviewQuery.isError ? (
@@ -645,44 +653,34 @@ export function DomainOverviewPage({
               </Alert>
             ) : null}
 
-            <Tabs
-              value={routeState.tab}
-              onValueChange={(value) =>
-                state.handleTabChange(value === "pages" ? "pages" : "keywords")
-              }
-            >
-              <TabsList variant="line">
-                <TabsTrigger value="keywords">Top Keywords</TabsTrigger>
-                <TabsTrigger value="pages">Top Pages</TabsTrigger>
-              </TabsList>
-              <TabsContent value="keywords">
-                <KeywordsTab
-                  projectId={projectId}
-                  target={state.overview.displayTarget}
-                  hostname={state.overview.domain}
-                  scope={state.overview.scope}
-                  routeState={routeState}
-                  canSaveKeywords={state.canSaveKeywords}
-                  setSearchParams={state.setSearchParams}
-                  onSortClick={state.handleSortColumnClick}
-                  onPageChange={state.goToPage}
-                  onPageSizeChange={state.setPageSize}
-                />
-              </TabsContent>
-              <TabsContent value="pages">
-                <PagesTab
-                  projectId={projectId}
-                  target={state.overview.displayTarget}
-                  hostname={state.overview.domain}
-                  scope={state.overview.scope}
-                  routeState={routeState}
-                  setSearchParams={state.setSearchParams}
-                  onSortClick={state.handleSortColumnClick}
-                  onPageChange={state.goToPage}
-                  onPageSizeChange={state.setPageSize}
-                />
-              </TabsContent>
-            </Tabs>
+            {routeState.tab === "pages" ? (
+              <PagesTab
+                projectId={projectId}
+                target={state.overview.displayTarget}
+                hostname={state.overview.domain}
+                scope={state.overview.scope}
+                routeState={routeState}
+                tabs={tabs}
+                setSearchParams={state.setSearchParams}
+                onSortClick={state.handleSortColumnClick}
+                onPageChange={state.goToPage}
+                onPageSizeChange={state.setPageSize}
+              />
+            ) : (
+              <KeywordsTab
+                projectId={projectId}
+                target={state.overview.displayTarget}
+                hostname={state.overview.domain}
+                scope={state.overview.scope}
+                routeState={routeState}
+                tabs={tabs}
+                canSaveKeywords={state.canSaveKeywords}
+                setSearchParams={state.setSearchParams}
+                onSortClick={state.handleSortColumnClick}
+                onPageChange={state.goToPage}
+                onPageSizeChange={state.setPageSize}
+              />
+            )}
           </>
         )}
       </div>

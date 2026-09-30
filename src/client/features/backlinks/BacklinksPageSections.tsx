@@ -28,9 +28,10 @@ import { SegmentedToggle } from "@/client/components/SegmentedToggle";
 import type { DataTableFrameProps } from "@/client/components/table/DataTable";
 import {
   DataTableFilterToggle,
+  DataTableTabs,
   DataTableToolbar,
 } from "@/client/components/table/DataTableToolbar";
-import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
+import { TabsTrigger } from "@/client/components/ui/tabs";
 import { exportRows } from "@/client/lib/exportRows";
 
 const BACKLINKS_RESULTS_TABS: Array<{
@@ -143,6 +144,25 @@ export function BacklinksResultsCard({
     ) : null,
     toolbar: (
       <>
+        <DataTableTabs
+          value={activeTab}
+          onValueChange={(value) => {
+            const next = BACKLINKS_RESULTS_TABS.find(
+              (item) => item.tab === value,
+            );
+            if (next) onTabChange(next.tab);
+          }}
+          description={TAB_DESCRIPTIONS[activeTab]}
+        >
+          {BACKLINKS_RESULTS_TABS.filter(
+            // Referring domains can't be filtered to a path prefix.
+            ({ tab }) => !(scope === "subfolder" && tab === "domains"),
+          ).map(({ label, tab }) => (
+            <TabsTrigger key={tab} value={tab}>
+              {label}
+            </TabsTrigger>
+          ))}
+        </DataTableTabs>
         <DataTableToolbar
           actions={
             <>
@@ -231,33 +251,7 @@ export function BacklinksResultsCard({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            const next = BACKLINKS_RESULTS_TABS.find(
-              (item) => item.tab === value,
-            );
-            if (next) onTabChange(next.tab);
-          }}
-        >
-          <TabsList variant="line">
-            {BACKLINKS_RESULTS_TABS.filter(
-              // Referring domains can't be filtered to a path prefix.
-              ({ tab }) => !(scope === "subfolder" && tab === "domains"),
-            ).map(({ label, tab }) => (
-              <TabsTrigger key={tab} value={tab}>
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <p className="max-w-xl text-sm text-muted-foreground">
-          {TAB_DESCRIPTIONS[activeTab]}
-        </p>
-      </div>
-
+    <>
       {/* A filter budget error hides the rows: the query never ran for the
           current filters. */}
       {activeTab === "backlinks" ? (
@@ -287,7 +281,7 @@ export function BacklinksResultsCard({
           {...frame}
         />
       ) : null}
-    </div>
+    </>
   );
 }
 

@@ -26,7 +26,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/client/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger } from "@/client/components/ui/tabs";
+import { DataTableTabs } from "@/client/components/table/DataTableToolbar";
+import { TabsTrigger } from "@/client/components/ui/tabs";
 
 type ResultsTab = "issues" | "pages" | "performance";
 
@@ -63,6 +64,28 @@ export function ResultsView({
   const shopifyLimited =
     audit.config.sitePlatform === "shopify" &&
     (blockedCount > 0 || rateLimitedCount > 0 || crawlStopped);
+
+  const tabs = (
+    <ResultsHeader
+      issueCount={issues.length}
+      pageCount={pages.length}
+      lighthouseCount={lighthouse.length}
+      hasPerformanceTab={hasPerformanceTab}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      onExport={(format) => {
+        if (activeTab === "performance") {
+          exportPerformance(lighthouse, pages, format);
+          return;
+        }
+        if (activeTab === "issues") {
+          exportIssues(issues, format);
+          return;
+        }
+        exportPages(pages, format);
+      }}
+    />
+  );
 
   return (
     <>
@@ -110,40 +133,24 @@ export function ResultsView({
         lighthouseSummary={stats.lighthouseSummary}
       />
 
-      <div className="space-y-3">
-        <ResultsHeader
-          issueCount={issues.length}
-          pageCount={pages.length}
-          lighthouseCount={lighthouse.length}
-          hasPerformanceTab={hasPerformanceTab}
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-          onExport={(format) => {
-            if (activeTab === "performance") {
-              exportPerformance(lighthouse, pages, format);
-              return;
-            }
-            if (activeTab === "issues") {
-              exportIssues(issues, format);
-              return;
-            }
-            exportPages(pages, format);
-          }}
+      {activeTab === "issues" && <IssuesView issues={issues} tabs={tabs} />}
+      {activeTab === "pages" && (
+        <PagesTable
+          pages={pages}
+          startUrl={audit.startUrl}
+          issues={issues}
+          tabs={tabs}
         />
-
-        {activeTab === "issues" && <IssuesView issues={issues} />}
-        {activeTab === "pages" && (
-          <PagesTable pages={pages} startUrl={audit.startUrl} issues={issues} />
-        )}
-        {activeTab === "performance" && lighthouse.length > 0 && (
-          <PerformanceTable
-            auditId={audit.id}
-            projectId={projectId}
-            lighthouse={lighthouse}
-            pages={pages}
-          />
-        )}
-      </div>
+      )}
+      {activeTab === "performance" && (
+        <PerformanceTable
+          auditId={audit.id}
+          projectId={projectId}
+          lighthouse={lighthouse}
+          pages={pages}
+          tabs={tabs}
+        />
+      )}
     </>
   );
 }
@@ -223,22 +230,22 @@ function ResultsHeader({
   ];
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <Tabs
-        value={activeTab}
-        onValueChange={(value: ResultsTab) => onTabChange(value)}
-      >
-        <TabsList variant="line">
-          {tabs.map(({ label, tab }) => (
-            <TabsTrigger key={tab} value={tab}>
-              {label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      <ExportMenu actions={["sheets", "csv", "json"]} onExport={onExport} />
-    </div>
+    <DataTableTabs
+      value={activeTab}
+      onValueChange={(value) => {
+        const next = tabs.find((item) => item.tab === value);
+        if (next) onTabChange(next.tab);
+      }}
+      actions={
+        <ExportMenu actions={["sheets", "csv", "json"]} onExport={onExport} />
+      }
+    >
+      {tabs.map(({ label, tab }) => (
+        <TabsTrigger key={tab} value={tab}>
+          {label}
+        </TabsTrigger>
+      ))}
+    </DataTableTabs>
   );
 }
 
