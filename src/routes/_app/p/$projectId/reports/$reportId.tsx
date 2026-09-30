@@ -109,7 +109,7 @@ function ReportDetailPage() {
     reportQuery.isError && getErrorCode(reportQuery.error) === "NOT_FOUND";
   if (notFound || reportQuery.data === undefined) {
     return (
-      <div className="px-4 py-6 md:px-6">
+      <div className="px-4 py-4 md:px-6 md:py-6">
         <div className="mx-auto max-w-7xl space-y-4">
           <BackLink to="/p/$projectId/reports" params={{ projectId }}>
             Reports

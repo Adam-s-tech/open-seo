@@ -60,7 +60,7 @@ export const backlinksOverviewInputSchema = backlinksLookupSchema.extend({
 /* ------------------------------------------------------------------ */
 
 export const BACKLINKS_PAGE_SIZES = [50, 100, 200] as const;
-export const DEFAULT_BACKLINKS_PAGE_SIZE = 100;
+export const DEFAULT_BACKLINKS_PAGE_SIZE = 50;
 
 const optionalNumber = z
   .union([

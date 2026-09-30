@@ -67,7 +67,7 @@ export const domainKeywordSuggestionsSchema = z.object({
 });
 
 export const DOMAIN_KEYWORDS_PAGE_SIZES = [50, 100, 200] as const;
-export const DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE = 100;
+export const DEFAULT_DOMAIN_KEYWORDS_PAGE_SIZE = 50;
 export const MAX_DATAFORSEO_FILTER_CONDITIONS = 8;
 
 const optionalNumber = z

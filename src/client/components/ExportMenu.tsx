@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import {
+  ChevronDown,
   Copy,
   Download,
   FileDown,
@@ -80,6 +81,7 @@ export function ExportMenu<A extends ExportAction>({
       >
         {busy ? null : <Download data-icon="inline-start" />}
         Export
+        <ChevronDown data-icon="inline-end" className="opacity-60" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         {scopes

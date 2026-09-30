@@ -82,7 +82,7 @@ export function AuditDetail({
 
   if (statusQuery.isError) {
     return (
-      <div className="px-4 py-6 md:px-6">
+      <div className="px-4 py-4 md:px-6 md:py-6">
         <div className="mx-auto max-w-7xl space-y-4">
           <QueryError
             fallback="We could not load this audit. It may have been deleted."

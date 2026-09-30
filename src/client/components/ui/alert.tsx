@@ -17,7 +17,7 @@ const alertVariants = cva(
       },
       /** A full-width strip with no side borders, for notices above the page content. */
       banner: {
-        true: "rounded-none border-x-0 border-t-0 px-4 py-2.5 md:px-6",
+        true: "rounded-none border-x-0 border-t-0 px-4 py-3.5 md:px-6",
       },
     },
     defaultVariants: {
