@@ -43,9 +43,9 @@ import {
   fetchLlmResponse,
   fetchLlmTopPages,
   LLM_RESPONSE_WEB_SEARCH_DEFAULT,
-  type LlmResponseModelSlug,
   resolveLlmMentionsLimit,
 } from "@/server/lib/dataforseo/ai";
+import type { LlmResponseModelSlug } from "@/server/lib/dataforseo/llm-models";
 import {
   costPerSerpAtDepth,
   serpKeywordCostMultiplier,

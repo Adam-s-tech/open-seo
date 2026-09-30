@@ -57,7 +57,7 @@ function ModelResultCard({
           model={modelResult.model}
           modelName={null}
           tokens={null}
-          webSearch={false}
+          webSearch={null}
           brandMentioned={null}
           highlightBrand={null}
           status="error"
@@ -171,7 +171,8 @@ function ModelHeader({
   model: PromptExplorerModelResult["model"];
   modelName: string | null;
   tokens: number | null;
-  webSearch: boolean;
+  /** null = not applicable (error card): render neither web-search state. */
+  webSearch: boolean | null;
   brandMentioned: boolean | null;
   highlightBrand: string | null;
   status: "success" | "error";
@@ -194,6 +195,13 @@ function ModelHeader({
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Globe className="size-3" />
             web search
+          </span>
+        ) : webSearch === false ? (
+          // The model chose not to browse for this answer — that's why there
+          // are no cited sources on this card.
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Globe className="size-3" />
+            no web search
           </span>
         ) : null}
       </div>

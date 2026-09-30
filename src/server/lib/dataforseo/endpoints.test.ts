@@ -4,6 +4,14 @@ vi.mock("@/server/lib/runtime-env", () => ({
   getRequiredEnvValue: vi.fn(async () => "test-api-key"),
 }));
 
+// Skip the live model-catalog fetch (covered in llm-models.test.ts); the
+// unknown "claude-sonnet-4-0" keeps the reject-before-dispatch test honest.
+vi.mock("@/server/lib/dataforseo/llm-models", () => ({
+  isKnownLlmModelName: vi.fn(
+    async (_slug: string, name: string) => name !== "claude-sonnet-4-0",
+  ),
+}));
+
 import { fetchQuestionsAnswers } from "@/server/lib/dataforseo/business";
 import {
   fetchLlmCrossAggregatedMetrics,
@@ -150,7 +158,7 @@ describe("DataForSEO SDK-backed endpoints", () => {
     ]);
   });
 
-  it("preserves web_search for Perplexity LLM responses", async () => {
+  it("drops the search country when web search is off — DataForSEO rejects it", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       Response.json({
         status_code: 20000,
@@ -202,6 +210,53 @@ describe("DataForSEO SDK-backed endpoints", () => {
         user_prompt: "What is OpenSEO?",
         model_name: "sonar",
         web_search: false,
+        max_output_tokens: 1024,
+      },
+    ]);
+  });
+});
+
+const okLlmResponse = () =>
+  Response.json({
+    status_code: 20000,
+    tasks: [{ status_code: 20000, path: ["v3"], cost: 0.001, result: [{}] }],
+  });
+
+describe("fetchLlmResponse force_web_search", () => {
+  it("sends it only for Claude — ChatGPT rejects it with a 40501 Invalid Field", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(okLlmResponse())
+      .mockResolvedValueOnce(okLlmResponse());
+    vi.stubGlobal("fetch", fetchMock);
+
+    const base = { userPrompt: "What is OpenSEO?", webSearch: true } as const;
+    const claude = {
+      modelSlug: "claude",
+      modelName: "claude-sonnet-4-6",
+    } as const;
+    const chatGpt = {
+      modelSlug: "chat_gpt",
+      modelName: "gpt-5",
+      webSearchCountryCode: "US",
+    } as const;
+    await fetchLlmResponse({ ...base, ...claude });
+    await fetchLlmResponse({ ...base, ...chatGpt });
+
+    expect(parseDataforseoRequestBody(fetchMock.mock.calls[0]?.[1])).toEqual([
+      {
+        user_prompt: "What is OpenSEO?",
+        model_name: "claude-sonnet-4-6",
+        web_search: true,
+        force_web_search: true,
+        max_output_tokens: 1024,
+      },
+    ]);
+    expect(parseDataforseoRequestBody(fetchMock.mock.calls[1]?.[1])).toEqual([
+      {
+        user_prompt: "What is OpenSEO?",
+        model_name: "gpt-5",
+        web_search: true,
         max_output_tokens: 1024,
         web_search_country_iso_code: "US",
       },
