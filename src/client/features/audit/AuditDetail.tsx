@@ -83,7 +83,7 @@ export function AuditDetail({
   if (statusQuery.isError) {
     return (
       <div className="px-4 py-6 md:px-6">
-        <div className="mx-auto max-w-3xl space-y-4">
+        <div className="mx-auto max-w-7xl space-y-4">
           <QueryError
             fallback="We could not load this audit. It may have been deleted."
             onRetry={() => void statusQuery.refetch()}
@@ -113,7 +113,7 @@ export function AuditDetail({
 
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
-      <div className="mx-auto max-w-5xl space-y-4">
+      <div className="mx-auto max-w-7xl space-y-4">
         <div className="space-y-1">
           <Button
             variant="ghost"

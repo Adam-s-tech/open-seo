@@ -74,15 +74,14 @@ export function DashboardPage({ projectId }: { projectId: string }) {
   // with the error in place of the audit and backlink cards.
   if (!activation || overviewQuery.isPending) {
     return (
-      <div
-        className="mx-auto flex max-w-5xl flex-col gap-5 px-4 py-4 md:px-6 md:py-6"
-        aria-busy
-      >
-        <Skeleton className="h-8 w-52" />
-        <Skeleton className="h-36" />
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Skeleton className="h-44" />
-          <Skeleton className="h-44" />
+      <div className="px-4 py-4 md:px-6 md:py-6" aria-busy>
+        <div className="mx-auto flex max-w-7xl flex-col gap-5">
+          <Skeleton className="h-8 w-52" />
+          <Skeleton className="h-36" />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Skeleton className="h-44" />
+            <Skeleton className="h-44" />
+          </div>
         </div>
       </div>
     );
@@ -139,7 +138,7 @@ export function DashboardPage({ projectId }: { projectId: string }) {
 
   return (
     <div className="px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-5">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
 
         <WorkspaceMergeBanner />

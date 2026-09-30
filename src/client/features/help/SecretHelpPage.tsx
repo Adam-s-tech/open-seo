@@ -48,8 +48,8 @@ export function SecretHelpPage({
   terminalPromptHint: ReactNode;
 }) {
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 pt-8 pb-24 sm:px-6 md:pt-12 md:pb-12">
+    <div className="h-full overflow-auto px-4 pt-8 pb-24 md:px-6 md:pt-12 md:pb-12">
+      <div className="mx-auto max-w-7xl space-y-4">
         <PageHeader title={title} description={intro} />
 
         <Card>

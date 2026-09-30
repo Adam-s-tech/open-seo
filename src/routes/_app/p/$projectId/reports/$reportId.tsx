@@ -110,7 +110,7 @@ function ReportDetailPage() {
   if (notFound || reportQuery.data === undefined) {
     return (
       <div className="px-4 py-6 md:px-6">
-        <div className="mx-auto max-w-3xl space-y-4">
+        <div className="mx-auto max-w-7xl space-y-4">
           <BackLink to="/p/$projectId/reports" params={{ projectId }}>
             Reports
           </BackLink>
@@ -157,8 +157,10 @@ function ReportDetailPage() {
     );
   }
 
+  // The max width includes the padding here, so it adds the padding back to
+  // keep the content as wide as the other pages (max-w-7xl).
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 px-4 py-4 md:px-6 md:py-6">
+    <div className="mx-auto flex h-full min-h-0 max-w-[calc(var(--container-7xl)+2rem)] flex-col gap-3 px-4 py-4 md:max-w-[calc(var(--container-7xl)+3rem)] md:px-6 md:py-6">
       {reportQuery.isError ? <QueryError {...loadError} /> : null}
       <div className="space-y-3">
         <BackLink to="/p/$projectId/reports" params={{ projectId }}>

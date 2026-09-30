@@ -97,7 +97,7 @@ function BillingPage() {
 
   if (billingRouteState === "error") {
     return (
-      <div className="mx-auto w-full max-w-2xl space-y-4 p-4 py-10 md:p-6 md:py-12">
+      <div className="mx-auto box-content max-w-7xl space-y-4 px-4 py-10 md:px-6 md:py-12">
         <PageHeader title="Billing unavailable" />
         <QueryError
           error={customerQuery.error}
@@ -156,7 +156,7 @@ function BillingPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 p-4 py-10 md:p-6 md:py-12">
+    <div className="mx-auto box-content max-w-7xl space-y-5 px-4 py-10 md:px-6 md:py-12">
       <PageHeader title="Billing" />
 
       {customerQuery.isError ? (

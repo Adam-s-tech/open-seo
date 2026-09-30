@@ -73,7 +73,7 @@ function AiPage() {
 
   return (
     <div className="h-full overflow-auto px-4 py-12 md:px-6 md:py-16 pb-24 md:pb-12">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-7xl">
         <PageHeader
           title="Agent setup"
           description="The most powerful way to use OpenSEO is through the AI agent you already use. Set it up once, then ask it anything."
