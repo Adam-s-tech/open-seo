@@ -7,10 +7,8 @@ import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { ResearchPageShell } from "@/client/features/ai-search/ResearchPageShell";
 import { BrandLookupResults } from "@/client/features/ai-search/components/BrandLookupResults";
 import { BrandLookupSearchCard } from "@/client/features/ai-search/components/BrandLookupSearchCard";
-import {
-  RecentSearches,
-  RecentSearchesBackLink,
-} from "@/client/components/RecentSearches";
+import { RecentSearches } from "@/client/components/RecentSearches";
+import { BackLink } from "@/client/components/PageHeader";
 import { Badge } from "@/client/components/ui/badge";
 import { useBrandLookupSearchHistory } from "@/client/hooks/useBrandLookupSearchHistory";
 import {
@@ -257,18 +255,15 @@ export function BrandLookupPage({
         })
       }
       backLink={
-        <RecentSearchesBackLink
-          render={(props) => (
-            <Link
-              from="/p/$projectId/brand-lookup"
-              to="/p/$projectId/brand-lookup"
-              params={{ projectId }}
-              search={{ q: undefined, c: undefined, scope: undefined }}
-              replace
-              {...props}
-            />
-          )}
-        />
+        <BackLink
+          from="/p/$projectId/brand-lookup"
+          to="/p/$projectId/brand-lookup"
+          params={{ projectId }}
+          search={{ q: undefined, c: undefined, scope: undefined }}
+          replace
+        >
+          Recent searches
+        </BackLink>
       }
       renderResults={(result) => (
         <BrandLookupResults result={result} projectId={projectId} />

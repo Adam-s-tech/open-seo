@@ -1,13 +1,7 @@
 import { Info, TriangleAlert } from "lucide-react";
 import { Alert, AlertTitle } from "@/client/components/ui/alert";
 import { Badge } from "@/client/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/client/components/ui/card";
+import { Card } from "@/client/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -82,16 +76,19 @@ export function BrandLookupResults({ result, projectId }: Props) {
   const sov = result.shareOfVoice;
 
   return (
-    <div className="space-y-4">
+    <Card className="gap-0 py-0">
       <BrandHeader result={result} />
 
-      {/* One shared grid so the cards align by construction: stats left, trend
-          right, Share of Voice flowing into the next free half-width cell —
-          whichever of trend/SoV is absent, the rest stay column-aligned. A
-          lone stats card keeps full width instead of half a grid. */}
+      {/* One shared grid so the panels align by construction: stats left,
+          trend right, Share of Voice flowing into the next free half-width
+          cell — whichever of trend/SoV is absent, the rest stay
+          column-aligned. A lone stats panel keeps full width instead of half a
+          grid. */}
       <div
         className={
-          hasTrendData || sov ? "grid gap-4 lg:grid-cols-2" : undefined
+          hasTrendData || sov
+            ? "grid gap-3 px-4 pb-4 lg:grid-cols-2"
+            : "px-4 pb-4"
         }
       >
         <StatsCard result={result} />
@@ -104,23 +101,23 @@ export function BrandLookupResults({ result, projectId }: Props) {
         ) : null}
       </div>
 
-      <CitationTabsCard result={result} projectId={projectId} />
-    </div>
+      <div className="px-4 pb-4">
+        <CitationTabsCard result={result} projectId={projectId} />
+      </div>
+    </Card>
   );
 }
 
 function BrandHeader({ result }: { result: BrandLookupResult }) {
   return (
-    <section className="flex flex-wrap items-baseline justify-between gap-2">
-      <div className="flex flex-wrap items-baseline gap-3">
-        <h2 className="text-3xl font-semibold tracking-tight">
+    <section className="px-4 pt-4 pb-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-lg font-semibold break-all">
           {result.resolvedTarget}
         </h2>
         <Badge variant="secondary">{result.detectedTargetType}</Badge>
         {result.scope ? (
-          <Badge variant="secondary">
-            {RESEARCH_SCOPE_LABELS[result.scope]}
-          </Badge>
+          <Badge variant="outline">{RESEARCH_SCOPE_LABELS[result.scope]}</Badge>
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground">
@@ -132,7 +129,7 @@ function BrandHeader({ result }: { result: BrandLookupResult }) {
 
 function StatsCard({ result }: { result: BrandLookupResult }) {
   return (
-    <Card className="py-0">
+    <div className="rounded-lg border border-border">
       <div className="flex h-full flex-col divide-y divide-border">
         <StatBlock
           label="Mentions"
@@ -151,7 +148,7 @@ function StatsCard({ result }: { result: BrandLookupResult }) {
           isDomainLevel={result.aggregatesAreDomainLevel}
         />
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -221,21 +218,17 @@ function PlatformStatRow({
 
 function MentionTrendCard({ result }: { result: BrandLookupResult }) {
   return (
-    <Card>
-      <CardHeader className="border-b">
-        <CardTitle>
-          <h3 className="text-sm">Mention trend (last 12 months)</h3>
-        </CardTitle>
+    <div className="rounded-lg border border-border">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <h3 className="text-sm font-medium">Mention trend (last 12 months)</h3>
         {result.aggregatesAreDomainLevel ? (
-          <CardAction>
-            <DomainLevelBadge tooltip={DOMAIN_LEVEL_TIP} />
-          </CardAction>
+          <DomainLevelBadge tooltip={DOMAIN_LEVEL_TIP} />
         ) : null}
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-4">
         <BrandLookupMentionTrendCard result={result} />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

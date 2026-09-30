@@ -5,8 +5,7 @@ import { cn } from "cn";
  *
  * `delta` compares the value with the previous period and shows the percent
  * change. It shows nothing when either side is missing or the previous value
- * is zero. `card` draws the tile as its own bordered box; without it the tile
- * sits bare inside another card.
+ * is zero.
  */
 export function StatTile({
   label,
@@ -14,7 +13,6 @@ export function StatTile({
   tone,
   delta,
   hint,
-  card = false,
 }: {
   label: string;
   value: string;
@@ -22,16 +20,10 @@ export function StatTile({
   tone?: "success" | "destructive";
   delta?: { current: number | null; previous: number | null };
   hint?: string;
-  card?: boolean;
 }) {
   const percent = delta ? percentChange(delta.current, delta.previous) : null;
   return (
-    <div
-      className={cn(
-        "flex min-w-0 flex-col gap-1",
-        card && "rounded-xl border border-border bg-card p-4 shadow-sm",
-      )}
-    >
+    <div className="flex min-w-0 flex-col gap-1">
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </p>

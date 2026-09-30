@@ -2,7 +2,10 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Link2 } from "lucide-react";
 import type { OnChangeFn, SortingState } from "@tanstack/react-table";
-import { BacklinksOverviewPanels } from "./BacklinksOverviewPanels";
+import {
+  BacklinksOverviewPanels,
+  BacklinksScopeAlert,
+} from "./BacklinksOverviewPanels";
 import { BacklinksResultsCard } from "./BacklinksPageSections";
 import {
   BacklinksErrorState,
@@ -18,6 +21,7 @@ import type { BacklinksDomainExpansion } from "./useBacklinksDomainExpansion";
 import type { BacklinksFiltersState } from "./useBacklinksFilters";
 import type { BacklinksPageData } from "./useBacklinksPageData";
 import { SearchTabStrip } from "@/client/features/search-tabs/SearchTabStrip";
+import { Card } from "@/client/components/ui/card";
 import { RecentSearches } from "@/client/components/RecentSearches";
 import {
   RESEARCH_SCOPE_LABELS,
@@ -79,7 +83,7 @@ export function BacklinksBody({
     () => buildSummaryStats(overviewData),
     [overviewData],
   );
-  const tabStrip = (
+  const tabControls = (
     <SearchTabStrip
       projectId={projectId}
       activeTabId={searchTabs.activeTabId}
@@ -127,7 +131,7 @@ export function BacklinksBody({
   if (data.overviewQuery.isPending) {
     return (
       <>
-        {tabStrip}
+        {tabControls}
         <BacklinksLoadingState />
       </>
     );
@@ -136,7 +140,7 @@ export function BacklinksBody({
   if (!overviewData) {
     return (
       <>
-        {tabStrip}
+        {tabControls}
         <BacklinksErrorState
           errorMessage={data.overviewErrorMessage}
           onRetry={() => void data.overviewQuery.refetch()}
@@ -148,56 +152,59 @@ export function BacklinksBody({
 
   return (
     <>
-      {tabStrip}
-      <p className="text-xs text-muted-foreground">
-        Overview metrics cover the full target, before table filters.
-      </p>
-      <BacklinksOverviewPanels
-        projectId={projectId}
-        data={overviewData}
-        summaryStats={summaryStats}
-      />
-      <BacklinksResultsCard
-        projectId={projectId}
-        activeTab={searchState.tab}
-        scope={searchState.scope}
-        tabRows={tabRows}
-        filters={filters}
-        sorting={sorting}
-        view={searchState.view}
-        hideSpam={!searchState.includeSpam}
-        onHideSpamChange={onHideSpamChange}
-        domainExpansion={domainExpansion}
-        isTabLoading={
-          data.activeTabQuery.isPending && !data.activeTabFilterError
-        }
-        // A failed refetch keeps the loaded rows; a filter budget error hides
-        // them because the query never ran for the current filters.
-        showTable={activeTabPage !== undefined && !data.activeTabFilterError}
-        tabErrorMessage={data.activeTabErrorMessage}
-        tabError={
-          data.activeTabFilterError ? undefined : data.activeTabQuery.error
-        }
-        onRetryTab={
-          data.activeTabFilterError
-            ? undefined
-            : () => void data.activeTabQuery.refetch()
-        }
-        isTabRetrying={data.activeTabQuery.isFetching}
-        exportTarget={overviewData.displayTarget || searchState.target}
-        pagination={{
-          page: searchState.page,
-          pageSize: searchState.pageSize,
-          totalCount: activeTabPage?.totalCount ?? null,
-          hasNextPage: activeTabPage?.hasMore ?? false,
-          isFetching: data.activeTabQuery.isFetching,
-        }}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-        onSortingChange={onSortingChange}
-        onTabChange={onTabChange}
-        onViewChange={onViewChange}
-      />
+      {tabControls}
+      <BacklinksScopeAlert scope={overviewData.scope} />
+      <Card className="gap-0 py-0">
+        <BacklinksOverviewPanels
+          data={overviewData}
+          summaryStats={summaryStats}
+        />
+        <div className="px-4 pb-4">
+          <BacklinksResultsCard
+            projectId={projectId}
+            activeTab={searchState.tab}
+            scope={searchState.scope}
+            tabRows={tabRows}
+            filters={filters}
+            sorting={sorting}
+            view={searchState.view}
+            hideSpam={!searchState.includeSpam}
+            onHideSpamChange={onHideSpamChange}
+            domainExpansion={domainExpansion}
+            isTabLoading={
+              data.activeTabQuery.isPending && !data.activeTabFilterError
+            }
+            // A failed refetch keeps the loaded rows; a filter budget error hides
+            // them because the query never ran for the current filters.
+            showTable={
+              activeTabPage !== undefined && !data.activeTabFilterError
+            }
+            tabErrorMessage={data.activeTabErrorMessage}
+            tabError={
+              data.activeTabFilterError ? undefined : data.activeTabQuery.error
+            }
+            onRetryTab={
+              data.activeTabFilterError
+                ? undefined
+                : () => void data.activeTabQuery.refetch()
+            }
+            isTabRetrying={data.activeTabQuery.isFetching}
+            exportTarget={overviewData.displayTarget || searchState.target}
+            pagination={{
+              page: searchState.page,
+              pageSize: searchState.pageSize,
+              totalCount: activeTabPage?.totalCount ?? null,
+              hasNextPage: activeTabPage?.hasMore ?? false,
+              isFetching: data.activeTabQuery.isFetching,
+            }}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            onSortingChange={onSortingChange}
+            onTabChange={onTabChange}
+            onViewChange={onViewChange}
+          />
+        </div>
+      </Card>
     </>
   );
 }

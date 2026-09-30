@@ -90,7 +90,11 @@ export function ResearchPageShell<TData>({
   return (
     <div className="overflow-auto px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-7xl space-y-4">
-        <PageHeader title={title} description={description} />
+        <PageHeader
+          title={title}
+          description={description}
+          backLink={resultData && !isLoading ? backLink : undefined}
+        />
 
         {planStatus === "loading" ? (
           <PageLoading />
@@ -145,10 +149,7 @@ export function ResearchPageShell<TData>({
                 </Card>
               </div>
             ) : resultData ? (
-              <>
-                {backLink}
-                {renderResults(resultData)}
-              </>
+              renderResults(resultData)
             ) : !errorMessage ? (
               history
             ) : null}

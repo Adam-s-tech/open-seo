@@ -1,11 +1,5 @@
 import { cn } from "cn";
 import { Badge } from "@/client/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardHeader,
-  CardTitle,
-} from "@/client/components/ui/card";
 import { Progress } from "@/client/components/ui/progress";
 import { DomainLevelBadge } from "@/client/features/ai-search/components/DomainLevelBadge";
 import {
@@ -38,23 +32,23 @@ export function BrandLookupShareOfVoice({
   );
 
   return (
-    <Card className="h-full gap-0 py-0">
-      <CardHeader className="border-b py-3">
-        <CardTitle className="flex items-center gap-2">
-          <h3 className="text-sm">Share of Voice</h3>
+    <div className="flex h-full flex-col rounded-lg border border-border">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium">Share of Voice</h3>
           {isDomainLevel ? (
             <DomainLevelBadge tooltip="Share of Voice compares whole domains — it is not narrowed to the page or folder you searched." />
           ) : null}
-        </CardTitle>
+        </div>
         {target ? (
-          <CardAction className="self-center text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             <span className="font-medium text-foreground">{target.label}</span>{" "}
             {target.sharePct == null
               ? "· no comparable data"
               : `· ${Math.round(target.sharePct)}%`}
-          </CardAction>
+          </span>
         ) : null}
-      </CardHeader>
+      </div>
 
       <ul className="flex-1 divide-y divide-border">
         {shareOfVoice.entries.map((entry, index) => (
@@ -74,7 +68,7 @@ export function BrandLookupShareOfVoice({
         {shareOfVoice.platforms.map(formatPlatformLabel).join(" and ")} · bars
         relative to the leader.
       </p>
-    </Card>
+    </div>
   );
 }
 

@@ -2,8 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 import { ErrorState } from "@/client/components/ErrorState";
 import { FormDialog } from "@/client/components/FormDialog";
-import { PageHeader } from "@/client/components/PageHeader";
-import { RecentSearchesBackLink } from "@/client/components/RecentSearches";
+import { BackButton, PageHeader } from "@/client/components/PageHeader";
 import { Button } from "@/client/components/ui/button";
 import { getErrorCode } from "@/client/lib/error-messages";
 import { BILLING_ROUTE } from "@/shared/billing";
@@ -203,30 +202,28 @@ export function KeywordResearchPage(input: Props) {
         <PageHeader
           title="Keyword Research"
           description="Discover keyword ideas, search demand, and ranking opportunities."
+          backLink={
+            controller.hasSearched ? (
+              <BackButton
+                data-testid="keyword-research-recent-searches"
+                onClick={showRecentSearches}
+              >
+                Recent searches
+              </BackButton>
+            ) : undefined
+          }
         />
 
         <KeywordResearchSearchBar controller={controller} />
         {controller.hasSearched ? (
-          <div className="flex flex-col gap-2">
-            <RecentSearchesBackLink
-              render={(props) => (
-                <button
-                  type="button"
-                  data-testid="keyword-research-recent-searches"
-                  onClick={showRecentSearches}
-                  {...props}
-                />
-              )}
-            />
-            <SearchTabStrip
-              projectId={projectId}
-              tabs={searchTabs.tabs}
-              activeTabId={searchTabs.activeTabId}
-              onSelect={searchTabs.selectTab}
-              onClose={searchTabs.closeTab}
-              onViewed={searchTabs.markTabViewed}
-            />
-          </div>
+          <SearchTabStrip
+            projectId={projectId}
+            tabs={searchTabs.tabs}
+            activeTabId={searchTabs.activeTabId}
+            onSelect={searchTabs.selectTab}
+            onClose={searchTabs.closeTab}
+            onViewed={searchTabs.markTabViewed}
+          />
         ) : null}
         <KeywordResearchContent
           controller={controller}

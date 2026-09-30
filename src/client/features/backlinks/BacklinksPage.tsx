@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import type { SortingState, Updater } from "@tanstack/react-table";
-import { PageHeader } from "@/client/components/PageHeader";
+import { BackLink, PageHeader } from "@/client/components/PageHeader";
 import { BacklinksSearchCard } from "./BacklinksSearchCard";
 import { BacklinksBody } from "./BacklinksPageContent";
 import type { BacklinksPageProps } from "./backlinksPageTypes";
@@ -108,6 +108,26 @@ export function BacklinksPage({
         <PageHeader
           title="Backlinks"
           description="Understand who links to a site, what changed recently, and which pages attract links."
+          backLink={
+            searchState.target ? (
+              <BackLink
+                to="/p/$projectId/backlinks"
+                params={{ projectId }}
+                search={{
+                  target: undefined,
+                  scope: undefined,
+                  tab: undefined,
+                  page: undefined,
+                  size: undefined,
+                  sort: undefined,
+                  order: undefined,
+                }}
+                replace
+              >
+                Recent searches
+              </BackLink>
+            ) : undefined
+          }
         />
 
         <BacklinksSearchCard

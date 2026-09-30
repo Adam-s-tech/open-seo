@@ -1,4 +1,5 @@
-import { AlertCircle, ChevronLeft } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { BackButton } from "@/client/components/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { QueryError, QueryState } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
@@ -8,7 +9,6 @@ import {
   AlertTitle,
 } from "@/client/components/ui/alert";
 import { Badge } from "@/client/components/ui/badge";
-import { Button } from "@/client/components/ui/button";
 import {
   Card,
   CardAction,
@@ -84,15 +84,12 @@ export function AuditDetail({
     return (
       <div className="px-4 py-4 md:px-6 md:py-6">
         <div className="mx-auto max-w-7xl space-y-4">
+          <BackButton onClick={onBack}>All audits</BackButton>
           <QueryError
             fallback="We could not load this audit. It may have been deleted."
             onRetry={() => void statusQuery.refetch()}
             isRetrying={statusQuery.isFetching}
           />
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ChevronLeft data-icon="inline-start" />
-            Back to audits
-          </Button>
         </div>
       </div>
     );
@@ -114,25 +111,19 @@ export function AuditDetail({
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 pb-24 md:pb-8 overflow-auto">
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="space-y-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2.5"
-            onClick={onBack}
-          >
-            <ChevronLeft data-icon="inline-start" />
-            All audits
-          </Button>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-semibold">
-              {extractHostname(status.startUrl)}
-            </h1>
-            {!isRunning && <StatusBadge status={status.status} />}
+        <div className="space-y-3">
+          <BackButton onClick={onBack}>All audits</BackButton>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {extractHostname(status.startUrl)}
+              </h1>
+              {!isRunning && <StatusBadge status={status.status} />}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Site audit &middot; Started {formatStartedAt(status.startedAt)}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Site audit &middot; Started {formatStartedAt(status.startedAt)}
-          </p>
         </div>
 
         {isRunning && (

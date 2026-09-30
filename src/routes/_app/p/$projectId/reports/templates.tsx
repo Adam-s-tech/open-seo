@@ -66,11 +66,12 @@ function ReportTemplatesPage() {
   return (
     <div className="overflow-auto px-4 py-4 pb-24 md:px-6 md:py-6 md:pb-8">
       <div className="mx-auto max-w-7xl space-y-4">
-        <BackLink to="/p/$projectId/reports" params={{ projectId }}>
-          Reports
-        </BackLink>
-
         <PageHeader
+          backLink={
+            <BackLink to="/p/$projectId/reports" params={{ projectId }}>
+              Reports
+            </BackLink>
+          }
           title="Report templates"
           description="Reusable briefs your agents follow when they write a report: who it is for, which sections it has, and how it should sound."
           actions={

@@ -15,9 +15,12 @@ export function ProjectPageHeader({
   const project = projectsQuery.data?.find((entry) => entry.id === projectId);
 
   return (
-    <div className="space-y-4">
-      {showBackLink ? <BackLink to="/projects">Projects</BackLink> : null}
-      <PageHeader title={title} description={project?.name ?? " "} />
-    </div>
+    <PageHeader
+      title={title}
+      description={project?.name ?? " "}
+      backLink={
+        showBackLink ? <BackLink to="/projects">Projects</BackLink> : undefined
+      }
+    />
   );
 }

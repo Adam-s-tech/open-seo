@@ -161,90 +161,90 @@ function ReportDetailPage() {
   // keep the content as wide as the other pages (max-w-7xl).
   return (
     <div className="mx-auto flex h-full min-h-0 max-w-[calc(var(--container-7xl)+2rem)] flex-col gap-3 px-4 py-4 md:max-w-[calc(var(--container-7xl)+3rem)] md:px-6 md:py-6">
-      {reportQuery.isError ? <QueryError {...loadError} /> : null}
-      <div className="space-y-3">
-        <BackLink to="/p/$projectId/reports" params={{ projectId }}>
-          Reports
-        </BackLink>
-        <PageHeader
-          title={report.title}
-          description={
-            <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-foreground">
-              <div className="flex items-baseline gap-1.5">
-                <dt className="text-muted-foreground">Created by</dt>
-                <dd>{formatCreatedBy(report)}</dd>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <dt className="text-muted-foreground">Type</dt>
-                {/* As in the list's Type column: the template name when the
+      <PageHeader
+        backLink={
+          <BackLink to="/p/$projectId/reports" params={{ projectId }}>
+            Reports
+          </BackLink>
+        }
+        title={report.title}
+        description={
+          <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-foreground">
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-muted-foreground">Created by</dt>
+              <dd>{formatCreatedBy(report)}</dd>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-muted-foreground">Type</dt>
+              {/* As in the list's Type column: the template name when the
                     report followed one, else the skill, else an em dash. */}
-                <dd>{report.templateName ?? report.skill ?? "—"}</dd>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <dt className="text-muted-foreground">Updated</dt>
-                <dd title={new Date(report.updatedAt).toLocaleString()}>
-                  {formatRelativeTime(report.updatedAt)}
-                </dd>
-              </div>
-            </dl>
-          }
-          actions={
-            <>
-              {/* Share links are hosted-only (see shareAccess.ts), so a
+              <dd>{report.templateName ?? report.skill ?? "—"}</dd>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-muted-foreground">Updated</dt>
+              <dd title={new Date(report.updatedAt).toLocaleString()}>
+                {formatRelativeTime(report.updatedAt)}
+              </dd>
+            </div>
+          </dl>
+        }
+        actions={
+          <>
+            {/* Share links are hosted-only (see shareAccess.ts), so a
                 self-hosted deployment keeps Export as its primary action
                 rather than offering a button the server would refuse. The
                 icon carries the state: a globe once a public link is live, a
                 lock while only members can open it. */}
-              {hosted ? (
-                <Button onClick={() => setShowShare(true)}>
-                  {report.shareToken ? (
-                    <Globe data-icon="inline-start" />
-                  ) : (
-                    <Lock data-icon="inline-start" />
-                  )}
-                  Share
-                </Button>
-              ) : (
-                <Button onClick={exportPdf}>
-                  <FileDown data-icon="inline-start" />
-                  Export
-                </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Report actions"
-                    />
-                  }
+            {hosted ? (
+              <Button onClick={() => setShowShare(true)}>
+                {report.shareToken ? (
+                  <Globe data-icon="inline-start" />
+                ) : (
+                  <Lock data-icon="inline-start" />
+                )}
+                Share
+              </Button>
+            ) : (
+              <Button onClick={exportPdf}>
+                <FileDown data-icon="inline-start" />
+                Export
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Report actions"
+                  />
+                }
+              >
+                <MoreHorizontal />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {hosted ? (
+                  <>
+                    <DropdownMenuItem onClick={exportPdf}>
+                      <FileDown />
+                      Export
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                ) : null}
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setShowDelete(true)}
                 >
-                  <MoreHorizontal />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  {hosted ? (
-                    <>
-                      <DropdownMenuItem onClick={exportPdf}>
-                        <FileDown />
-                        Export
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  ) : null}
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setShowDelete(true)}
-                  >
-                    <Trash2 />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          }
-        />
-      </div>
+                  <Trash2 />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+      />
+      {reportQuery.isError ? <QueryError {...loadError} /> : null}
 
       <div className="relative min-h-0 flex-1">
         {/* View controls float over the top-right corner of the report frame.

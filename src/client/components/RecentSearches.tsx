@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, Clock, History, X, type LucideIcon } from "lucide-react";
+import { Clock, History, X, type LucideIcon } from "lucide-react";
 import { EmptyState } from "@/client/components/EmptyState";
-import { Button, buttonVariants } from "@/client/components/ui/button";
+import { Button } from "@/client/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/client/components/ui/card";
 
 // Props for the caller's clickable element. Spread them onto a <Link> so
@@ -101,30 +101,5 @@ export function RecentSearches<TItem extends { timestamp: number }>({
         </ul>
       </CardContent>
     </Card>
-  );
-}
-
-// The "Recent searches" link that returns a research page to its list.
-export function RecentSearchesBackLink({
-  render,
-}: {
-  render: (props: ClickableProps) => ReactNode;
-}) {
-  return (
-    <div>
-      {render({
-        className: buttonVariants({
-          variant: "ghost",
-          size: "sm",
-          className: "-ml-2.5 text-muted-foreground",
-        }),
-        children: (
-          <>
-            <ArrowLeft />
-            Recent searches
-          </>
-        ),
-      })}
-    </div>
   );
 }

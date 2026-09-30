@@ -8,10 +8,8 @@ import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { ResearchPageShell } from "@/client/features/ai-search/ResearchPageShell";
 import { PromptExplorerForm } from "@/client/features/ai-search/components/PromptExplorerForm";
 import { PromptExplorerResults } from "@/client/features/ai-search/components/PromptExplorerResults";
-import {
-  RecentSearches,
-  RecentSearchesBackLink,
-} from "@/client/components/RecentSearches";
+import { RecentSearches } from "@/client/components/RecentSearches";
+import { BackLink } from "@/client/components/PageHeader";
 import { formatModelLabel } from "@/client/features/ai-search/platformLabels";
 import { usePromptExplorerSearchHistory } from "@/client/hooks/usePromptExplorerSearchHistory";
 import {
@@ -194,18 +192,15 @@ export function PromptExplorerPage({ projectId, urlState, onSubmit }: Props) {
         })
       }
       backLink={
-        <RecentSearchesBackLink
-          render={(props) => (
-            <Link
-              from="/p/$projectId/prompt-explorer"
-              to="/p/$projectId/prompt-explorer"
-              params={{ projectId }}
-              search={{}}
-              replace
-              {...props}
-            />
-          )}
-        />
+        <BackLink
+          from="/p/$projectId/prompt-explorer"
+          to="/p/$projectId/prompt-explorer"
+          params={{ projectId }}
+          search={{}}
+          replace
+        >
+          Recent searches
+        </BackLink>
       }
       renderResults={(result) => <PromptExplorerResults result={result} />}
       history={

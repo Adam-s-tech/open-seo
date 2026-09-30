@@ -2,9 +2,10 @@
 import { useCallback, useEffect, useMemo, useRef, type FormEvent } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
 import { Globe, Info } from "lucide-react";
-import { PageHeader } from "@/client/components/PageHeader";
+import { BackButton, PageHeader } from "@/client/components/PageHeader";
 import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { Badge } from "@/client/components/ui/badge";
+import { Card } from "@/client/components/ui/card";
 import { DataTableTabs } from "@/client/components/table/DataTableToolbar";
 import { TabsTrigger } from "@/client/components/ui/tabs";
 import {
@@ -23,10 +24,7 @@ import {
 } from "@/client/features/domain/domainSearchValidation";
 import { useDomainOverviewQuery } from "@/client/features/domain/hooks/useDomainOverviewQuery";
 import { DomainOverviewLoadingState } from "@/client/features/domain/components/DomainOverviewLoadingState";
-import {
-  RecentSearches,
-  RecentSearchesBackLink,
-} from "@/client/components/RecentSearches";
+import { RecentSearches } from "@/client/components/RecentSearches";
 import { QueryError } from "@/client/components/QueryState";
 import { DomainSearchCard } from "@/client/features/domain/components/DomainSearchCard";
 import { KeywordsTab } from "@/client/features/domain/components/KeywordsTab";
@@ -537,28 +535,14 @@ export function DomainOverviewPage({
   ) : null;
 
   const tabControls = routeState.domain ? (
-    <div className="flex flex-col gap-2">
-      <RecentSearchesBackLink
-        render={(props) => (
-          <button
-            type="button"
-            onClick={() => {
-              searchTabs.setActiveTab(null);
-              onShowRecentSearches();
-            }}
-            {...props}
-          />
-        )}
-      />
-      <SearchTabStrip
-        projectId={projectId}
-        activeTabId={searchTabs.activeTabId}
-        tabs={searchTabs.tabs}
-        onSelect={searchTabs.selectTab}
-        onClose={searchTabs.closeTab}
-        onViewed={searchTabs.markTabViewed}
-      />
-    </div>
+    <SearchTabStrip
+      projectId={projectId}
+      activeTabId={searchTabs.activeTabId}
+      tabs={searchTabs.tabs}
+      onSelect={searchTabs.selectTab}
+      onClose={searchTabs.closeTab}
+      onViewed={searchTabs.markTabViewed}
+    />
   ) : null;
 
   return (
@@ -567,6 +551,18 @@ export function DomainOverviewPage({
         <PageHeader
           title="Domain Overview"
           description="Analyze any domain's SEO profile: traffic, keywords, and backlinks."
+          backLink={
+            routeState.domain ? (
+              <BackButton
+                onClick={() => {
+                  searchTabs.setActiveTab(null);
+                  onShowRecentSearches();
+                }}
+              >
+                Recent searches
+              </BackButton>
+            ) : undefined
+          }
         />
 
         <DomainSearchCard
@@ -616,33 +612,6 @@ export function DomainOverviewPage({
           <>
             {tabControls}
             {overviewError}
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{state.overview.displayTarget}</Badge>
-              <Badge variant="outline">
-                {RESEARCH_SCOPE_LABELS[state.overview.scope]}
-              </Badge>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <StatTile
-                card
-                label="Estimated Organic Traffic"
-                value={formatMetric(
-                  state.overview.organicTraffic,
-                  state.overview.hasData,
-                )}
-                hint={overviewMetricsHint}
-              />
-              <StatTile
-                card
-                label="Organic Keywords"
-                value={formatMetric(
-                  state.overview.organicKeywords,
-                  state.overview.hasData,
-                )}
-                hint={overviewMetricsHint}
-              />
-            </div>
-
             {!state.overview.hasData ? (
               <Alert variant="info">
                 <Info />
@@ -653,34 +622,67 @@ export function DomainOverviewPage({
               </Alert>
             ) : null}
 
-            {routeState.tab === "pages" ? (
-              <PagesTab
-                projectId={projectId}
-                target={state.overview.displayTarget}
-                hostname={state.overview.domain}
-                scope={state.overview.scope}
-                routeState={routeState}
-                tabs={tabs}
-                setSearchParams={state.setSearchParams}
-                onSortClick={state.handleSortColumnClick}
-                onPageChange={state.goToPage}
-                onPageSizeChange={state.setPageSize}
-              />
-            ) : (
-              <KeywordsTab
-                projectId={projectId}
-                target={state.overview.displayTarget}
-                hostname={state.overview.domain}
-                scope={state.overview.scope}
-                routeState={routeState}
-                tabs={tabs}
-                canSaveKeywords={state.canSaveKeywords}
-                setSearchParams={state.setSearchParams}
-                onSortClick={state.handleSortColumnClick}
-                onPageChange={state.goToPage}
-                onPageSizeChange={state.setPageSize}
-              />
-            )}
+            <Card className="gap-0 py-0">
+              <div className="flex flex-wrap items-center gap-2 px-4 pt-4 pb-3">
+                <h2 className="text-lg font-semibold break-all">
+                  {state.overview.displayTarget}
+                </h2>
+                <Badge variant="outline">
+                  {RESEARCH_SCOPE_LABELS[state.overview.scope]}
+                </Badge>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="grid grid-cols-1 gap-3 rounded-lg border border-border p-3 md:grid-cols-2">
+                  <StatTile
+                    label="Estimated Organic Traffic"
+                    value={formatMetric(
+                      state.overview.organicTraffic,
+                      state.overview.hasData,
+                    )}
+                    hint={overviewMetricsHint}
+                  />
+                  <StatTile
+                    label="Organic Keywords"
+                    value={formatMetric(
+                      state.overview.organicKeywords,
+                      state.overview.hasData,
+                    )}
+                    hint={overviewMetricsHint}
+                  />
+                </div>
+              </div>
+
+              <div className="px-4 pb-4">
+                {routeState.tab === "pages" ? (
+                  <PagesTab
+                    projectId={projectId}
+                    target={state.overview.displayTarget}
+                    hostname={state.overview.domain}
+                    scope={state.overview.scope}
+                    routeState={routeState}
+                    tabs={tabs}
+                    setSearchParams={state.setSearchParams}
+                    onSortClick={state.handleSortColumnClick}
+                    onPageChange={state.goToPage}
+                    onPageSizeChange={state.setPageSize}
+                  />
+                ) : (
+                  <KeywordsTab
+                    projectId={projectId}
+                    target={state.overview.displayTarget}
+                    hostname={state.overview.domain}
+                    scope={state.overview.scope}
+                    routeState={routeState}
+                    tabs={tabs}
+                    canSaveKeywords={state.canSaveKeywords}
+                    setSearchParams={state.setSearchParams}
+                    onSortClick={state.handleSortColumnClick}
+                    onPageChange={state.goToPage}
+                    onPageSizeChange={state.setPageSize}
+                  />
+                )}
+              </div>
+            </Card>
           </>
         )}
       </div>

@@ -11,7 +11,6 @@ import {
   estimateRankCheckCost,
 } from "@/serverFunctions/rank-tracking";
 import { AlertTriangle } from "lucide-react";
-import { BackLink } from "@/client/components/PageHeader";
 import { QueryState } from "@/client/components/QueryState";
 import { PageLoading } from "@/client/components/Spinner";
 import { Alert, AlertDescription } from "@/client/components/ui/alert";
@@ -235,10 +234,6 @@ export function RankTrackingDomainDetail({
 
   return (
     <div className="space-y-3">
-      <BackLink to="/p/$projectId/rank-tracking" params={{ projectId }}>
-        Back to domains
-      </BackLink>
-
       {config.lastSkipReason === "insufficient_credits" && (
         <Alert variant="warning">
           <AlertTriangle />

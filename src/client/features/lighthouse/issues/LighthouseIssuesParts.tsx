@@ -1,7 +1,6 @@
-import { ChevronLeft } from "lucide-react";
+import { BackButton } from "@/client/components/PageHeader";
 import { ExportMenu } from "@/client/components/ExportMenu";
 import { Spinner } from "@/client/components/Spinner";
-import { Button } from "@/client/components/ui/button";
 import { Card, CardContent } from "@/client/components/ui/card";
 import {
   Table,
@@ -44,10 +43,7 @@ export function LighthouseIssuesHeader({
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" className="-ml-2.5" onClick={onBack}>
-          <ChevronLeft data-icon="inline-start" />
-          Back to Site Audit
-        </Button>
+        <BackButton onClick={onBack}>Site Audit</BackButton>
         <span className="text-xs text-muted-foreground">
           {scannedAt
             ? `Scanned ${new Date(scannedAt).toLocaleString()}`
