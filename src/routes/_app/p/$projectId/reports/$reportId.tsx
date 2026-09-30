@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 import { BackLink, PageHeader } from "@/client/components/PageHeader";
 import { QueryError } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import { Button } from "@/client/components/ui/button";
 import {
   DropdownMenu,
@@ -93,7 +93,7 @@ function ReportDetailPage() {
   }, [projectId, loadedReport]);
 
   if (reportQuery.isPending) {
-    return <PageLoading />;
+    return <SkeletonPage />;
   }
 
   const loadError = {

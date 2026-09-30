@@ -4,7 +4,7 @@ import { reverse, sortBy } from "remeda";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { QueryState } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
@@ -178,7 +178,7 @@ export function KeywordTrendModal({
         <QueryState
           query={historyQuery}
           errorFallback="Failed to load keyword history"
-          loading={<PageLoading />}
+          loading={<Skeleton className="h-56 w-full" />}
         >
           {() =>
             maxPerDevice <= 1 ? (

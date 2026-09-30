@@ -33,7 +33,7 @@ function AuthenticatedShellLayout() {
   }
 
   if (!authGate.canRenderAuthenticatedContent) {
-    return <PageLoading fullScreen />;
+    return <PageLoading />;
   }
 
   return (

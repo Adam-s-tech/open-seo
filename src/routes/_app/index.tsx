@@ -9,6 +9,7 @@ import {
 import { getErrorCode } from "@/client/lib/error-messages";
 import { AuthErrorCard } from "@/client/components/AuthErrorCard";
 import { QueryError } from "@/client/components/QueryState";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import { StatusScreen } from "@/client/components/StatusScreen";
 import { SUBSCRIBE_ROUTE } from "@/shared/billing";
 
@@ -81,5 +82,6 @@ function IndexRedirect() {
     );
   }
 
-  return <StatusScreen pending />;
+  // Shaped like the page it is about to open.
+  return <SkeletonPage />;
 }

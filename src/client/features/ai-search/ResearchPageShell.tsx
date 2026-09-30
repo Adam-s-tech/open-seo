@@ -8,10 +8,10 @@ import { GateCard } from "@/client/components/GateCard";
 import { PageHeader } from "@/client/components/PageHeader";
 import { QueryError } from "@/client/components/QueryState";
 import {
+  SkeletonCard,
   SkeletonStatGrid,
   SkeletonTableRows,
 } from "@/client/components/SkeletonPresets";
-import { PageLoading } from "@/client/components/Spinner";
 import { Badge } from "@/client/components/ui/badge";
 import { Button } from "@/client/components/ui/button";
 import { Card, CardContent } from "@/client/components/ui/card";
@@ -97,7 +97,7 @@ export function ResearchPageShell<TData>({
         />
 
         {planStatus === "loading" ? (
-          <PageLoading />
+          <SkeletonCard />
         ) : planStatus === "free" ? (
           <GateCard
             className="mx-auto max-w-3xl"

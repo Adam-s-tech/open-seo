@@ -49,7 +49,7 @@ function AuthPageLayout() {
     isHostedMode &&
     ((isPending && !hasResolvedSession) || session?.user?.id)
   ) {
-    return <PageLoading fullScreen />;
+    return <PageLoading />;
   }
 
   return (

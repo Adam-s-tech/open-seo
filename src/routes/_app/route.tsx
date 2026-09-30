@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute, useParams } from "@tanstack/react-router";
 import { useHostedAuthRouteGuard } from "@/client/features/auth/useHostedAuthRouteGuard";
 import { FreePlanBanner } from "@/client/features/billing/FreePlanBanner";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import { AuthenticatedAppLayout } from "@/client/layout/AppShell";
 import { useOnboardingRedirect } from "@/client/features/onboarding/useOnboardingRedirect";
 
@@ -16,19 +16,21 @@ function AppRouteLayout() {
   const authGate = useHostedAuthRouteGuard();
   useOnboardingRedirect();
   const { projectId } = useParams({ strict: false });
-
-  if (!authGate.canRenderAuthenticatedContent) {
-    return <PageLoading fullScreen />;
-  }
+  // The shell paints at once, and only the page waits for the session check,
+  // so a full load shows the sidebar and a page skeleton instead of a spinner.
+  const ready = authGate.canRenderAuthenticatedContent;
 
   return (
     <AuthenticatedAppLayout
       projectId={projectId}
+      ready={ready}
       banner={
-        projectId && authGate.isHostedMode ? <FreePlanBanner /> : undefined
+        ready && projectId && authGate.isHostedMode ? (
+          <FreePlanBanner />
+        ) : undefined
       }
     >
-      <Outlet />
+      {ready ? <Outlet /> : <SkeletonPage />}
     </AuthenticatedAppLayout>
   );
 }

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart } from "recharts";
 import { getRankConfigTrend } from "@/serverFunctions/rank-tracking";
 import { QueryState } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import {
   ChartGrid,
   ChartXAxis,
@@ -91,7 +91,7 @@ export function RankTrackingOverview({
         <QueryState
           query={trendQuery}
           errorFallback="Failed to load position history"
-          loading={<PageLoading />}
+          loading={<Skeleton className="h-[220px] w-full" />}
         >
           {() =>
             chartData.length <= 1 ? (

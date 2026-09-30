@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { SectionHeader } from "@/client/components/PageHeader";
 import { PermissionHint } from "@/client/components/PermissionHint";
 import { QueryError } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonCard } from "@/client/components/SkeletonPresets";
 import { Button } from "@/client/components/ui/button";
 import {
   Table,
@@ -170,7 +170,7 @@ export function TeamSettings() {
       {loadError}
 
       {teamQuery.isPending ? (
-        <PageLoading />
+        <SkeletonCard />
       ) : (
         <TableCard>
           <Table>

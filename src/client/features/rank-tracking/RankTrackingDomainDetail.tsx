@@ -12,7 +12,7 @@ import {
 } from "@/serverFunctions/rank-tracking";
 import { AlertTriangle } from "lucide-react";
 import { QueryState } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonCard } from "@/client/components/SkeletonPresets";
 import { Alert, AlertDescription } from "@/client/components/ui/alert";
 import { useHostedPlanGate } from "@/client/features/billing/HostedPlanGate";
 import { captureClientEvent } from "@/client/lib/posthog";
@@ -362,7 +362,7 @@ export function RankTrackingDomainDetail({
             <QueryState
               query={resultsQuery}
               errorFallback="Failed to load rank data"
-              loading={<PageLoading />}
+              loading={<SkeletonCard />}
             >
               {(results) => (
                 <RankTrackingTable

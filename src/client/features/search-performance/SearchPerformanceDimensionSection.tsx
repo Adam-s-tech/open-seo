@@ -1,7 +1,7 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { QueryError } from "@/client/components/QueryState";
 import { TablePagination } from "@/client/components/table/TablePagination";
-import { Spinner } from "@/client/components/ui/spinner";
+import { SkeletonTableRows } from "@/client/components/SkeletonPresets";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { DimensionTable } from "@/client/features/search-performance/SearchPerformanceParts";
 import type { getSearchPerformanceTable } from "@/serverFunctions/searchPerformance";
@@ -32,11 +32,7 @@ export function DimensionSection({
   onClearFilters: () => void;
 }) {
   if (tableQuery.isPending) {
-    return (
-      <div className="flex items-center gap-2 p-8 text-sm text-muted-foreground">
-        <Spinner /> Loading…
-      </div>
-    );
+    return <SkeletonTableRows className="p-4" />;
   }
 
   const error = tableQuery.isError ? (

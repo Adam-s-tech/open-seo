@@ -21,10 +21,13 @@ import {
 export function AuthenticatedAppLayout({
   children,
   projectId,
+  ready,
   banner,
 }: {
   children: React.ReactNode;
   projectId?: string;
+  /** The session is confirmed. Until then the shell renders but loads nothing. */
+  ready: boolean;
   banner?: React.ReactNode;
 }) {
   const location = useLocation();
@@ -40,7 +43,7 @@ export function AuthenticatedAppLayout({
   // pages, which update the remembered project as the user moves between them.
   const projectsQuery = useQuery({
     ...projectsQueryOptions(),
-    enabled: !projectId,
+    enabled: ready && !projectId,
   });
   const rememberedProjectId = getLastProjectId();
   const fallbackProjects = projectsQuery.data ?? [];
@@ -55,6 +58,10 @@ export function AuthenticatedAppLayout({
   // builds links that self-correct via the route guard once data arrives.
   const sidebarProjectId =
     projectId ?? fallbackProjectId ?? rememberedProjectId;
+  // No project to show yet, but the list that may name one is still loading
+  // (a first visit to a page without a project in the URL).
+  const sidebarProjectPending =
+    sidebarProjectId === null && projectsQuery.isPending;
   // The setup guide is where the modal and banners send the user, so it shows
   // neither: a banner there would link to the page the user is already on.
   const shouldCheckSeoApiKeyStatus =
@@ -63,7 +70,7 @@ export function AuthenticatedAppLayout({
   const seoApiKeyStatusQuery = useQuery({
     queryKey: ["seoApiKeyStatus"],
     queryFn: () => getSeoApiKeyStatus(),
-    enabled: shouldCheckSeoApiKeyStatus,
+    enabled: ready && shouldCheckSeoApiKeyStatus,
   });
   const isSeoApiKeyConfigured = shouldCheckSeoApiKeyStatus
     ? (seoApiKeyStatusQuery.data?.configured ?? null)
@@ -99,7 +106,11 @@ export function AuthenticatedAppLayout({
 
   return (
     <SidebarProvider className="h-[100dvh] min-h-0 overflow-hidden">
-      <Sidebar projectId={sidebarProjectId} />
+      <Sidebar
+        projectId={sidebarProjectId}
+        projectPending={sidebarProjectPending}
+        ready={ready}
+      />
       <SidebarInset className="min-h-0 overflow-hidden md:!m-0 md:!mt-2 md:!rounded-none md:!rounded-tl-lg md:border-l md:border-t md:border-sidebar-border md:!shadow-none">
         <MobileTopBar />
         <SeoApiStatusBanners
@@ -116,10 +127,12 @@ export function AuthenticatedAppLayout({
         />
       ) : null}
 
-      <GscReEngagementModal
-        projectId={sidebarProjectId}
-        suppressed={showMissingSeoApiKeyModal}
-      />
+      {ready ? (
+        <GscReEngagementModal
+          projectId={sidebarProjectId}
+          suppressed={showMissingSeoApiKeyModal}
+        />
+      ) : null}
     </SidebarProvider>
   );
 }

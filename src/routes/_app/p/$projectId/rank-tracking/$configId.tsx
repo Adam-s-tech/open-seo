@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getRankTrackingConfigs } from "@/serverFunctions/rank-tracking";
 import { RankTrackingDomainDetail } from "@/client/features/rank-tracking/RankTrackingDomainDetail";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import { QueryError } from "@/client/components/QueryState";
 import { EmptyState } from "@/client/components/EmptyState";
 import { Button } from "@/client/components/ui/button";
@@ -48,7 +48,7 @@ function RankTrackingConfigRoute() {
   };
 
   if (configsQuery.isPending) {
-    return <PageLoading />;
+    return <SkeletonPage />;
   }
 
   if (!configsQuery.data) {

@@ -10,7 +10,10 @@ import {
 import { QueryState } from "@/client/components/QueryState";
 import { Badge } from "@/client/components/ui/badge";
 import { Button } from "@/client/components/ui/button";
-import { Spinner } from "@/client/components/ui/spinner";
+import {
+  SidebarMenu,
+  SidebarMenuSkeleton,
+} from "@/client/components/ui/sidebar";
 import { useSamBetaOptIn } from "./samBetaOptIn";
 import { useSamSessions } from "./useSamSessions";
 
@@ -70,6 +73,17 @@ function ageLabel(timestamp: string): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
   return `${Math.floor(hours / 24)}d`;
+}
+
+/** The chat list's rows while the chats load. */
+export function SamChatListSkeleton() {
+  return (
+    <SidebarMenu aria-busy>
+      {Array.from({ length: 4 }, (_, index) => (
+        <SidebarMenuSkeleton key={index} />
+      ))}
+    </SidebarMenu>
+  );
 }
 
 /**
@@ -139,11 +153,7 @@ export function SamSidebarPanel({
         <QueryState
           query={sessionsQuery}
           errorFallback="Failed to load chats."
-          loading={
-            <div className="flex justify-center py-6 text-muted-foreground">
-              <Spinner />
-            </div>
-          }
+          loading={<SamChatListSkeleton />}
         >
           {(loadedSessions) =>
             loadedSessions.length === 0 ? (

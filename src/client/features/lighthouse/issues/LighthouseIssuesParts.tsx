@@ -1,6 +1,6 @@
 import { BackButton } from "@/client/components/PageHeader";
 import { ExportMenu } from "@/client/components/ExportMenu";
-import { Spinner } from "@/client/components/Spinner";
+import { SkeletonTableRows } from "@/client/components/SkeletonPresets";
 import { Card, CardContent } from "@/client/components/ui/card";
 import {
   Table,
@@ -213,7 +213,7 @@ export function LighthouseIssueList({
   emptyMessage?: string;
 }) {
   if (isLoading) {
-    return <Spinner label="Loading issues..." className="p-4" />;
+    return <SkeletonTableRows className="p-4" rows={5} columns={3} />;
   }
   if (!issues.length) {
     return (

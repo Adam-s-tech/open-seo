@@ -8,7 +8,7 @@ import {
 import { BILLING_ROUTE } from "@/shared/billing";
 import { ErrorState } from "@/client/components/ErrorState";
 import { Button } from "@/client/components/ui/button";
-import { PageLoading } from "./Spinner";
+import { SkeletonCard } from "./SkeletonPresets";
 
 /**
  * A load failure with a retry button. The message goes through
@@ -65,7 +65,7 @@ export function QueryError({
 export function QueryState<TData>({
   query,
   errorFallback,
-  loading = <PageLoading />,
+  loading = <SkeletonCard />,
   children,
 }: {
   query: UseQueryResult<TData>;

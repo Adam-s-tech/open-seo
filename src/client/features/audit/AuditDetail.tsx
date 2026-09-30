@@ -2,7 +2,7 @@ import { AlertCircle } from "lucide-react";
 import { BackButton } from "@/client/components/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { QueryError, QueryState } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import {
   Alert,
   AlertDescription,
@@ -77,7 +77,7 @@ export function AuditDetail({
   // isPending (not isLoading) also covers a fetch paused while offline, so
   // past these two returns the status is always loaded.
   if (statusQuery.isPending) {
-    return <PageLoading />;
+    return <SkeletonPage />;
   }
 
   if (statusQuery.isError) {

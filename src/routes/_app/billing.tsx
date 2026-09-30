@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ErrorState } from "@/client/components/ErrorState";
 import { PageHeader } from "@/client/components/PageHeader";
 import { QueryError } from "@/client/components/QueryState";
-import { PageLoading } from "@/client/components/Spinner";
+import { SkeletonPage } from "@/client/components/SkeletonPresets";
 import { Button } from "@/client/components/ui/button";
 import {
   Card,
@@ -92,7 +92,7 @@ function BillingPage() {
   const showTopUpError = topUpAmount.trim() !== "" && !isValidTopUp;
 
   if (billingRouteState === "loading") {
-    return <PageLoading />;
+    return <SkeletonPage />;
   }
 
   if (billingRouteState === "error") {

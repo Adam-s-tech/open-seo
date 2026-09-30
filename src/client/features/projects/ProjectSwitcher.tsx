@@ -17,6 +17,7 @@ import {
 } from "@/client/components/ui/combobox";
 import { Button } from "@/client/components/ui/button";
 import { Separator } from "@/client/components/ui/separator";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import type { ProjectSummary } from "./types";
 
 const SEARCH_THRESHOLD = 8;
@@ -31,18 +32,42 @@ function matchesProject(project: ProjectSummary, query: string) {
 
 export function ProjectSwitcher({
   activeProjectId,
+  ready,
   onCloseDrawer,
 }: {
   activeProjectId: string | null;
+  /** The session is confirmed, so the projects list can load. */
+  ready: boolean;
   onCloseDrawer?: () => void;
 }) {
   const router = useRouter();
   const [creating, setCreating] = React.useState(false);
   const [open, setOpen] = React.useState(false);
-  const projectsQuery = useQuery(projectsQueryOptions());
+  const projectsQuery = useQuery({ ...projectsQueryOptions(), enabled: ready });
   const projects = projectsQuery.data ?? [];
   const activeProject =
     projects.find((project) => project.id === activeProjectId) ?? null;
+
+  if (projectsQuery.isPending) {
+    // The loaded switcher's box: a name line, a domain line and the settings
+    // button's slot, so nothing moves when the projects arrive.
+    return (
+      <div
+        className="flex items-stretch rounded-lg border border-sidebar-border bg-card"
+        aria-busy
+      >
+        <div className="flex min-w-0 flex-1 flex-col px-3 py-1.5">
+          <span className="flex h-5 items-center">
+            <Skeleton className="h-3.5 w-28" />
+          </span>
+          <span className="flex h-4 items-center">
+            <Skeleton className="h-3 w-20" />
+          </span>
+        </div>
+        <div className="w-12 border-l border-sidebar-border" />
+      </div>
+    );
+  }
 
   const handleSelect = (project: ProjectSummary) => {
     setOpen(false);

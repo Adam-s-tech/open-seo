@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Spinner } from "@/client/components/Spinner";
+import { SkeletonTableRows } from "@/client/components/SkeletonPresets";
+import { Skeleton } from "@/client/components/ui/skeleton";
 import { REPORT_IFRAME_SANDBOX } from "@/shared/report-sandbox";
 
 /**
@@ -40,8 +41,14 @@ export function ReportViewer({
         }
       />
       {loadedSrc !== src ? (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Spinner />
+        // A document-shaped placeholder over the frame until the report loads.
+        <div
+          className="absolute inset-0 space-y-3 overflow-hidden p-6"
+          aria-busy
+        >
+          <Skeleton className="h-7 w-2/5" />
+          <Skeleton className="h-4 w-3/5" />
+          <SkeletonTableRows rows={8} columns={4} className="pt-4" />
         </div>
       ) : null}
     </div>

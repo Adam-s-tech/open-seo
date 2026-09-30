@@ -28,17 +28,13 @@ export function Spinner({
   );
 }
 
-/** The centered spinner for a page or section whose data has not arrived. */
-export function PageLoading({
-  fullScreen = false,
-}: {
-  /** Fill the viewport, for layouts that render before any app chrome. */
-  fullScreen?: boolean;
-}) {
+/**
+ * A full-screen spinner for the sign-in and account layouts, which have no app
+ * chrome to show while the session loads. In the app, pages show skeletons.
+ */
+export function PageLoading() {
   return (
-    <div
-      className={`flex items-center justify-center ${fullScreen ? "min-h-dvh" : "py-10"}`}
-    >
+    <div className="flex min-h-dvh items-center justify-center">
       <Spinner />
     </div>
   );
