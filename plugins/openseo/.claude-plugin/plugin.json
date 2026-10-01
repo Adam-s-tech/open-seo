@@ -1,8 +1,8 @@
 {
   "name": "openseo",
   "displayName": "OpenSEO",
-  "version": "1.0.7",
-  "description": "Without good data, your agent gives generic advice. Keyword research, competitor research, backlinks, and site audits. All for $10/month.",
+  "version": "1.0.8",
+  "description": "Research keywords and competitors, audit sites, track rankings, and use connected Search Console data from your AI assistant.",
   "author": {
     "name": "OpenSEO",
     "url": "https://openseo.so"
