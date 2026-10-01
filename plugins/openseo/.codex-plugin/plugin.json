@@ -1,6 +1,6 @@
 {
   "name": "openseo",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Research keywords and competitors, audit sites, track rankings, and use connected Search Console data from your AI assistant.",
   "author": {
     "name": "OpenSEO",
@@ -20,7 +20,7 @@
     "local-seo"
   ],
   "skills": "./skills/",
-  "mcpServers": "./mcp.json",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "OpenSEO",
     "shortDescription": "SEO made simple.",
