@@ -100,7 +100,7 @@ export async function customerHasManagedAccess(customerId: string) {
 // Remaining shared usage credits — the monthly `usage_credits` balance plus the
 // rolled-over `topup_credits` balance. Both DataForSEO and LLM spend draw from
 // these (the `seo_data_usage` and `llm_usage` features both map into them).
-async function getUsageCreditsRemaining(customerId: string): Promise<{
+export async function getUsageCreditsRemaining(customerId: string): Promise<{
   monthlyRemaining: number;
   topupRemaining: number;
 }> {
@@ -209,11 +209,11 @@ export async function checkUsageCreditsDepleted(
 // death between check and finalize) releases at this TTL with no deduction.
 const HOLD_TTL_MS = 30 * 60_000;
 
-type UsageCreditFeatureId =
+export type UsageCreditFeatureId =
   | typeof AUTUMN_SEO_DATA_BALANCE_FEATURE_ID
   | typeof AUTUMN_SEO_DATA_TOPUP_BALANCE_FEATURE_ID;
 
-type UsageCreditHold = {
+export type UsageCreditHold = {
   lockId: string;
   featureId: UsageCreditFeatureId;
   estimatedCredits: number;
@@ -237,14 +237,26 @@ type UsageCreditHold = {
  * absent feature reads `allowed: false, balance: null` and is a genuine
  * refusal.
  */
-async function holdCredits(
-  customerId: string,
-  featureId: UsageCreditFeatureId,
-  estimatedCredits: number,
-  callIndexes: readonly number[],
-  properties: Record<string, unknown>,
-) {
-  const lockId = `dfs_${customerId}_${crypto.randomUUID()}`;
+export async function holdCredits(args: {
+  customerId: string;
+  featureId: UsageCreditFeatureId;
+  estimatedCredits: number;
+  callIndexes: readonly number[];
+  properties: Record<string, unknown>;
+  // A site audit's rendering hold must outlive the whole crawl, not one call.
+  ttlMs?: number;
+  lockPrefix?: string;
+}) {
+  const {
+    customerId,
+    featureId,
+    estimatedCredits,
+    callIndexes,
+    properties,
+    ttlMs = HOLD_TTL_MS,
+    lockPrefix = "dfs",
+  } = args;
+  const lockId = `${lockPrefix}_${customerId}_${crypto.randomUUID()}`;
   const hold: UsageCreditHold = {
     lockId,
     featureId,
@@ -259,7 +271,7 @@ async function holdCredits(
         requiredBalance: estimatedCredits,
         sendEvent: true,
         properties,
-        lock: { lockId, enabled: true, expiresAt: Date.now() + HOLD_TTL_MS },
+        lock: { lockId, enabled: true, expiresAt: Date.now() + ttlMs },
       },
       AUTUMN_TRACK_RETRY_OPTIONS,
     );
@@ -326,13 +338,13 @@ export async function reserveUsageCredits(args: {
       credits += callCredits[index];
     }
     if (fitting.length === 0) return null;
-    return holdCredits(
-      args.customerId,
+    return holdCredits({
+      customerId: args.customerId,
       featureId,
-      credits,
-      fitting,
+      estimatedCredits: credits,
+      callIndexes: fitting,
       properties,
-    );
+    });
   };
 
   const holds: UsageCreditHold[] = [];
@@ -416,6 +428,48 @@ function errorBodyIncludes(error: unknown, text: string) {
 }
 
 /**
+ * Confirms `credits` against a hold (Autumn deducts that amount, above or
+ * below the hold, and returns the rest), or releases the hold when `credits`
+ * is 0. Retries once. `landed: false` means the deduction may be lost; the
+ * hold then expires at its TTL.
+ */
+export async function finalizeHold(
+  hold: UsageCreditHold,
+  credits: number,
+  properties: Record<string, unknown>,
+): Promise<{ landed: boolean; error?: unknown }> {
+  // No SDK-level 5xx retry (AUTUMN_TRACK_RETRY_OPTIONS): this loop owns
+  // the retry so a "Lock not found" can only be seen on our second attempt.
+  const finalize = () =>
+    autumn.balances.finalize(
+      {
+        lockId: hold.lockId,
+        ...(credits > 0
+          ? { action: "confirm", overrideValue: credits }
+          : { action: "release" }),
+        properties,
+      },
+      AUTUMN_TRACK_RETRY_OPTIONS,
+    );
+
+  let lastError: unknown;
+  for (const attempt of [1, 2]) {
+    if (attempt === 2) await sleep(250);
+    try {
+      if ((await finalize()).success) return { landed: true };
+    } catch (error) {
+      lastError = error;
+      if (errorBodyIncludes(error, "Lock not found")) {
+        // On the retry this means the first attempt landed; on the first
+        // attempt the hold has already expired and the deduction is lost.
+        return attempt === 2 ? { landed: true } : { landed: false, error };
+      }
+    }
+  }
+  return { landed: false, error: lastError };
+}
+
+/**
  * Settles a hold on the provider's real cost: confirms the deduction at the
  * actual credits (Autumn deducts the override, above or below the hold, and
  * returns the rest) or releases the hold when nothing was billed. A hold can
@@ -442,50 +496,20 @@ export async function settleUsageCredits(args: {
   }
   const paths = [...new Set(costs.map((cost) => cost.path.join("/")))];
 
-  // No SDK-level 5xx retry (AUTUMN_TRACK_RETRY_OPTIONS): this loop owns
-  // the retry so a "Lock not found" can only be seen on our second attempt.
-  const finalize = () =>
-    autumn.balances.finalize(
-      {
-        lockId: hold.lockId,
-        ...(actualCredits > 0
-          ? { action: "confirm", overrideValue: actualCredits }
-          : { action: "release" }),
-        properties: {
-          creditFeature,
-          provider: "dataforseo",
-          paths,
-          totalCostUsd,
-          estimatedCredits: hold.estimatedCredits,
-        },
-      },
-      AUTUMN_TRACK_RETRY_OPTIONS,
-    );
-
-  let landed = false;
-  let lastError: unknown;
-  for (const attempt of [1, 2]) {
-    if (attempt === 2) await sleep(250);
-    try {
-      landed = (await finalize()).success;
-    } catch (error) {
-      lastError = error;
-      if (errorBodyIncludes(error, "Lock not found")) {
-        // On the retry this means the first attempt landed; on the first
-        // attempt the hold has already expired and the deduction is lost.
-        landed = attempt === 2;
-        break;
-      }
-    }
-    if (landed) break;
-  }
+  const { landed, error } = await finalizeHold(hold, actualCredits, {
+    creditFeature,
+    provider: "dataforseo",
+    paths,
+    totalCostUsd,
+    estimatedCredits: hold.estimatedCredits,
+  });
   if (!landed) {
     console.error("[autumn] finalize failed", {
       organizationId: customer.organizationId,
       lockId: hold.lockId,
       held: hold.estimatedCredits,
       actual: actualCredits,
-      error: lastError,
+      error,
     });
     return;
   }

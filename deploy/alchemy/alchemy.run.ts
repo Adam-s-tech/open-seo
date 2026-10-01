@@ -272,6 +272,7 @@ const dataEnv = {
   GOOGLE_CLIENT_SECRET: optionalSecret("GOOGLE_CLIENT_SECRET"),
   OPENROUTER_API_KEY: optionalSecret("OPENROUTER_API_KEY"),
   OPENROUTER_MODEL: optionalVar("OPENROUTER_MODEL"),
+  CONTEXT_API_KEY: optionalSecret("CONTEXT_API_KEY"),
   AUTUMN_SECRET_KEY: optionalSecret("AUTUMN_SECRET_KEY"),
   AUTUMN_WEBHOOK_SECRET: optionalSecret("AUTUMN_WEBHOOK_SECRET"),
   DUB_API_KEY: optionalSecret("DUB_API_KEY"),
@@ -397,6 +398,8 @@ export default Alchemy.Stack(
         // attacker-influenced HTML, so it gets only the secrets its code
         // path reads — DataForSEO (Lighthouse), Autumn (metering), PostHog
         // (capture). No auth/OAuth/Loops/Turnstile secrets.
+        BROWSER: Cloudflare.Browser(),
+        CONTEXT_API_KEY: dataEnv.CONTEXT_API_KEY,
         DATAFORSEO_API_KEY: dataEnv.DATAFORSEO_API_KEY,
         AUTUMN_SECRET_KEY: dataEnv.AUTUMN_SECRET_KEY,
         POSTHOG_PUBLIC_KEY: dataEnv.POSTHOG_PUBLIC_KEY,
@@ -460,6 +463,9 @@ export default Alchemy.Stack(
         AUTH_MODE: authMode,
         DATABASE_PROVIDER: databaseProvider || "d1",
         BETTER_AUTH_URL: authUrl,
+        // The audit worker above always binds BROWSER; the app worker checks
+        // this before it offers "Render JavaScript".
+        AUDIT_BROWSER_RENDERING: "true",
         TEAM_DOMAIN: access.teamDomain,
         POLICY_AUD: access.policyAud,
 
